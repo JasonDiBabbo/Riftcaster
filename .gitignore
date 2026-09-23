@@ -427,3 +427,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Custom generated TypeScript types
+src/overlays/src/generated/

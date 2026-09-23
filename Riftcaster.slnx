@@ -7,4 +7,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Riftcaster.Server.Tests/Riftcaster.Server.Tests.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Riftcaster.Codegen/Riftcaster.Codegen.csproj" />
+  </Folder>
 </Solution>
