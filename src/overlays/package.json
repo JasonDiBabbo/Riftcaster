@@ -1,0 +1,23 @@
+{
+  "name": "riftcaster-overlays",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OBS Browser Source overlay pages for Riftcaster",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:watch": "node build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write ."
+  },
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "esbuild": "^0.28.2",
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2"
+  }
+}

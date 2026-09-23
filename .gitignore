@@ -430,3 +430,6 @@ FodyWeavers.xsd
 
 # Custom generated TypeScript types
 src/overlays/src/generated/
+
+# Overlay build output (served by Riftcaster.Server)
+src/overlays/dist/

@@ -1,0 +1,17 @@
+html,
+body {
+  margin: 0;
+  background: transparent;
+}
+
+body {
+  overflow: hidden;
+}
+
+#server-identity {
+  display: inline-block;
+  padding: 8px 14px;
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-family: system-ui, sans-serif;
+}
