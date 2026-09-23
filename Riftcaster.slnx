@@ -1,2 +1,10 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Riftcaster.Admin/Riftcaster.Admin.csproj" />
+    <Project Path="src/Riftcaster.Contracts/Riftcaster.Contracts.csproj" />
+    <Project Path="src/Riftcaster.Server/Riftcaster.Server.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Riftcaster.Server.Tests/Riftcaster.Server.Tests.csproj" />
+  </Folder>
 </Solution>
