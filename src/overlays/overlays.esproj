@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/1.0.6578810">
+
+  <!--
+    IDE-only project: lists the overlays in Visual Studio's Solution Explorer with its npm and
+    JavaScript tooling. It deliberately builds nothing. The real overlays build (npm ci, typecheck,
+    bundle) lives in Riftcaster.Server.csproj, so it behaves the same in every IDE and the CLI.
+    Safe to delete if this SDK ever causes trouble; the build doesn't depend on it.
+  -->
+  <PropertyGroup>
+    <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
+    <ShouldRunBuildScript>false</ShouldRunBuildScript>
+  </PropertyGroup>
+
+</Project>

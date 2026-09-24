@@ -15,8 +15,21 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
 
-  <Target Name="GenerateTypeScript" AfterTargets="Build">
-    <Exec Command="dotnet &quot;$(TargetPath)&quot; &quot;$(MSBuildThisFileDirectory)../../src/overlays/src/generated&quot;" />
+  <PropertyGroup>
+    <GeneratedTypesDir>$(MSBuildThisFileDirectory)..\..\src\overlays\src\generated\</GeneratedTypesDir>
+    <GeneratedTypesStamp>$(GeneratedTypesDir).codegen-stamp</GeneratedTypesStamp>
+  </PropertyGroup>
+
+  <!--
+    Regenerates the TypeScript types after each build, but only when this tool or the Contracts
+    assembly changed. Skipping unchanged runs keeps the generated files' timestamps stable, which
+    lets the overlays build in Riftcaster.Server.csproj skip itself too. The stamp lives inside the
+    output folder, so deleting that folder always forces a regeneration.
+  -->
+  <Target Name="GenerateTypeScript" AfterTargets="Build" Condition="'$(DesignTimeBuild)' != 'true'"
+          Inputs="$(TargetPath);$(OutDir)Riftcaster.Contracts.dll" Outputs="$(GeneratedTypesStamp)">
+    <Exec Command="dotnet &quot;$(TargetPath)&quot; &quot;$(GeneratedTypesDir.TrimEnd('\'))&quot;" />
+    <Touch Files="$(GeneratedTypesStamp)" AlwaysCreate="true" />
   </Target>
 
 </Project>

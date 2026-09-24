@@ -5,10 +5,57 @@
        ours live in Riftcaster.Admin, so opt in explicitly. -->
     <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Contracts\Riftcaster.Contracts.csproj" />
     <ProjectReference Include="..\Riftcaster.Admin\Riftcaster.Admin.csproj" />
+    <!-- Build order only: Codegen must regenerate the overlays' TypeScript types before
+         BuildOverlays runs. Nothing from Codegen is referenced or copied into this project. -->
+    <ProjectReference Include="..\..\tools\Riftcaster.Codegen\Riftcaster.Codegen.csproj"
+                      ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
+
+  <!--
+    Overlays build (src/overlays): runs npm as part of every build of this project, from any IDE
+    or `dotnet build`, so the served overlay pages are never stale. Each step is incremental and is
+    skipped when its inputs haven't changed. Requires Node.js; pass -p:SkipOverlays=true to build
+    only the .NET side. Skipped during Visual Studio's background (design-time) builds.
+  -->
+  <PropertyGroup>
+    <OverlaysDir>$(MSBuildThisFileDirectory)..\overlays\</OverlaysDir>
+    <OverlaysBuildStamp>$(OverlaysDir)dist\.build-stamp</OverlaysBuildStamp>
+    <ShouldBuildOverlays Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipOverlays)' != 'true'">true</ShouldBuildOverlays>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <OverlaysInput Include="$(OverlaysDir)src\**\*" />
+    <OverlaysInput Include="$(OverlaysDir)package.json;$(OverlaysDir)package-lock.json;$(OverlaysDir)tsconfig.json;$(OverlaysDir)build.mjs" />
+  </ItemGroup>
+
+  <Target Name="BuildOverlays" AfterTargets="Build" Condition="'$(ShouldBuildOverlays)' == 'true'"
+          DependsOnTargets="EnsureNode;RestoreOverlayPackages"
+          Inputs="@(OverlaysInput)" Outputs="$(OverlaysBuildStamp)">
+    <Message Importance="high" Text="Building overlays (typecheck + bundle)..." />
+    <Exec Command="npm run typecheck" WorkingDirectory="$(OverlaysDir)" />
+    <!-- build.mjs recreates dist/, which removes the stamp until this step succeeds. -->
+    <Exec Command="npm run build" WorkingDirectory="$(OverlaysDir)" />
+    <Touch Files="$(OverlaysBuildStamp)" AlwaysCreate="true" />
+  </Target>
+
+  <!-- npm ci rewrites node_modules/.package-lock.json, so this reruns only when package-lock.json
+       changes (or node_modules is missing, e.g. a fresh clone). -->
+  <Target Name="RestoreOverlayPackages" Condition="'$(ShouldBuildOverlays)' == 'true'"
+          Inputs="$(OverlaysDir)package-lock.json" Outputs="$(OverlaysDir)node_modules\.package-lock.json">
+    <Message Importance="high" Text="Installing overlay npm packages..." />
+    <Exec Command="npm ci" WorkingDirectory="$(OverlaysDir)" />
+  </Target>
+
+  <Target Name="EnsureNode" Condition="'$(ShouldBuildOverlays)' == 'true'">
+    <Exec Command="node --version" IgnoreExitCode="true" StandardOutputImportance="low" StandardErrorImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="NodeExitCode" />
+    </Exec>
+    <Error Condition="'$(NodeExitCode)' != '0'"
+           Text="Node.js (22.18 or later) is required to build the overlays in $(OverlaysDir). Install it from https://nodejs.org, or build with -p:SkipOverlays=true to skip them." />
+  </Target>
 
 </Project>
