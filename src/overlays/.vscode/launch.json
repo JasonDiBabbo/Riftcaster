@@ -1,0 +1,17 @@
+{
+  // Launch configuration for overlays.esproj. Visual Studio (and VS Code) use it when the
+  // overlays project is started, e.g. by the "Server + Overlay Watch" profile in
+  // Riftcaster.slnLaunch: it runs the overlay watcher (npm run build:watch).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Overlay watch",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "build:watch"],
+      "console": "externalTerminal"
+    }
+  ]
+}

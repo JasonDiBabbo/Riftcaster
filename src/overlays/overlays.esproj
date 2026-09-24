@@ -5,6 +5,10 @@
     JavaScript tooling. It deliberately builds nothing. The real overlays build (npm ci, typecheck,
     bundle) lives in Riftcaster.Server.csproj, so it behaves the same in every IDE and the CLI.
     Safe to delete if this SDK ever causes trouble; the build doesn't depend on it.
+
+    Starting this project (e.g. via the "Server + Overlay Watch" profile in Riftcaster.slnLaunch)
+    runs the "Overlay watch" configuration in .vscode/launch.json: the overlay watcher, which
+    rebuilds TS/CSS and re-copies assets on save.
   -->
   <PropertyGroup>
     <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
