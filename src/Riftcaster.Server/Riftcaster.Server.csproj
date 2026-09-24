@@ -1,5 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
+  <PropertyGroup>
+    <!-- blazor.web.js is only included automatically for projects that contain .razor files;
+       ours live in Riftcaster.Admin, so opt in explicitly. -->
+    <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
+  </PropertyGroup>
+  
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Contracts\Riftcaster.Contracts.csproj" />
     <ProjectReference Include="..\Riftcaster.Admin\Riftcaster.Admin.csproj" />
