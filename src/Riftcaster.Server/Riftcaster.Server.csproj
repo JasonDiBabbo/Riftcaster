@@ -9,6 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Contracts\Riftcaster.Contracts.csproj" />
     <ProjectReference Include="..\Riftcaster.Admin\Riftcaster.Admin.csproj" />
+    <ProjectReference Include="..\Riftcaster.Core\Riftcaster.Core.csproj" />
     <!-- Build order only: Codegen must regenerate the overlays' TypeScript types before
          BuildOverlays runs. Nothing from Codegen is referenced or copied into this project. -->
     <ProjectReference Include="..\..\tools\Riftcaster.Codegen\Riftcaster.Codegen.csproj"

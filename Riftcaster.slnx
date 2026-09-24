@@ -6,9 +6,11 @@
     </Project>
     <Project Path="src/Riftcaster.Admin/Riftcaster.Admin.csproj" />
     <Project Path="src/Riftcaster.Contracts/Riftcaster.Contracts.csproj" />
+    <Project Path="src/Riftcaster.Core/Riftcaster.Core.csproj" />
     <Project Path="src/Riftcaster.Server/Riftcaster.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Riftcaster.Core.Tests/Riftcaster.Core.Tests.csproj" />
     <Project Path="tests/Riftcaster.Server.Tests/Riftcaster.Server.Tests.csproj" />
   </Folder>
   <Folder Name="/tools/">
