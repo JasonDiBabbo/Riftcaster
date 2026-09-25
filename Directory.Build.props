@@ -4,5 +4,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseAppHost>false</UseAppHost>
+        <!-- Report the warning-level .editorconfig code-style rules in every build, not only in the IDE. -->
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 </Project>

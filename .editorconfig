@@ -1,0 +1,89 @@
+# Editor and code-style settings shared by every IDE (Visual Studio, Rider, VS Code) and by
+# `dotnet format`. See https://editorconfig.org and
+# https://learn.microsoft.com/dotnet/fundamentals/code-analysis/code-style-rule-options
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown uses two trailing spaces as a line break.
+[*.md]
+trim_trailing_whitespace = false
+
+# MSBuild, solution and JSON files: two spaces, matching what Visual Studio and the dotnet
+# templates generate.
+[*.{csproj,esproj,props,targets,slnx,slnLaunch,json}]
+indent_size = 2
+
+# Overlays: two spaces, matching src/overlays/.prettierrc (Prettier owns the rest of their style).
+[*.{ts,mjs,js,css,html}]
+indent_size = 2
+
+[*.cs]
+
+#### Layout ####
+
+# namespace Riftcaster.Server;  (not namespace Riftcaster.Server { ... })
+csharp_style_namespace_declarations = file_scoped:warning
+
+# using directives go outside the namespace, with System.* first.
+csharp_using_directive_placement = outside_namespace:warning
+dotnet_sort_system_directives_first = true
+
+# Braces on their own lines, and always used for if/else/for/while bodies.
+csharp_new_line_before_open_brace = all
+csharp_prefer_braces = true:suggestion
+
+#### Naming ####
+
+# Private and internal fields: _camelCase (e.g. _service). Applies to static fields too.
+dotnet_naming_rule.private_fields_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_underscore.style = underscore_camel_case
+dotnet_naming_rule.private_fields_underscore.severity = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, internal, private_protected
+
+dotnet_naming_style.underscore_camel_case.capitalization = camel_case
+dotnet_naming_style.underscore_camel_case.required_prefix = _
+
+# Constants and static readonly fields: PascalCase at any accessibility (e.g. MaxRetries).
+# More specific than the rule above (it names modifiers), so it wins for these fields.
+dotnet_naming_rule.constants_pascal_case.symbols = constants
+dotnet_naming_rule.constants_pascal_case.style = pascal_case
+dotnet_naming_rule.constants_pascal_case.severity = warning
+
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+
+dotnet_naming_rule.static_readonly_pascal_case.symbols = static_readonly_fields
+dotnet_naming_rule.static_readonly_pascal_case.style = pascal_case
+dotnet_naming_rule.static_readonly_pascal_case.severity = warning
+
+dotnet_naming_symbols.static_readonly_fields.applicable_kinds = field
+dotnet_naming_symbols.static_readonly_fields.required_modifiers = static, readonly
+
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+#### Other preferences ####
+
+# _field, not this._field.
+dotnet_style_qualification_for_field = false:suggestion
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_method = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+# Flag unused using directives (shown faded in the IDE).
+dotnet_diagnostic.IDE0005.severity = suggestion
+
+#### Build enforcement ####
+
+# `dotnet build` (via EnforceCodeStyleInBuild in Directory.Build.props) only reports
+# code-style rules whose severity is set by rule ID, so repeat the warning-level ones here.
+dotnet_diagnostic.IDE1006.severity = warning # naming rules
+dotnet_diagnostic.IDE0161.severity = warning # file-scoped namespaces
+dotnet_diagnostic.IDE0065.severity = warning # using placement
