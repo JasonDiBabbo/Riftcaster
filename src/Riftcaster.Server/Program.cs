@@ -19,6 +19,7 @@ public partial class Program
         app.UseOverlays();
         app.UseAntiforgery();
         app.MapGet("/api/info", (ServerIdentity identity) => identity);
+        app.MapLowerThird();
         app.MapStaticAssets();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

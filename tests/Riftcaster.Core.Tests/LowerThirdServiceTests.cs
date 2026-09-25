@@ -75,4 +75,56 @@ public class LowerThirdServiceTests
         _service.Hide();
         Assert.Equal(0, _changedCount);
     }
+
+    [Fact]
+    public async Task WatchAsync_YieldsCurrentStateFirst()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+
+        Assert.True(await watch.MoveNextAsync());
+        Assert.Null(watch.Current.Message);
+    }
+
+    [Fact]
+    public async Task WatchAsync_YieldsChanges()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync()); // Consume the initial state
+
+        var message = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        _service.Show(message);
+
+        Assert.True(await watch.MoveNextAsync());
+        Assert.Equal(message, watch.Current.Message);
+    }
+
+    [Fact]
+    public async Task WatchAsync_WhenChangesPileUp_YieldsOnlyLatest()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync()); // Consume the initial state
+
+        var message1 = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        var message2 = new LowerThirdMessage("Draw", "Draw a card from your deck.");
+
+        _service.Show(message1);
+        _service.Show(message2);
+        Assert.True(await watch.MoveNextAsync()); // Only the latest change
+        Assert.Equal(message2, watch.Current.Message);
+    }
+
+    [Fact]
+    public async Task WatchAsync_EndsWhenCancelled()
+    {
+        using var cts = new CancellationTokenSource(); // no timeout: we cancel it ourselves
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync());
+
+        cts.Cancel(); // Register callback -> channel
+
+        Assert.False(await watch.MoveNextAsync()); // Stream ended normally
+    }
 }
