@@ -1,0 +1,96 @@
+.dashboard {
+  /* Ultrawide width of the Players column: 0.62fr per player. #11 sets this from the player count. */
+  --players-fr: 1.24fr;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.slot {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Timer grows to fill the column; Match keeps its natural height and never shrinks. */
+.timer-slot {
+  flex: 1 0 auto;
+}
+
+.match-slot {
+  flex: none;
+}
+
+.placeholder {
+  margin: 0;
+  padding: 14px 16px;
+  color: var(--text-faint);
+}
+
+/* Tablet: Players across the top, then two columns. The page scrolls. */
+@media (width >= 760px) {
+  .dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .players-column {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Desktop: three columns locked to the viewport. Panels scroll internally,
+   except the Timer + Match column, which scrolls as a whole. */
+@media (width >= 1200px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .players-column {
+    grid-column: auto;
+  }
+
+  .match-column {
+    overflow-y: auto;
+  }
+
+  .players-slot {
+    flex: 1;
+  }
+
+  .cards-slot {
+    flex: 1.15;
+  }
+
+  .lower-thirds-slot {
+    flex: 1;
+  }
+}
+
+/* Ultrawide: four columns, with Featured card and Lower thirds as their own columns. */
+@media (width >= 2400px) {
+  .dashboard {
+    max-width: 5200px;
+    grid-template-columns: minmax(0, var(--players-fr)) minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .feature-column {
+    display: contents;
+  }
+}

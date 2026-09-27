@@ -1,0 +1,118 @@
+﻿/* Design tokens and base styles for the admin dashboard.
+   Values come from the design handoff README, "Design Tokens". */
+
+:root {
+  /* Surfaces */
+  --bg: #0e0f11;
+  --hd: #121417;
+  --panel: #16181b;
+  --sunk: #131518;
+  --card: #1b1d21;
+  --input: #0f1113;
+  --line: #25282d;
+  --edge: #2c3036;
+  --header-line: #22252a;
+  --list-line: #262a2f;
+  /* Accent (mint, hue 165) */
+  --acc: oklch(0.78 0.12 165);
+  --acc-ink: #0d0f12;
+  --acc-line: oklch(0.42 0.07 165);
+  --acc-wash: oklch(0.21 0.03 165);
+  --segment-bg: oklch(0.34 0.06 165);
+  --segment-text: oklch(0.92 0.06 165);
+  /* Text */
+  --text: #e8e6e1;
+  --text-bright: #f3f1ec;
+  --text-secondary: #c9c7c2;
+  --text-muted: #9a9da3;
+  --text-faint: #8a8d93;
+  --text-placeholder: #6f737a;
+  /* Status */
+  --live: #e5534b;
+  --live-soft: #f08a84;
+  --ok: #4fbf73;
+  --warn: #e0a43c;
+  /* Neutral buttons */
+  --button: #23262b;
+  --button-strong: #2b2f36;
+  --button-hover: #1f2226;
+  /* Radii */
+  --radius-badge: 3px;
+  --radius-small: 4px;
+  --radius-control: 6px;
+  --radius-segmented: 7px;
+  --radius-item: 8px;
+  --radius-card: 9px;
+  --radius-panel: 10px;
+  --radius-pill: 15px;
+  /* Type */
+  --font: 'DM Sans', sans-serif;
+  --fs-label: 11px;
+  --fs-meta: 12px;
+  --fs-small: 13px;
+  --fs-body: 14px;
+  --fs-stepper: 15px;
+  --fs-title: 16px;
+  --fs-featured: 18px;
+  --fs-wordmark: 20px;
+  --fs-score: 28px;
+  --fs-timer: 68px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 var(--fs-body) / 1.4 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Form controls don't inherit font or colour by default. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+select option {
+  background: var(--panel);
+  color: var(--text);
+}
+
+/* Hide the native number spinners; the Stepper draws its own buttons. */
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  appearance: textfield;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--edge);
+  border: 3px solid var(--panel);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

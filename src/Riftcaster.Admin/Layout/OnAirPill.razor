@@ -1,0 +1,26 @@
+﻿<div class="pill" style="max-width: @(MaxWidth)px">
+    <span class="dot"></span>
+    <span class="label">@Label</span>
+    <span class="text">@Text</span>
+    <button type="button" class="clear" aria-label="Clear @Label" @onclick="OnClear">×</button>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = "";
+
+    [Parameter, EditorRequired]
+    public string Text { get; set; } = "";
+
+    /// <summary>
+    /// Cap the max width of the pill at 280px.
+    /// </summary>
+    /// <remarks>
+    /// The pill can be used for different purposes, but should cap at 280px no matter what.
+    /// </remarks>
+    [Parameter]
+    public int MaxWidth { get; set; } = 280;
+
+    [Parameter]
+    public EventCallback OnClear { get; set; }
+}

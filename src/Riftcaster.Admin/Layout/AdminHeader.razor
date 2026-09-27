@@ -1,0 +1,53 @@
+﻿@using Riftcaster.Core.LowerThird
+@implements IDisposable
+@inject LowerThirdService LowerThird
+
+<header class="header">
+    <div class="brand">
+        <span class="wordmark">RIFTCASTER</span>
+        <span class="badge">ADMIN</span>
+    </div>
+
+    <div class="summary">@MatchSummary</div>
+
+    <div class="spacer"></div>
+
+    <div class="status">
+        @* The featured card pill arrives with #14. *@
+        @if (LowerThird.CurrentMessage is { } message)
+        {
+            <OnAirPill Label="Lower third" Text="@Describe(message)" MaxWidth="280" OnClear="LowerThird.Hide" />
+        }
+        <div class="connected">
+            <span class="dot"></span>Overlay connected
+        </div>
+    </div>
+</header>
+
+@code {
+    // Placeholder until the Match panel exists (#13).
+    private const string MatchSummary = "Bo3 · 1v1 · 8 pts · 50 min + OT";
+
+    protected override void OnInitialized()
+    {
+        LowerThird.Changed += OnLowerThirdChanged;
+    }
+
+    private void OnLowerThirdChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        LowerThird.Changed -= OnLowerThirdChanged;
+    }
+
+    // The pill shows the message's primary line. #7 needs the same text for its list,
+    // so this will likely move somewhere shared then.
+    private static string Describe(LowerThirdMessage message) => message switch
+    {
+        LowerThirdKeywordMessage keyword => keyword.Keyword,
+        _ => message.GetType().Name,
+    };
+}

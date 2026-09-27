@@ -2,4 +2,36 @@
 
 <PageTitle>Riftcaster Admin</PageTitle>
 
-<LowerThirdPanel />
+<main class="dashboard">
+    <div class="column players-column">
+        <div class="slot players-slot">
+            <Panel Title="Players" Meta="1v1 · 2 players">
+                <p class="placeholder">Players panel (#11)</p>
+            </Panel>
+        </div>
+    </div>
+
+    <div class="column match-column">
+        <div class="slot timer-slot">
+            <Panel Title="Timer">
+                <p class="placeholder">Timer panel (#12)</p>
+            </Panel>
+        </div>
+        <div class="slot match-slot">
+            <Panel Title="Match">
+                <p class="placeholder">Match panel (#13)</p>
+            </Panel>
+        </div>
+    </div>
+
+    <div class="column feature-column">
+        <div class="slot cards-slot">
+            <Panel Title="Featured card">
+                <p class="placeholder">Featured card panel (#14)</p>
+            </Panel>
+        </div>
+        <div class="slot lower-thirds-slot">
+            <LowerThirdPanel />
+        </div>
+    </div>
+</main>

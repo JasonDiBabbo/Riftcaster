@@ -1,0 +1,74 @@
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--header-line);
+  background: var(--hd);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wordmark {
+  color: var(--acc);
+  font: 700 var(--fs-wordmark) / 1 var(--font);
+  letter-spacing: 0.05em;
+}
+
+.badge {
+  padding: 4px 7px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-small);
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.summary {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* The connection pill's greens are only used here, so they aren't tokens. */
+.connected {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #25302a;
+  border-radius: var(--radius-pill);
+  background: #141a16;
+  color: #b9c9bd;
+  font: 500 var(--fs-meta) / 1 var(--font);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+@media (width < 760px) {
+  .summary {
+    display: none;
+  }
+}

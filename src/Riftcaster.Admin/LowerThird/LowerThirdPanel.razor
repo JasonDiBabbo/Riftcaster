@@ -3,40 +3,42 @@
 @implements IDisposable
 @inject LowerThirdService LowerThird
 
-<h2>Lower Third</h2>
+<Panel Title="Lower thirds">
+    <div class="content">
+        <section>
+            <h3>On air</h3>
+            @switch (LowerThird.CurrentMessage)
+            {
+                case null:
+                    <p>Nothing showing.</p>
+                    break;
+                case LowerThirdKeywordMessage keywordMessage:
+                    <p><strong>@keywordMessage.Keyword</strong>: @keywordMessage.Description</p>
+                    break;
+                case var other:
+                    <p>Showing a @other.GetType().Name.</p>
+                    break;
+            }
+            <button @onclick="LowerThird.Hide" disabled="@(LowerThird.CurrentMessage is null)">Hide</button>
+        </section>
 
-<section>
-    <h3>On air</h3>
-    @switch (LowerThird.CurrentMessage)
-    {
-        case null:
-            <p>Nothing showing.</p>
-            break;
-        case LowerThirdKeywordMessage keywordMessage:
-            <p><strong>@keywordMessage.Keyword</strong>: @keywordMessage.Description</p>
-            break;
-        case var other:
-            <p>Showing a @other.GetType().Name.</p>
-            break;
-    }
-    <button @onclick="LowerThird.Hide" disabled="@(LowerThird.CurrentMessage is null)">Hide</button>
-</section>
-
-<section>
-    <h3>Keyword Message</h3>
-    <EditForm Model="_keywordMessageForm" OnValidSubmit="ShowKeyword">
-        <DataAnnotationsValidator />
-        <p>
-            <label>Keyword <InputText @bind-Value="_keywordMessageForm.Keyword" /></label>
-            <ValidationMessage For="() => _keywordMessageForm.Keyword" />
-        </p>
-        <p>
-            <label>Description <InputTextArea @bind-Value="_keywordMessageForm.Description" /></label>
-            <ValidationMessage For="() => _keywordMessageForm.Description" />
-        </p>
-        <button type="submit">Show</button>
-    </EditForm>
-</section>
+        <section>
+            <h3>Keyword Message</h3>
+            <EditForm Model="_keywordMessageForm" OnValidSubmit="ShowKeyword">
+                <DataAnnotationsValidator />
+                <p>
+                    <label>Keyword <InputText @bind-Value="_keywordMessageForm.Keyword" /></label>
+                    <ValidationMessage For="() => _keywordMessageForm.Keyword" />
+                </p>
+                <p>
+                    <label>Description <InputTextArea @bind-Value="_keywordMessageForm.Description" /></label>
+                    <ValidationMessage For="() => _keywordMessageForm.Description" />
+                </p>
+                <button type="submit">Show</button>
+            </EditForm>
+        </section>
+    </div>
+</Panel>
 
 @code {
     private readonly KeywordMessageForm _keywordMessageForm = new();
