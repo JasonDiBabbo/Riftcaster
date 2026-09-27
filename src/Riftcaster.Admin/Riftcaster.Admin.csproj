@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Contracts\Riftcaster.Contracts.csproj" />
+    <ProjectReference Include="..\Riftcaster.Core\Riftcaster.Core.csproj" />
   </ItemGroup>
 
 </Project>

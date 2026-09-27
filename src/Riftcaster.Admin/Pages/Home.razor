@@ -1,10 +1,5 @@
 ﻿@page "/"
-@inject ServerIdentity Identity
 
 <PageTitle>Riftcaster Admin</PageTitle>
-<p>@Identity.Name @Identity.Version</p>
-<button @onclick="() => clicks++">Clicked @clicks time(s)</button>
 
-@code {
-    private int clicks;
-}
+<LowerThirdPanel />

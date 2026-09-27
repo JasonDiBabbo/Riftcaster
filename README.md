@@ -51,7 +51,7 @@ dotnet run --project src/Riftcaster.Server
 1. The .NET projects.
 2. Regenerated TypeScript types in `src/overlays/src/generated/`.
 3. The overlays' npm packages, installed when needed.
-4. A typecheck and bundle of the overlays into `src/overlays/dist/`.
+4. A typecheck, lint ([Oxlint](https://oxc.rs/docs/guide/usage/linter)) and format check (Prettier) of the overlays, then a bundle into `src/overlays/dist/`. Lint and formatting problems fail the build just like type errors.
 
 Each step is skipped when its inputs haven't changed. The steps are MSBuild targets in `Riftcaster.Server.csproj`, so building from Visual Studio, Rider, or VS Code (with the C# Dev Kit extension) does exactly the same thing.
 
@@ -72,6 +72,12 @@ dotnet test
 ```
 
 The tests start the real server in memory with `WebApplicationFactory` and exercise it over HTTP.
+
+[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request.
+
+## Pre-commit checks
+
+The first build points Git at the repository's hooks in `.githooks/` (by setting `core.hooksPath` in your clone's own config). Before each commit, the `pre-commit` hook runs the fast checks on staged files: C# whitespace formatting, plus Oxlint and the Prettier check for overlay files. It takes a couple of seconds. The slower checks (naming and style rules, typechecking, tests) stay in the build and CI. Skip the hook in an emergency with `git commit --no-verify`.
 
 ## Adding an overlay to OBS
 
@@ -99,6 +105,15 @@ npm run build:watch
 ```
 
 It rebuilds TypeScript and CSS, and re-copies other assets, on every save. Refresh the page (or the OBS source) to see the change.
+
+The watcher only bundles. To fix what the build's checks report, run these in `src/overlays`:
+
+```bash
+npm run lint:fix
+```
+```bash
+npm run format
+```
 
 ### Developing in Visual Studio
 

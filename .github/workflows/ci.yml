@@ -1,0 +1,38 @@
+# Builds and tests the whole solution on every push to main and every pull request. `dotnet build`
+# also regenerates the TypeScript contracts and typechecks, lints, format-checks and bundles the
+# overlays (see the BuildOverlays target in src/Riftcaster.Server/Riftcaster.Server.csproj), so these
+# two steps cover everything a developer's local build does.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A newer push to the same branch or pull request cancels the run still in progress.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    # Windows, matching the platform Riftcaster runs on (the OBS machine).
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/overlays/package-lock.json
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build

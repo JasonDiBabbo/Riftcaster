@@ -1,0 +1,7 @@
+# Store text files with LF line endings in the repository, whatever each developer's
+# core.autocrlf setting is. Working copies get the platform's native endings on checkout.
+* text=auto
+
+# Git hooks run under sh, including on Windows (Git for Windows), where a CRLF line ending would
+# break the shebang line.
+.githooks/* text eol=lf

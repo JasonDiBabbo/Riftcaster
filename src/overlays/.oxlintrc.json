@@ -1,0 +1,20 @@
+{
+  // Oxlint (https://oxc.rs/docs/guide/usage/linter) rather than ESLint: typescript-eslint doesn't
+  // support TypeScript 7, and Oxlint parses TypeScript itself. Run by `npm run lint`, and by every
+  // `dotnet build` through the BuildOverlays target in Riftcaster.Server.csproj.
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc"],
+  "categories": {
+    // Code that is almost certainly wrong. Everything else is opt-in below.
+    "correctness": "error"
+  },
+  "rules": {
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    // Unused parameters are allowed when prefixed with _ (e.g. an event handler's unused event).
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "typescript/no-explicit-any": "error"
+  },
+  "ignorePatterns": ["dist/**", "src/generated/**"]
+}
