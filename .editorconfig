@@ -14,9 +14,9 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-# MSBuild, solution and JSON files: two spaces, matching what Visual Studio and the dotnet
-# templates generate.
-[*.{csproj,esproj,props,targets,slnx,slnLaunch,json}]
+# MSBuild, solution, JSON and YAML files: two spaces, matching what Visual Studio, the dotnet
+# templates and GitHub's workflow examples use.
+[*.{csproj,esproj,props,targets,slnx,slnLaunch,json,yml,yaml}]
 indent_size = 2
 
 # Overlays: two spaces, matching src/overlays/.prettierrc (Prettier owns the rest of their style).
