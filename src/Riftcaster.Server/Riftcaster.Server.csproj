@@ -28,16 +28,26 @@
     <ShouldBuildOverlays Condition="'$(DesignTimeBuild)' != 'true' and '$(SkipOverlays)' != 'true'">true</ShouldBuildOverlays>
   </PropertyGroup>
 
+  <!-- Everything the checks and the bundle read: sources, plus the root files (package.json, the
+       lockfile, tsconfig, build.mjs, and the lint and Prettier configs) and .vscode/, which
+       format:check also covers. -->
   <ItemGroup>
     <OverlaysInput Include="$(OverlaysDir)src\**\*" />
-    <OverlaysInput Include="$(OverlaysDir)package.json;$(OverlaysDir)package-lock.json;$(OverlaysDir)tsconfig.json;$(OverlaysDir)build.mjs" />
+    <OverlaysInput Include="$(OverlaysDir)*" />
+    <OverlaysInput Include="$(OverlaysDir).vscode\**\*" />
   </ItemGroup>
 
   <Target Name="BuildOverlays" AfterTargets="Build" Condition="'$(ShouldBuildOverlays)' == 'true'"
           DependsOnTargets="EnsureNode;RestoreOverlayPackages"
           Inputs="@(OverlaysInput)" Outputs="$(OverlaysBuildStamp)">
-    <Message Importance="high" Text="Building overlays (typecheck + bundle)..." />
+    <Message Importance="high" Text="Building overlays (typecheck + lint + format check + bundle)..." />
     <Exec Command="npm run typecheck" WorkingDirectory="$(OverlaysDir)" />
+    <!-- Lint and formatting problems fail the build like type errors do; the old repo ran these in a
+         pre-commit hook, this runs them for everyone on every build (and in CI). Fix with
+         `npm run lint:fix` and `npm run format`. -->
+    <Exec Command="npm run lint" WorkingDirectory="$(OverlaysDir)" />
+    <!-- no-color: Prettier's colored output shows up as raw escape codes in MSBuild logs. -->
+    <Exec Command="npm run format:check -- --no-color" WorkingDirectory="$(OverlaysDir)" />
     <!-- build.mjs recreates dist/, which removes the stamp until this step succeeds. -->
     <Exec Command="npm run build" WorkingDirectory="$(OverlaysDir)" />
     <Touch Files="$(OverlaysBuildStamp)" AlwaysCreate="true" />
@@ -49,6 +59,16 @@
           Inputs="$(OverlaysDir)package-lock.json" Outputs="$(OverlaysDir)node_modules\.package-lock.json">
     <Message Importance="high" Text="Installing overlay npm packages..." />
     <Exec Command="npm ci" WorkingDirectory="$(OverlaysDir)" />
+  </Target>
+
+  <!-- Points Git at the repository's committed hooks in .githooks/ (see pre-commit there), so every
+       clone gets them after its first build with nothing to install. Only changes this clone's own
+       .git/config. Skipped outside a Git checkout (e.g. a source zip), in CI (GitHub Actions sets
+       CI=true), and in Visual Studio's background builds; a missing git is a warning, not an error. -->
+  <Target Name="InstallGitHooks" BeforeTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(CI)' != 'true' and Exists('$(MSBuildThisFileDirectory)..\..\.git')">
+    <Exec Command="git config core.hooksPath .githooks" WorkingDirectory="$(MSBuildThisFileDirectory)..\.."
+          ContinueOnError="true" StandardOutputImportance="low" />
   </Target>
 
   <Target Name="EnsureNode" Condition="'$(ShouldBuildOverlays)' == 'true'">

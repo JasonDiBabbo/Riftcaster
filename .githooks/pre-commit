@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Pre-commit checks: the fast subset of what `dotnet build` enforces, on staged files only.
+#   - C#: whitespace formatting per .editorconfig (dotnet format, folder mode: no solution load)
+#   - Overlays: Oxlint and the Prettier check
+# Naming/style rules, typechecking and tests are left to the build and CI; they take too long to
+# run on every commit. Git runs this from the repository root. Installed by the InstallGitHooks
+# target in src/Riftcaster.Server/Riftcaster.Server.csproj (git config core.hooksPath .githooks).
+#
+# The checks read the working-tree copy of each staged file, so a file that is only partly staged
+# is checked as a whole. In an emergency, skip the hook with `git commit --no-verify`.
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -z "$staged" ] && exit 0
+
+failed=0
+
+# --- C# -------------------------------------------------------------------------------------------
+cs_files=$(printf '%s\n' "$staged" | grep '\.cs$')
+if [ -n "$cs_files" ]; then
+  echo "pre-commit: checking C# whitespace..."
+  if ! printf '%s\n' "$cs_files" | xargs -d '\n' dotnet format whitespace --folder --verify-no-changes --include; then
+    echo "pre-commit: fix with: dotnet format whitespace --folder"
+    failed=1
+  fi
+fi
+
+# --- Overlays -------------------------------------------------------------------------------------
+# Paths relative to src/overlays, where the tools and their configs live.
+overlay_files=$(printf '%s\n' "$staged" | sed -n 's|^src/overlays/||p')
+if [ -n "$overlay_files" ]; then
+  if [ ! -d src/overlays/node_modules ]; then
+    echo "pre-commit: skipping overlay checks (src/overlays/node_modules is missing; build once to install it)."
+  else
+    echo "pre-commit: checking overlays (lint + format)..."
+    script_files=$(printf '%s\n' "$overlay_files" | grep -E '\.(ts|mts|js|mjs)$')
+    if [ -n "$script_files" ]; then
+      if ! (cd src/overlays && printf '%s\n' "$script_files" | xargs -d '\n' node_modules/.bin/oxlint); then
+        echo "pre-commit: fix with: npm run lint:fix (in src/overlays)"
+        failed=1
+      fi
+    fi
+    # --ignore-unknown: skip file types Prettier doesn't format. .prettierignore still applies.
+    if ! (cd src/overlays && printf '%s\n' "$overlay_files" | xargs -d '\n' node_modules/.bin/prettier --check --ignore-unknown); then
+      echo "pre-commit: fix with: npm run format (in src/overlays)"
+      failed=1
+    fi
+  fi
+fi
+
+if [ "$failed" -ne 0 ]; then
+  echo "pre-commit: checks failed; commit aborted."
+fi
+exit "$failed"
