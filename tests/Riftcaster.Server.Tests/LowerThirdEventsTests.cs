@@ -31,11 +31,12 @@ public class LowerThirdEventsTests(WebApplicationFactory<Program> factory) : ICl
 
         // 4. Change the state through the server's own service
         var service = factory.Services.GetRequiredService<LowerThirdService>();
-        var message = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         service.Show(message);
 
         // 5. Next event: the change
         Assert.True(await events.MoveNextAsync());
+        Assert.Contains("\"type\":\"keyword\"", events.Current.Data);
         var changed = JsonSerializer.Deserialize<LowerThirdState>(events.Current.Data, JsonSerializerOptions.Web);
         Assert.Equal(message, changed?.Message);
     }

@@ -23,14 +23,14 @@ public class LowerThirdServiceTests
     [Fact]
     public void Show_RaisesChanged()
     {
-        _service.Show(new LowerThirdMessage("Burn", "Send cards to the trash."));
+        _service.Show(new LowerThirdKeywordMessage("Burn", "Send cards to the trash."));
         Assert.Equal(1, _changedCount);
     }
 
     [Fact]
     public void Show_SetsCurrent()
     {
-        var message = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         _service.Show(message);
         Assert.Equal(message, _service.CurrentMessage);
     }
@@ -40,8 +40,8 @@ public class LowerThirdServiceTests
     {
         string keyword = "Burn";
         string description = "Send cards to the trash.";
-        var message1 = new LowerThirdMessage(keyword, description);
-        var message2 = new LowerThirdMessage(keyword, description);
+        var message1 = new LowerThirdKeywordMessage(keyword, description);
+        var message2 = new LowerThirdKeywordMessage(keyword, description);
         Assert.NotSame(message1, message2);
         _service.Show(message1);
         _service.Show(message2);
@@ -51,8 +51,8 @@ public class LowerThirdServiceTests
     [Fact]
     public void Show_DifferentMessage_RaisesChangedAgain()
     {
-        var message1 = new LowerThirdMessage("Burn", "Send cards to the trash.");
-        var message2 = new LowerThirdMessage("Draw", "Draw a card from your deck.");
+        var message1 = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
+        var message2 = new LowerThirdKeywordMessage("Draw", "Draw a card from your deck.");
         _service.Show(message1);
         _service.Show(message2);
         Assert.Equal(2, _changedCount);
@@ -62,7 +62,7 @@ public class LowerThirdServiceTests
     [Fact]
     public void Hide_ClearsCurrentAndRaisesChanged()
     {
-        var message = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         _service.Show(message);
         _service.Hide();
         Assert.Null(_service.CurrentMessage);
@@ -93,7 +93,7 @@ public class LowerThirdServiceTests
         await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
         Assert.True(await watch.MoveNextAsync()); // Consume the initial state
 
-        var message = new LowerThirdMessage("Burn", "Send cards to the trash.");
+        var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         _service.Show(message);
 
         Assert.True(await watch.MoveNextAsync());
@@ -107,8 +107,8 @@ public class LowerThirdServiceTests
         await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
         Assert.True(await watch.MoveNextAsync()); // Consume the initial state
 
-        var message1 = new LowerThirdMessage("Burn", "Send cards to the trash.");
-        var message2 = new LowerThirdMessage("Draw", "Draw a card from your deck.");
+        var message1 = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
+        var message2 = new LowerThirdKeywordMessage("Draw", "Draw a card from your deck.");
 
         _service.Show(message1);
         _service.Show(message2);
@@ -127,4 +127,23 @@ public class LowerThirdServiceTests
 
         Assert.False(await watch.MoveNextAsync()); // Stream ended normally
     }
+
+    [Fact]
+    public void Show_SameValuesDifferentType_RaisesChangedAgain()
+    {
+        var keywordMessage = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
+        var otherMessage = new OtherMessage("Burn", "Send cards to the trash.");
+
+        _service.Show(keywordMessage);
+        _service.Show(otherMessage);
+
+        Assert.Equal(2, _changedCount);
+    }
+
+    /// <summary>
+    /// A distinct message type for testing with the same shape as <see cref="LowerThirdKeywordMessage"/>.
+    /// </summary>
+    /// <param name="Keyword">The message keyword</param>
+    /// <param name="Description">The message description</param>
+    private sealed record OtherMessage(string Keyword, string Description) : LowerThirdMessage;
 }

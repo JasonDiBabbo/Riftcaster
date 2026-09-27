@@ -1,6 +1,6 @@
-﻿using Riftcaster.Contracts;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using Riftcaster.Contracts;
 
 namespace Riftcaster.Core.LowerThird;
 
