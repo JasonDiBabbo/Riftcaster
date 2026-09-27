@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riftcaster Lower Third</title>
+    <link rel="stylesheet" href="lowerThird.css" />
+    <script type="module" src="lowerThird.js"></script>
+  </head>
+  <body>
+    <!-- Starts hidden - a fresh OBS browser source shouldn't show anything
+         until a real state-update says a message is live. See
+         lowerThird.ts's render(). -->
+    <div class="lower-third-stage">
+      <div class="composition is-hidden" id="composition">
+        <div class="parallelogram kw" id="kwShape">
+          <div class="parallelogram__inner kw__inner">
+            <span class="kw__text" id="kwText"></span>
+          </div>
+        </div>
+
+        <div class="parallelogram desc" id="descShape">
+          <div class="parallelogram__inner desc__inner">
+            <span class="desc__text" id="descText"></span>
+          </div>
+          <!-- Bottom edge only - the left edge is a static border-left on
+               .desc itself (see lowerThird.css), always present rather than
+               drawn. -->
+          <div class="desc__bottom-edge" id="descBottomEdge"></div>
+          <div class="desc__diamond" id="descDiamond"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
