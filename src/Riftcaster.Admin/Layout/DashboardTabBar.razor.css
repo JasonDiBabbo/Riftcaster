@@ -17,10 +17,11 @@
   border-radius: var(--radius-item);
   background: transparent;
   color: var(--text-muted);
-  font: 600 var(--fs-small) / 1 var(--font);
+  font: 600 var(--fs-small) / 1.15 var(--font);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  white-space: nowrap;
+  /* Long labels ("Lower thirds") wrap onto two lines at phone widths. */
+  white-space: normal;
   cursor: pointer;
 }
 
