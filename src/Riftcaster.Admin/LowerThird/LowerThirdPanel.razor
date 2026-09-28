@@ -19,22 +19,28 @@
                     <p>Showing a @other.GetType().Name.</p>
                     break;
             }
-            <button @onclick="LowerThird.Hide" disabled="@(LowerThird.CurrentMessage is null)">Hide</button>
+            <button class="button-secondary" @onclick="LowerThird.Hide" disabled="@(LowerThird.CurrentMessage is null)">Hide</button>
         </section>
 
         <section>
             <h3>Keyword Message</h3>
+
             <EditForm Model="_keywordMessageForm" OnValidSubmit="ShowKeyword">
                 <DataAnnotationsValidator />
-                <p>
-                    <label>Keyword <InputText @bind-Value="_keywordMessageForm.Keyword" /></label>
-                    <ValidationMessage For="() => _keywordMessageForm.Keyword" />
-                </p>
-                <p>
-                    <label>Description <InputTextArea @bind-Value="_keywordMessageForm.Description" /></label>
-                    <ValidationMessage For="() => _keywordMessageForm.Description" />
-                </p>
-                <button type="submit">Show</button>
+                <div class="fields">
+                    <Field Label="Keyword">
+                        <InputText @bind-Value="_keywordMessageForm.Keyword" />
+                        <ValidationMessage For="() => _keywordMessageForm.Keyword" />
+                    </Field>
+                    <Field Label="Description">
+                        <InputTextArea @bind-Value="_keywordMessageForm.Description" />
+                        <ValidationMessage For="() => _keywordMessageForm.Description" />
+                    </Field>
+
+                    <div>
+                        <button type="submit" class="button-secondary">Show</button>
+                    </div>
+                </div>
             </EditForm>
         </section>
     </div>

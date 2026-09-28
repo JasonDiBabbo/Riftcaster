@@ -1,0 +1,35 @@
+﻿@typeparam TValue
+
+<div class="segmented" role="group" aria-label="@Label">
+    @foreach (var option in Options)
+    {
+        var selected = IsSelected(option.Value);
+        <button type="button"
+                class="segment @(selected ? "selected" : "")"
+                aria-pressed="@(selected ? "true" : "false")"
+                @onclick="() => ValueChanged.InvokeAsync(option.Value)">
+            @option.Label
+        </button>
+    }
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<SegmentOption<TValue>> Options { get; set; } = [];
+
+    [Parameter]
+    public TValue? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<TValue> ValueChanged { get; set; }
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    /// <summary>
+    /// Determines whether an option is selected.
+    /// </summary>
+    /// <param name="value">The value to check for selection.</param>
+    /// <returns>True if the input value is selected and false if not.</returns>
+    private bool IsSelected(TValue value) => EqualityComparer<TValue>.Default.Equals(value, Value);
+}

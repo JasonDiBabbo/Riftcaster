@@ -1,3 +1,9 @@
 .content {
   padding: 12px 16px 14px;
 }
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}

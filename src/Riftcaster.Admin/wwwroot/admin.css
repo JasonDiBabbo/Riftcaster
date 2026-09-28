@@ -91,6 +91,74 @@ select option {
   color: var(--text);
 }
 
+/* Form controls (design handoff, "Form controls"). :where() gives these zero
+   specificity, so any component's own styles override them without a fight. */
+:where( input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit']), select, textarea ) {
+  width: 100%;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--input);
+  color: var(--text);
+  outline: none;
+}
+
+:where(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit'])) {
+  height: 36px;
+  padding: 0 10px;
+  font: 500 var(--fs-body) / 1 var(--font);
+}
+
+:where(select) {
+  height: 36px;
+  padding: 0 8px;
+  font: 400 var(--fs-body) / 1 var(--font);
+}
+
+:where(textarea) {
+  padding: 8px 10px;
+  font: 400 var(--fs-body) / 1.4 var(--font);
+  resize: vertical;
+}
+
+:where(input, select, textarea):focus {
+  border-color: var(--acc);
+}
+
+/* Blazor's validation classes. Not in the design (the prototype has no
+   validation), so these use the existing status colours. */
+:where(input, select, textarea).invalid {
+  border-color: var(--live);
+}
+
+.validation-message {
+  margin-top: 4px;
+  color: var(--live-soft);
+  font-size: var(--fs-meta);
+}
+
+/* Secondary button: Reset scores, + New, Clear (design handoff, "Panel shell"). */
+.button-secondary {
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--button-hover);
+}
+
+/* Not in the design, which has no disabled buttons. Needed for Hide while nothing is live. */
+.button-secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* Hide the native number spinners; the Stepper draws its own buttons. */
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
