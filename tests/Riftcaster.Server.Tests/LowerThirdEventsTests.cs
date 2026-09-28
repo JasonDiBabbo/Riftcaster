@@ -12,8 +12,8 @@ public class LowerThirdEventsTests(WebApplicationFactory<Program> factory) : ICl
     [Fact]
     public async Task Events_StreamsCurrentStateThenChanges()
     {
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(); // starts the test server, which can be slow on a cold CI runner
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
 
         // 1. Send the request, but return as soon as the headers arrive
         using var response = await client.GetAsync("/api/lower-third/events", HttpCompletionOption.ResponseHeadersRead, cts.Token);
