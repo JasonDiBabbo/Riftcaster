@@ -94,3 +94,19 @@
     display: contents;
   }
 }
+
+/* Phone: one section at a time, chosen by the tab bar. Hidden sections stay rendered,
+   so switching tabs keeps their state. The bottom padding clears the fixed tab bar. */
+@media (width < 760px) {
+  .dashboard {
+    padding-bottom: 84px;
+  }
+
+    .dashboard:not([data-tab='Players']) .players-column,
+    .dashboard:not([data-tab='Match']) .match-column,
+    .dashboard:not([data-tab='Cards']):not([data-tab='LowerThirds']) .feature-column,
+    .dashboard:not([data-tab='Cards']) .cards-slot,
+    .dashboard:not([data-tab='LowerThirds']) .lower-thirds-slot {
+      display: none;
+    }
+}

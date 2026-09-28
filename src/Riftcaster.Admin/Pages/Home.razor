@@ -2,7 +2,7 @@
 
 <PageTitle>Riftcaster Admin</PageTitle>
 
-<main class="dashboard">
+<main class="dashboard" data-tab="@_tab">
     <div class="column players-column">
         <div class="slot players-slot">
             <Panel Title="Players" Meta="1v1 · 2 players">
@@ -35,3 +35,15 @@
         </div>
     </div>
 </main>
+
+<DashboardTabBar @bind-Tab="_tab" />
+
+@code {
+    /// <summary>
+    /// The visible tab, if applicable.
+    /// </summary>
+    /// <remarks>
+    /// Wider screen layouts show every section and do not use tabs.
+    /// </remarks>
+    private DashboardTab _tab = DashboardTab.Players;
+}
