@@ -1,0 +1,27 @@
+﻿<nav class="tab-bar">
+    @foreach (var (tab, label) in Tabs)
+    {
+        <button type="button"
+                class="tab @(tab == Tab ? "active" : "")"
+                aria-current="@(tab == Tab ? "true" : null)"
+                @onclick="() => TabChanged.InvokeAsync(tab)">
+            @label
+        </button>
+    }
+</nav>
+
+@code {
+    private static readonly (DashboardTab Tab, string Label)[] Tabs =
+        [
+            (DashboardTab.Players, "Players"),
+            (DashboardTab.Match, "Match"),
+            (DashboardTab.Cards, "Cards"),
+            (DashboardTab.LowerThirds, "Lower thirds")
+    ];
+
+    [Parameter]
+    public DashboardTab Tab { get; set; }
+
+    [Parameter]
+    public EventCallback<DashboardTab> TabChanged { get; set; }
+}
