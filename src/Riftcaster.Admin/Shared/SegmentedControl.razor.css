@@ -1,0 +1,30 @@
+.segmented {
+  display: flex;
+  gap: 3px;
+  height: 36px;
+  padding: 3px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-segmented);
+  background: var(--input);
+}
+
+.segment {
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
+  overflow: hidden;
+  border: none;
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  font: 600 var(--fs-body) / 1 var(--font);
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.segment.selected {
+  background: var(--segment-bg);
+  color: var(--segment-text);
+}
