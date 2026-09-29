@@ -5,13 +5,37 @@ namespace Riftcaster.Core.Tests;
 
 public class LowerThirdServiceTests
 {
-    private readonly LowerThirdService _service = new();
+    private readonly InMemoryLowerThirdStore _store = new();
+
+    private readonly LowerThirdService _service;
 
     private int _changedCount;
 
     public LowerThirdServiceTests()
     {
+        _service = new LowerThirdService(_store);
         _service.Changed += () => _changedCount++;
+    }
+
+    [Fact]
+    public void Constructor_LoadsLibraryFromStore()
+    {
+        var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
+        var entry = new LowerThirdEntry(Guid.NewGuid(), message);
+        _store.Save(new LowerThirdLibrary([entry], entry.Id));
+
+        var service = new LowerThirdService(_store);
+
+        Assert.Equal([entry], service.Library.Entries);
+        Assert.Equal(message, service.CurrentMessage);
+    }
+
+    [Fact]
+    public void Changes_AreSaved()
+    {
+        AddAndShow(new LowerThirdKeywordMessage("Burn", "Send cards to the trash."));
+
+        Assert.Same(_service.Library, _store.Library);
     }
 
     [Fact]
