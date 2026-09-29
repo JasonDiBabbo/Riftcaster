@@ -56,10 +56,9 @@
 
     private void ShowKeyword()
     {
-        LowerThird.Show(
-            new LowerThirdKeywordMessage(
-                _keywordMessageForm.Keyword.Trim(),
-                _keywordMessageForm.Description.Trim()));
+        var message = new LowerThirdKeywordMessage(_keywordMessageForm.Keyword.Trim(), _keywordMessageForm.Description.Trim());
+        var entry = LowerThird.Add(message);
+        LowerThird.Show(entry.Id);
     }
 
     private void OnLowerThirdChanged()
