@@ -1,22 +1,26 @@
-﻿namespace Riftcaster.Core.LowerThird;
+﻿using System.Collections.Immutable;
+using Riftcaster.Contracts;
+
+namespace Riftcaster.Core.LowerThird;
 
 /// <summary>
-/// An interface for persisting lower third libraries between server restarts.
+/// An interface for persisting lower third entries between server restarts.
+/// What's on air is not persisted. After a restart, nothing is live.
 /// </summary>
 public interface ILowerThirdStore
 {
     /// <summary>
-    /// Loads the saved library or <see cref="LowerThirdLibrary.Empty"/> if there isn't one.
+    /// Loads the saved entries, newest first, or an empty list if there are none.
     /// </summary>
-    /// <returns>The saved library.</returns>
-    LowerThirdLibrary Load();
+    /// <returns>The saved entries, newest first.</returns>
+    ImmutableList<LowerThirdEntry> Load();
 
     /// <summary>
-    /// Saves the library, replacing any previous save.
+    /// Saves the entries, replacing any previous save.
     /// </summary>
     /// <remarks>
     /// Implementations should log failures rather than throw exceptions.
     /// </remarks>
-    /// <param name="library">The library to save.</param>
-    void Save(LowerThirdLibrary library);
+    /// <param name="entries">The entries to save.</param>
+    void Save(ImmutableList<LowerThirdEntry> entries);
 }

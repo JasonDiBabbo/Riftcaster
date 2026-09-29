@@ -436,3 +436,6 @@ src/overlays/dist/
 
 # Claude Code local settings
 .claude/
+
+# Runtime data saved by the server (lower third library, etc.)
+src/Riftcaster.Server/data/

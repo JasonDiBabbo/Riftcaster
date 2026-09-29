@@ -7,7 +7,7 @@ using Riftcaster.Core.LowerThird;
 
 namespace Riftcaster.Server.Tests;
 
-public class LowerThirdEventsTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class LowerThirdEventsTests(RiftcasterWebApplicationFactory factory) : IClassFixture<RiftcasterWebApplicationFactory>
 {
     [Fact]
     public async Task Events_StreamsCurrentStateThenChanges()

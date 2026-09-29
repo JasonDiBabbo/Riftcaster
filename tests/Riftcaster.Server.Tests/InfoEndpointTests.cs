@@ -4,7 +4,7 @@ using Riftcaster.Contracts;
 
 namespace Riftcaster.Server.Tests;
 
-public class InfoEndpointTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class InfoEndpointTests(RiftcasterWebApplicationFactory factory) : IClassFixture<RiftcasterWebApplicationFactory>
 {
     [Fact]
     public async Task GetInfo_ReturnsServerIdentity()

@@ -14,7 +14,7 @@ public class LowerThirdService(ILowerThirdStore store)
 
     private readonly Lock _lock = new();
 
-    private LowerThirdLibrary _library = store.Load();
+    private LowerThirdLibrary _library = new(store.Load(), LiveEntryId: null);
 
     /// <summary>
     /// The current library of saved lower third entries and which one is live.
@@ -203,11 +203,17 @@ public class LowerThirdService(ILowerThirdStore store)
     /// <remarks>
     /// Must be called inside the lock so that saves
     /// reach the store in the same order as the changes.
+    /// Will only save when the library entries have changed.
     /// </remarks>
     /// <param name="library">The library to assign</param>
     private void Set(LowerThirdLibrary library)
     {
+        var entriesChanged = !ReferenceEquals(library.Entries, _library.Entries);
         _library = library;
-        _store.Save(library);
+
+        if (entriesChanged)
+        {
+            _store.Save(library.Entries);
+        }
     }
 }

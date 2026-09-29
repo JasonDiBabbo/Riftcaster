@@ -12,7 +12,9 @@ public partial class Program
 
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
-        builder.Services.AddSingleton<ILowerThirdStore, InMemoryLowerThirdStore>(); // Replaced by the JSON file store in 5d
+        builder.Services.AddSingleton<ILowerThirdStore>(services => new JsonFileLowerThirdStore(
+            Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["LowerThird:StorePath"] ?? "data/lowerThird.json"),
+            services.GetRequiredService<ILogger<JsonFileLowerThirdStore>>()));
         builder.Services.AddSingleton<LowerThirdService>();
 
         var app = builder.Build();

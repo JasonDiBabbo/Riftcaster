@@ -18,16 +18,16 @@ public class LowerThirdServiceTests
     }
 
     [Fact]
-    public void Constructor_LoadsLibraryFromStore()
+    public void Constructor_LoadsEntriesButNothingIsLive()
     {
         var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         var entry = new LowerThirdEntry(Guid.NewGuid(), message);
-        _store.Save(new LowerThirdLibrary([entry], entry.Id));
+        _store.Save([entry]);
 
         var service = new LowerThirdService(_store);
 
         Assert.Equal([entry], service.Library.Entries);
-        Assert.Equal(message, service.CurrentMessage);
+        Assert.Null(service.CurrentMessage);
     }
 
     [Fact]
@@ -35,7 +35,19 @@ public class LowerThirdServiceTests
     {
         AddAndShow(new LowerThirdKeywordMessage("Burn", "Send cards to the trash."));
 
-        Assert.Same(_service.Library, _store.Library);
+        Assert.Same(_service.Library.Entries, _store.Entries);
+    }
+
+    [Fact]
+    public void ShowAndHide_DoNotSave()
+    {
+        var entry = _service.Add(new LowerThirdKeywordMessage("Burn", "Send cards to the trash."));
+        var saveCount = _store.SaveCount;
+
+        _service.Show(entry.Id);
+        _service.Hide();
+
+        Assert.Equal(saveCount, _store.SaveCount);
     }
 
     [Fact]
