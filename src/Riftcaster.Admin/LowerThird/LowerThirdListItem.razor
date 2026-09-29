@@ -1,0 +1,42 @@
+﻿<div class="item @(IsLive ? "live" : "")">
+    <div class="text">
+        <div class="tags">
+            <span class="badge" style="--badge-color: @_summary.BadgeColor">@_summary.Badge</span>
+            @if (IsLive)
+            {
+                <span class="on-air">● On air</span>
+            }
+        </div>
+        <div class="primary" title="@_summary.Primary">@_summary.Primary</div>
+        <div class="secondary" title="@_summary.Secondary">@_summary.Secondary</div>
+    </div>
+    <div class="actions">
+        <button type="button" class="ghost" @onclick="OnEdit">Edit</button>
+        <button type="button" class="ghost" @onclick="OnDelete">Delete</button>
+        <button type="button" class="toggle" @onclick="OnToggle">@(IsLive ? "Hide" : "Show")</button>
+    </div>
+</div>
+
+@code {
+    private LowerThirdSummary _summary = null!;
+
+    [Parameter, EditorRequired]
+    public LowerThirdEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public bool IsLive { get; set; }
+
+    [Parameter]
+    public EventCallback OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback OnDelete { get; set; }
+
+    [Parameter]
+    public EventCallback OnToggle { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _summary = LowerThirdSummary.For(Entry.Message);
+    }
+}

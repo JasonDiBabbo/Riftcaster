@@ -1,0 +1,56 @@
+﻿@using System.ComponentModel.DataAnnotations
+
+<div class="editor">
+    <span class="title">@(Entry is null ? "New lower third" : "Edit lower third")</span>
+
+    <EditForm Model="_keywordForm" OnValidSubmit="SaveAsync">
+        <DataAnnotationsValidator />
+        <div class="fields">
+            <InputText @bind-Value="_keywordForm.Keyword" placeholder="Keyword" aria-label="Keyword" />
+            <ValidationMessage For="() => _keywordForm.Keyword" />
+            <InputTextArea @bind-Value="_keywordForm.Description" placeholder="Description" aria-label="Description" rows="2" />
+            <ValidationMessage For="() => _keywordForm.Description" />
+
+            <div class="buttons">
+                <button type="button" class="cancel" @onclick="OnCancel">Cancel</button>
+                <button type="submit" class="save">Save</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private readonly KeywordForm _keywordForm = new();
+
+    [Parameter]
+    public LowerThirdEntry? Entry { get; set; }
+
+    [Parameter]
+    public EventCallback<LowerThirdMessage> OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    // Once, not in OnParametersSet: the panel re-renders on every library change,
+    // and re-copying the entry here would wipe whatever the operator is typing.
+    protected override void OnInitialized()
+    {
+        if (Entry?.Message is LowerThirdKeywordMessage keyword)
+        {
+            _keywordForm.Keyword = keyword.Keyword;
+            _keywordForm.Description = keyword.Description;
+        }
+    }
+
+    private Task SaveAsync() =>
+        OnSave.InvokeAsync(new LowerThirdKeywordMessage(_keywordForm.Keyword.Trim(), _keywordForm.Description.Trim()));
+
+    private sealed class KeywordForm
+    {
+        [Required]
+        public string Keyword { get; set; } = "";
+
+        [Required]
+        public string Description { get; set; } = "";
+    }
+}

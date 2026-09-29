@@ -1,9 +1,7 @@
+/* Design: the editor card and the list items stack with an 8px gap. */
 .content {
-  padding: 12px 16px 14px;
-}
-
-.fields {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 8px;
+  padding: 12px 16px 14px;
 }

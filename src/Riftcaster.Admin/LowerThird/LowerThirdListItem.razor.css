@@ -1,0 +1,108 @@
+.item {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--list-line);
+  border-radius: var(--radius-item);
+  background: var(--card);
+}
+
+.item.live {
+  border-color: #5a2e2b;
+  background: #1f1615;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  padding: 3px 6px;
+  border: 1px solid var(--badge-color);
+  border-radius: var(--radius-badge);
+  color: var(--badge-color);
+  font: 600 10px / 1 var(--font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.on-air {
+  color: var(--live-soft);
+  font: 600 10px / 1 var(--font);
+  text-transform: uppercase;
+}
+
+.primary,
+.secondary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primary {
+  font: 500 var(--fs-body) / 1.3 var(--font);
+}
+
+.secondary {
+  color: var(--text-muted);
+  font: 400 var(--fs-meta) / 1.35 var(--font);
+}
+
+.actions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ghost {
+  height: 30px;
+  padding: 0 8px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ghost:hover {
+  background: var(--button);
+  color: var(--text);
+}
+
+.toggle {
+  /* A fixed width, not min-width: SHOW is wider than HIDE, and a width that
+   changes with the label would nudge the row's content on every toggle. */
+  width: 72px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--button-strong);
+  color: var(--text);
+  font: 700 var(--fs-small) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.live .toggle {
+  background: var(--live);
+  color: #fff;
+}

@@ -1,0 +1,51 @@
+.editor {
+  flex: none;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--acc-line);
+  border-radius: var(--radius-item);
+  background: var(--acc-wash);
+}
+
+.title {
+  color: var(--acc);
+  font: 600 var(--fs-body) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.fields {
+  display: grid;
+  gap: 10px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.cancel,
+.save {
+  height: 32px;
+  border-radius: var(--radius-control);
+  font: 500 var(--fs-small) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cancel {
+  padding: 0 12px;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.save {
+  padding: 0 14px;
+  border: none;
+  background: var(--acc);
+  color: var(--acc-ink);
+  font-weight: 600;
+}
