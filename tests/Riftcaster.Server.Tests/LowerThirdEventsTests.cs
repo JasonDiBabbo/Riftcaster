@@ -32,7 +32,7 @@ public class LowerThirdEventsTests(WebApplicationFactory<Program> factory) : ICl
         // 4. Change the state through the server's own service
         var service = factory.Services.GetRequiredService<LowerThirdService>();
         var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
-        service.Show(message);
+        service.Show(service.Add(message).Id);
 
         // 5. Next event: the change
         Assert.True(await events.MoveNextAsync());
