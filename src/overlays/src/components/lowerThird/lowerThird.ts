@@ -3,19 +3,21 @@
  * from the server over Server-Sent Events (GET /api/lower-third/events): the
  * current state on connect, then one event per change.
  *
- * Each message type has its own visual (keywordVisual.ts, informationVisual.ts),
- * with its own entrance and exit. This file only decides which visual shows
+ * Each message type has its own visual (keywordVisual.ts, informationVisual.ts,
+ * socialsVisual.ts), with its own entrance and exit. This file only decides which visual shows
  * what, and sequences them: whatever is on screen finishes its exit before the
  * next message enters, even when the two are different types.
  */
 import type { LowerThirdMessage, LowerThirdState } from '../../generated';
 import { createInformationVisual } from './informationVisual';
 import { createKeywordVisual } from './keywordVisual';
+import { createSocialsVisual } from './socialsVisual';
 import type { LowerThirdVisual } from './visual';
 
 // Module scripts run after the document is parsed, so the elements exist here.
 const keyword = createKeywordVisual();
 const information = createInformationVisual();
+const socials = createSocialsVisual();
 
 /**
  * The message currently shown (or being moved toward), as JSON; null when
@@ -44,6 +46,9 @@ function show(message: LowerThirdMessage): Pick<LowerThirdVisual<unknown>, 'hide
     case 'information':
       information.show(message);
       return information;
+    case 'socials':
+      socials.show(message);
+      return socials;
     default: {
       // Compile time: adding a message type to Contracts makes this assignment
       // fail until the type gets a case above. Runtime: a type this build

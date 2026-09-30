@@ -30,6 +30,32 @@
                 </div>
             </EditForm>
             break;
+
+        case LowerThirdKind.Socials:
+            <EditForm Model="_socialsForm" OnValidSubmit="SaveSocialsAsync">
+                <DataAnnotationsValidator />
+                <div class="fields">
+                    <div class="social-rows">
+                        @foreach (var row in _socialsForm.Rows)
+                        {
+                            <div class="social-row" @key="row">
+                                <InputSelect @bind-Value="row.Network" class="network" aria-label="Network">
+                                    @foreach (var network in Enum.GetValues<SocialNetwork>())
+                                    {
+                                        <option value="@network">@network</option>
+                                    }
+                                </InputSelect>
+                                <InputText @bind-Value="row.Handle" class="handle" placeholder="Handle or URL" aria-label="Handle" />
+                                <button type="button" class="remove" aria-label="Remove" @onclick="() => RemoveRow(row)">×</button>
+                            </div>
+                        }
+                    </div>
+                    <button type="button" class="add" @onclick="AddRow">+ Add network</button>
+                    <ValidationMessage For="() => _socialsForm.Rows" />
+                    @Buttons
+                </div>
+            </EditForm>
+            break;
     }
 </div>
 
@@ -38,11 +64,14 @@
     [
         new(LowerThirdKind.Keyword, "Keyword"),
         new(LowerThirdKind.Information, "Information"),
+        new(LowerThirdKind.Socials, "Socials"),
     ];
 
     private readonly KeywordForm _keywordForm = new();
 
     private readonly InformationForm _informationForm = new();
+
+    private readonly SocialsForm _socialsForm = new();
 
     private LowerThirdKind _kind = LowerThirdKind.Keyword;
 
@@ -77,6 +106,11 @@
                 _kind = LowerThirdKind.Information;
                 _informationForm.Message = information.Message;
                 break;
+            case LowerThirdSocialsMessage socials when socials.Links.Count > 0:
+                _kind = LowerThirdKind.Socials;
+                _socialsForm.Rows.Clear();
+                _socialsForm.Rows.AddRange(socials.Links.Select(link => new SocialRow { Network = link.Network, Handle = link.Handle }));
+                break;
         }
     }
 
@@ -85,6 +119,36 @@
 
     private Task SaveInformationAsync() =>
         OnSave.InvokeAsync(new LowerThirdInformationMessage(_informationForm.Message.Trim()));
+
+    private Task SaveSocialsAsync()
+    {
+        // Rows with an empty handle are dropped.
+        var links = _socialsForm.Rows
+            .Where(row => !string.IsNullOrWhiteSpace(row.Handle))
+            .Select(row => new SocialLink(row.Network, row.Handle.Trim()))
+            .ToList();
+
+        return OnSave.InvokeAsync(new LowerThirdSocialsMessage(links));
+    }
+
+    private void AddRow()
+    {
+        _socialsForm.Rows.Add(new SocialRow());
+    }
+
+    // The last row is cleared rather than removed, so there's always a row to type in.
+    private void RemoveRow(SocialRow row)
+    {
+        if (_socialsForm.Rows.Count > 1)
+        {
+            _socialsForm.Rows.Remove(row);
+        }
+        else
+        {
+            row.Network = SocialNetwork.Twitch;
+            row.Handle = "";
+        }
+    }
 
     private sealed class KeywordForm
     {
@@ -99,5 +163,27 @@
     {
         [Required]
         public string Message { get; set; } = "";
+    }
+
+    // DataAnnotations only validate an object's own properties, not items inside a list,
+    // so the "at least one handle" rule is written as whole-object validation instead.
+    private sealed class SocialsForm : IValidatableObject
+    {
+        public List<SocialRow> Rows { get; } = [new SocialRow()];
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (Rows.All(row => string.IsNullOrWhiteSpace(row.Handle)))
+            {
+                yield return new ValidationResult("Add at least one handle.", [nameof(Rows)]);
+            }
+        }
+    }
+
+    private sealed class SocialRow
+    {
+        public SocialNetwork Network { get; set; } = SocialNetwork.Twitch;
+
+        public string Handle { get; set; } = "";
     }
 }

@@ -278,6 +278,30 @@ public class LowerThirdServiceTests
     }
 
     [Fact]
+    public void Update_SameSocialLinks_DoesNotRaiseChanged()
+    {
+        var message1 = new LowerThirdSocialsMessage(
+        [
+            new SocialLink(SocialNetwork.Discord, "testDiscord")
+        ]);
+
+        var message2 = new LowerThirdSocialsMessage(
+        [
+            new SocialLink(SocialNetwork.Discord, "testDiscord")
+        ]);
+
+        Assert.NotSame(message1.Links, message2.Links);
+
+        var entry = _service.Add(message1);
+        _changedCount = 0;
+
+        bool updated = _service.Update(entry.Id, message2);
+
+        Assert.True(updated);
+        Assert.Equal(0, _changedCount);
+    }
+
+    [Fact]
     public void Update_SameValuesDifferentType_RaisesChanged()
     {
         var keywordMessage = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");

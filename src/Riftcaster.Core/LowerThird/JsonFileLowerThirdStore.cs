@@ -12,7 +12,15 @@ namespace Riftcaster.Core.LowerThird;
 /// <param name="logger">Logs a missing, unreadable or unwritable file, since those never throw.</param>
 public sealed class JsonFileLowerThirdStore(string path, ILogger<JsonFileLowerThirdStore> logger) : ILowerThirdStore
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
+    {
+        WriteIndented = true,
+
+        // Reject entries with missing or null values (e.g. a Socials message with no links) instead of
+        // loading nulls that would crash later. The file is then treated as invalid and backed up.
+        RespectRequiredConstructorParameters = true,
+        RespectNullableAnnotations = true,
+    };
 
     private readonly string _path = Path.GetFullPath(path);
 

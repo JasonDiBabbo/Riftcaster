@@ -56,7 +56,8 @@ sealed class ContractsSpec : GenerationSpec
 
             if (type.IsEnum)
             {
-                AddEnum(type);
+                // As a union of the names ('Twitch' | 'YouTube' | ...), matching the JSON, which sends enums as strings.
+                AddEnum(type, asUnionType: true);
             }
             else if (Attribute.IsDefined(type, typeof(JsonPolymorphicAttribute)))
             {

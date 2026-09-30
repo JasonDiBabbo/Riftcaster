@@ -1,0 +1,76 @@
+/* Socials lower third: a gilded plate that cycles through social handles. Implements the
+   Socials design handoff; driven by socialsVisual.ts, plate artwork in socialsPlate.ts.
+   Designed for a 1920x1080 OBS browser source. */
+
+.socials {
+  position: absolute;
+  left: 50%;
+  bottom: 48px;
+  /* width and margin-left (centring) are set by socialsVisual.ts from the longest handle */
+  height: 78px; /* socialsPlate.ts's PLATE_HEIGHT */
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
+  will-change: transform;
+}
+
+.socials.is-hidden {
+  display: none;
+}
+
+.socials__plate,
+.socials__plate svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+/* Centred on the bottom edge, straddling the border */
+.socials__gem {
+  position: absolute;
+  left: calc(50% - 10px);
+  top: calc(100% - 10px);
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.55));
+}
+
+.socials__gem svg {
+  display: block;
+  overflow: visible;
+}
+
+.socials__content {
+  position: absolute;
+  inset: 0 52px;
+  overflow: hidden;
+}
+
+.socials__link {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.socials__icon {
+  flex: none;
+  display: flex;
+  fill: #f1e9d6;
+}
+
+/* Font must match socialsVisual.ts's HANDLE_FONT, which it measures with. The default
+   line height (not 1) matters: overflow is hidden for the ellipsis, and a tighter box
+   clips descenders such as the tail of "@". */
+.socials__handle {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: #f1e9d6;
+  font:
+    600 27px 'Roboto Condensed',
+    sans-serif;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

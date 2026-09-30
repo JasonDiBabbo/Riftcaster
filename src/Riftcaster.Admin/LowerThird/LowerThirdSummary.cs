@@ -20,6 +20,11 @@ public sealed record LowerThirdSummary(string Badge, string BadgeColor, string P
     {
         LowerThirdKeywordMessage keyword => new("Keyword", BadgeHue(165), keyword.Keyword, keyword.Description),
         LowerThirdInformationMessage information => new("Information", BadgeHue(250), information.Message, "Information"),
+        LowerThirdSocialsMessage socials => new(
+            "Socials",
+            BadgeHue(300),
+            string.Join("  ·  ", socials.Links.Select(link => link.Handle)),
+            string.Join(", ", socials.Links.Select(link => link.Network))),
         _ => new(message.GetType().Name, "var(--text-muted)", message.GetType().Name, string.Empty),
     };
 
