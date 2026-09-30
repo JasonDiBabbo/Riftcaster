@@ -59,6 +59,8 @@ public sealed class JsonFileLowerThirdStoreTests : IDisposable
     [InlineData("{}")]
     [InlineData("""{"entries":[{"id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","message":{"type":"unknown"}}]}""")]
     [InlineData("""{"entries":[{"id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","message":{"keyword":"Burn"}}]}""")]
+    [InlineData("""{"entries":[{"id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","message":{"type":"socials"}}]}""")]
+    [InlineData("""{"entries":[{"id":"3fa85f64-5717-4562-b3fc-2c963f66afa6","message":{"type":"socials","links":[{"network":"Twitch"}]}}]}""")]
     public void Load_InvalidFile_ReturnsEmptyAndKeepsBackup(string contents)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);

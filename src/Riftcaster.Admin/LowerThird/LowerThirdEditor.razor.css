@@ -49,3 +49,58 @@
   color: var(--acc-ink);
   font-weight: 600;
 }
+
+.social-rows {
+  display: grid;
+  gap: 6px;
+}
+
+.social-row {
+  display: flex;
+  gap: 6px;
+}
+
+/* InputSelect and InputText are child components, so the elements they render don't carry
+  this component's scope attribute. ::deep reaches them from .social-row, which does. */
+.social-row ::deep .network {
+  flex: none;
+  width: 112px;
+  padding: 0 6px;
+  font-size: var(--fs-small);
+}
+
+.social-row ::deep .handle {
+  flex: 1;
+  min-width: 0;
+  font-weight: 400;
+  font-size: var(--fs-small);
+}
+
+.remove {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 var(--fs-body) / 1 var(--font);
+  cursor: pointer;
+}
+
+.remove:hover {
+  background: var(--button-hover);
+  color: var(--text);
+}
+
+.add {
+  justify-self: start;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px dashed #3a3e45;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  cursor: pointer;
+}
