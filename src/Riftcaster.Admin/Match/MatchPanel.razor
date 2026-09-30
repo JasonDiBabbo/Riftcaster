@@ -8,6 +8,7 @@
             <Field Label="Points to win" Composite>
                 <Stepper Label="Points to win"
                          Min="MatchService.MinPointsToWin"
+                         Max="MatchService.MaxPointsToWin"
                          @bind-Value:get="Match.Settings.PointsToWin"
                          @bind-Value:set="value => Match.Update(settings => settings with { PointsToWin = value })" />
             </Field>
@@ -30,6 +31,7 @@
             <Field Label="Duration (min)" Composite>
                 <Stepper Label="Duration in minutes"
                          Min="MatchService.MinDurationMinutes"
+                         Max="MatchService.MaxDurationMinutes"
                          Step="5"
                          @bind-Value:get="Match.Settings.DurationMinutes"
                          @bind-Value:set="value => Match.Update(settings => settings with { DurationMinutes = value })" />

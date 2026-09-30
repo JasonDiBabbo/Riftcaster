@@ -31,11 +31,12 @@ public class MatchServiceTests
     [Fact]
     public void Constructor_NormalizesSavedSettings()
     {
-        _store.Save(MatchRules.Default with { PointsToWin = 0 });
+        _store.Save(MatchRules.Default with { PointsToWin = 0, DurationMinutes = 999 });
 
         var service = new MatchService(_store);
 
         Assert.Equal(MatchService.MinPointsToWin, service.Settings.PointsToWin);
+        Assert.Equal(MatchService.MaxDurationMinutes, service.Settings.DurationMinutes);
     }
 
     [Fact]
@@ -47,7 +48,7 @@ public class MatchServiceTests
     [Fact]
     public void Update_AppliesChange()
     {
-        var newPointsToWin = 15;
+        var newPointsToWin = 12;
         _service.Update(settings => settings with { PointsToWin = newPointsToWin });
 
         Assert.Equal(MatchRules.Default with { PointsToWin = newPointsToWin }, _service.Settings);
@@ -56,7 +57,7 @@ public class MatchServiceTests
     [Fact]
     public void Update_RaisesChangedOnce()
     {
-        _service.Update(settings => settings with { PointsToWin = 15 });
+        _service.Update(settings => settings with { PointsToWin = 12 });
 
         Assert.Equal(1, _changedCount);
     }
@@ -71,9 +72,10 @@ public class MatchServiceTests
     }
 
     [Theory]
+    [InlineData(7)]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Update_PointsToWinBelowOne_ClampsToMinimum(int pointsToWin)
+    public void Update_PointsToWinBelowMinimum_ClampsToMinimum(int pointsToWin)
     {
         _service.Update(settings => settings with { PointsToWin = pointsToWin });
 
@@ -81,9 +83,29 @@ public class MatchServiceTests
     }
 
     [Theory]
+    [InlineData(16)]
+    [InlineData(100)]
+    public void Update_PointsToWinAboveMaximum_ClampsToMaximum(int pointsToWin)
+    {
+        _service.Update(settings => settings with { PointsToWin = pointsToWin });
+
+        Assert.Equal(MatchService.MaxPointsToWin, _service.Settings.PointsToWin);
+    }
+
+    [Theory]
+    [InlineData(181)]
+    [InlineData(999)]
+    public void Update_DurationMinutesAboveMaximum_ClampsToMaximum(int durationMinutes)
+    {
+        _service.Update(settings => settings with { DurationMinutes = durationMinutes });
+
+        Assert.Equal(MatchService.MaxDurationMinutes, _service.Settings.DurationMinutes);
+    }
+
+    [Theory]
     [InlineData(0)]
     [InlineData(-1)]
-    public void Update_DurationMinutesBelowOne_ClampsToMinimum(int durationMinutes)
+    public void Update_DurationMinutesBelowMinimum_ClampsToMinimum(int durationMinutes)
     {
         _service.Update(settings => settings with { DurationMinutes = durationMinutes });
 

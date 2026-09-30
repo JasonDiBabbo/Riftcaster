@@ -8,14 +8,29 @@ namespace Riftcaster.Core.Match;
 public class MatchService(IMatchStore store)
 {
     /// <summary>
-    /// The lowest allowed points to win.
+    /// The lowest allowed points to win (also the design's default).
     /// </summary>
-    public const int MinPointsToWin = 1;
+    public const int MinPointsToWin = 8;
+
+    /// <summary>
+    /// The highest allowed points to win.
+    /// </summary>
+    public const int MaxPointsToWin = 15;
 
     /// <summary>
     /// The shortest allowed match in minutes.
     /// </summary>
     public const int MinDurationMinutes = 1;
+
+    /// <summary>
+    /// The longest allowed match in minutes.
+    /// </summary>
+    /// <remarks>
+    /// The first version of this application allowed up to 999 to ensure the
+    /// timer overlay stayed legible; real matches are far shorter. 180 minutes
+    /// leaves room for long formats.
+    /// </remarks>
+    public const int MaxDurationMinutes = 180;
 
     private readonly IMatchStore _store = store;
 
@@ -66,7 +81,7 @@ public class MatchService(IMatchStore store)
 
     private static MatchSettings Normalize(MatchSettings settings) => settings with
     {
-        PointsToWin = Math.Max(MinPointsToWin, settings.PointsToWin),
-        DurationMinutes = Math.Max(MinDurationMinutes, settings.DurationMinutes),
+        PointsToWin = Math.Clamp(settings.PointsToWin, MinPointsToWin, MaxPointsToWin),
+        DurationMinutes = Math.Clamp(settings.DurationMinutes, MinDurationMinutes, MaxDurationMinutes),
     };
 }
