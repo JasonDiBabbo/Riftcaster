@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Riftcaster.Core.LowerThird;
+using Riftcaster.Core.Match;
 
 namespace Riftcaster.Server.Tests;
 
@@ -19,6 +20,9 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<ILowerThirdStore>();
             services.AddSingleton<ILowerThirdStore, InMemoryLowerThirdStore>();
+
+            services.RemoveAll<IMatchStore>();
+            services.AddSingleton<IMatchStore, InMemoryMatchStore>();
         });
     }
 }
