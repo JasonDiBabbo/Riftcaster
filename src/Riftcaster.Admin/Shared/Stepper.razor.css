@@ -1,0 +1,43 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--input);
+}
+
+/* The mint focus border belongs on the whole box, since the input inside has none. */
+.stepper:focus-within {
+  border-color: var(--acc);
+}
+
+.step {
+  flex: none;
+  width: 32px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 16px / 1 var(--font);
+  cursor: pointer;
+}
+
+.step:hover {
+  background: var(--button-hover);
+  color: var(--text);
+}
+
+/* Overrides the global input styles: this input is part of the stepper's box, not a box of its own. */
+.value {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: center;
+  font: 600 var(--fs-stepper) / 1 var(--font);
+}

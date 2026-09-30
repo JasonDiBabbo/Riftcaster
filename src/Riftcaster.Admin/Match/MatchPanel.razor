@@ -1,0 +1,59 @@
+﻿@using Riftcaster.Core.Match
+@implements IDisposable
+@inject MatchService Match
+
+<Panel Title="Match">
+    <div class="content">
+        <div class="row">
+            <Field Label="Points to win" Composite>
+                <Stepper Label="Points to win"
+                         Min="MatchService.MinPointsToWin"
+                         @bind-Value:get="Match.Settings.PointsToWin"
+                         @bind-Value:set="value => Match.Update(settings => settings with { PointsToWin = value })" />
+            </Field>
+            <Field Label="Format" Composite>
+                <SegmentedControl Label="Format"
+                                  Options="MatchLabels.FormatOptions"
+                                  @bind-Value:get="Match.Settings.Format"
+                                  @bind-Value:set="value => Match.Update(settings => settings with { Format = value })" />
+            </Field>
+        </div>
+
+        <Field Label="Mode" Composite>
+            <SegmentedControl Label="Mode"
+                              Options="MatchLabels.ModeOptions"
+                              @bind-Value:get="Match.Settings.Mode"
+                              @bind-Value:set="value => Match.Update(settings => settings with { Mode = value })" />
+        </Field>
+
+        <div class="row bottom">
+            <Field Label="Duration (min)" Composite>
+                <Stepper Label="Duration in minutes"
+                         Min="MatchService.MinDurationMinutes"
+                         Step="5"
+                         @bind-Value:get="Match.Settings.DurationMinutes"
+                         @bind-Value:set="value => Match.Update(settings => settings with { DurationMinutes = value })" />
+            </Field>
+            <Toggle Label="Allow overtime"
+                    @bind-Value:get="Match.Settings.AllowOvertime"
+                    @bind-Value:set="value => Match.Update(settings => settings with { AllowOvertime = value })" />
+        </div>
+    </div>
+</Panel>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Match.Changed += OnMatchChanged;
+    }
+
+    private void OnMatchChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Match.Changed -= OnMatchChanged;
+    }
+}

@@ -1,0 +1,57 @@
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--input);
+  color: var(--text);
+  font: 500 var(--fs-small) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.toggle:focus-visible {
+  border-color: var(--acc);
+  outline: none;
+}
+
+.track {
+  flex: none;
+  display: flex;
+  align-items: center;
+  width: 34px;
+  height: 20px;
+  padding: 2px;
+  border-radius: 10px;
+  background: #3a3e45;
+  transition: background-color 120ms ease;
+}
+
+.knob {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-bright);
+  transition: transform 120ms ease;
+}
+
+.toggle.on .track {
+  background: var(--acc);
+}
+
+/* 34px track − 2×2px padding − 16px knob = 14px of travel */
+.toggle.on .knob {
+  transform: translateX(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track,
+  .knob {
+    transition: none;
+  }
+}

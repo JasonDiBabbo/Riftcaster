@@ -1,0 +1,30 @@
+﻿<button type="button"
+        class="toggle @(Value ? "on" : "")"
+        role="switch"
+        aria-checked="@(Value ? "true" : "false")"
+        @onclick="() => ValueChanged.InvokeAsync(!Value)">
+    <span class="label">@Label</span>
+    <span class="track" aria-hidden="true">
+        <span class="knob"></span>
+    </span>
+</button>
+
+@code {
+    /// <summary>
+    /// The value of the toggle, i.e. on/true or off/false.
+    /// </summary>
+    [Parameter]
+    public bool Value { get; set; }
+
+    /// <summary>
+    /// The callback for when the value changes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> ValueChanged { get; set; }
+
+    /// <summary>
+    /// The toggle label.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+}

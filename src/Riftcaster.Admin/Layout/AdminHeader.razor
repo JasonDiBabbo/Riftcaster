@@ -1,6 +1,8 @@
 ﻿@using Riftcaster.Core.LowerThird
+@using Riftcaster.Core.Match
 @implements IDisposable
 @inject LowerThirdService LowerThird
+@inject MatchService Match
 
 <header class="header">
     <div class="brand">
@@ -8,7 +10,7 @@
         <span class="badge">ADMIN</span>
     </div>
 
-    <div class="summary">@MatchSummary</div>
+    <div class="summary">@MatchLabels.Summary(Match.Settings)</div>
 
     <div class="spacer"></div>
 
@@ -25,21 +27,20 @@
 </header>
 
 @code {
-    // Placeholder until the Match panel exists (#13).
-    private const string MatchSummary = "Bo3 · 1v1 · 8 pts · 50 min + OT";
-
     protected override void OnInitialized()
     {
-        LowerThird.Changed += OnLowerThirdChanged;
+        LowerThird.Changed += OnStateChanged;
+        Match.Changed += OnStateChanged;
     }
 
-    private void OnLowerThirdChanged()
+    private void OnStateChanged()
     {
         _ = InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        LowerThird.Changed -= OnLowerThirdChanged;
+        LowerThird.Changed -= OnStateChanged;
+        Match.Changed -= OnStateChanged;
     }
 }

@@ -1,0 +1,18 @@
+.content {
+  display: grid;
+  gap: 14px;
+  padding: 14px 16px 16px;
+}
+
+/* Points to win beside Format; they stack if the column gets narrow. */
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+  /* Duration beside the toggle, bottom-aligned so the toggle lines up with the stepper, not its caption. */
+  .row.bottom {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: end;
+  }

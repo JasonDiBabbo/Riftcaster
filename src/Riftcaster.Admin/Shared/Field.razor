@@ -1,12 +1,36 @@
-﻿<label class="field">
-    <span class="caption">@Label</span>
-    @ChildContent
-</label>
+﻿@if (Composite)
+{
+    <div class="field">
+        <span class="caption" aria-hidden="true">@Label</span>
+        @ChildContent
+    </div>
+}
+else
+{
+    <label class="field">
+        <span class="caption">@Label</span>
+        @ChildContent
+    </label>
+}
 
 @code {
+    /// <summary>
+    /// The field label.
+    /// </summary>
     [Parameter, EditorRequired]
     public string Label { get; set; } = "";
 
+    /// <summary>
+    /// Whether the field is composed of several parts (e.g. Stepper, SegmentedControl, etc.) which
+    /// cannot sit inside a <c>&lt;label&gt;</c> and name themselves through their own label. The caption
+    /// then visual only.
+    /// </summary>
+    [Parameter]
+    public bool Composite { get; set; }
+
+    /// <summary>
+    /// Any child content of the field.
+    /// </summary>
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 }
