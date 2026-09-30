@@ -1,0 +1,80 @@
+﻿@using System.Globalization
+
+<div class="stepper">
+    <button type="button" class="step" aria-label="Decrease @Label" @onclick="() => SetAsync(StepDown())">−</button>
+    <input type="number"
+           class="value"
+           inputmode="numeric"
+           aria-label="@Label"
+           @bind:get="Text"
+           @bind:set="OnTypedAsync" />
+    <button type="button" class="step" aria-label="Increase @Label" @onclick="() => SetAsync(StepUp())">+</button>
+</div>
+
+@code {
+    /// <summary>
+    /// The numeric value of the stepper.
+    /// </summary>
+    [Parameter]
+    public int Value { get; set; }
+
+    /// <summary>
+    /// The callback for when the value changes.
+    /// </summary>
+    [Parameter]
+    public EventCallback<int> ValueChanged { get; set; }
+
+    /// <summary>
+    /// The stepper label.
+    /// </summary>
+    /// <remarks>
+    /// The stepper has no visible label of its own, so screen readers need this.
+    /// </remarks>
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The minimum numeric value of the stepper.
+    /// </summary>
+    [Parameter]
+    public int Min { get; set; }
+
+    /// <summary>
+    /// The maximum numeric value of the stepper.
+    /// </summary>
+    [Parameter]
+    public int Max { get; set; } = int.MaxValue;
+
+    /// <summary>
+    /// The increment that the stepper value moves up or down by. The buttons move along multiples of this value.
+    /// </summary>
+    [Parameter]
+    public int Step { get; set; } = 1;
+
+    // Like the browser's own number inputs: the buttons move along multiples of Step, so a typed 3
+    // with a step of 5 goes up to 5 (not 8) and down to the minimum. Clamped afterwards in SetAsync.
+    private int StepUp() => (int)(Math.Floor((double)Value / Step) + 1) * Step;
+
+    private int StepDown() => (int)(Math.Ceiling((double)Value / Step) - 1) * Step;
+
+    private string Text => Value.ToString(CultureInfo.InvariantCulture);
+
+    // Bound with @bind:get/@bind:set rather than value + @onchange: when a typed value is clamped
+    // (or rejected) back to the current value, @bind makes Blazor redraw the input. A plain onchange
+    // handler would leave the typed text showing, because the rendered value didn't change.
+    private Task OnTypedAsync(string? typed)
+    {
+        if (int.TryParse(typed, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number))
+        {
+            return SetAsync(number);
+        }
+
+        return Task.CompletedTask; // not a whole number: the input shows the current value again
+    }
+
+    private Task SetAsync(int value)
+    {
+        var clamped = Math.Clamp(value, Min, Max);
+        return clamped == Value ? Task.CompletedTask : ValueChanged.InvokeAsync(clamped);
+    }
+}
