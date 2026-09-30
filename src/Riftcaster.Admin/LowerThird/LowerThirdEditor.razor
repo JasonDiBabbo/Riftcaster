@@ -3,24 +3,48 @@
 <div class="editor">
     <span class="title">@(Entry is null ? "New lower third" : "Edit lower third")</span>
 
-    <EditForm Model="_keywordForm" OnValidSubmit="SaveAsync">
-        <DataAnnotationsValidator />
-        <div class="fields">
-            <InputText @bind-Value="_keywordForm.Keyword" placeholder="Keyword" aria-label="Keyword" />
-            <ValidationMessage For="() => _keywordForm.Keyword" />
-            <InputTextArea @bind-Value="_keywordForm.Description" placeholder="Description" aria-label="Description" rows="2" />
-            <ValidationMessage For="() => _keywordForm.Description" />
+    <SegmentedControl @bind-Value="_kind" Options="KindOptions" Label="Type" />
 
-            <div class="buttons">
-                <button type="button" class="cancel" @onclick="OnCancel">Cancel</button>
-                <button type="submit" class="save">Save</button>
-            </div>
-        </div>
-    </EditForm>
+    @switch (_kind)
+    {
+        case LowerThirdKind.Keyword:
+            <EditForm Model="_keywordForm" OnValidSubmit="SaveKeywordAsync">
+                <DataAnnotationsValidator />
+                <div class="fields">
+                    <InputText @bind-Value="_keywordForm.Keyword" placeholder="Keyword" aria-label="Keyword" />
+                    <ValidationMessage For="() => _keywordForm.Keyword" />
+                    <InputTextArea @bind-Value="_keywordForm.Description" placeholder="Description" aria-label="Description" rows="2" />
+                    <ValidationMessage For="() => _keywordForm.Description" />
+                    @Buttons
+                </div>
+            </EditForm>
+            break;
+
+        case LowerThirdKind.Information:
+            <EditForm Model="_informationForm" OnValidSubmit="SaveInformationAsync">
+                <DataAnnotationsValidator />
+                <div class="fields">
+                    <InputTextArea @bind-Value="_informationForm.Message" placeholder="Message" aria-label="Message" rows="2" />
+                    <ValidationMessage For="() => _informationForm.Message" />
+                    @Buttons
+                </div>
+            </EditForm>
+            break;
+    }
 </div>
 
 @code {
+    private static readonly SegmentOption<LowerThirdKind>[] KindOptions =
+    [
+        new(LowerThirdKind.Keyword, "Keyword"),
+        new(LowerThirdKind.Information, "Information"),
+    ];
+
     private readonly KeywordForm _keywordForm = new();
+
+    private readonly InformationForm _informationForm = new();
+
+    private LowerThirdKind _kind = LowerThirdKind.Keyword;
 
     [Parameter]
     public LowerThirdEntry? Entry { get; set; }
@@ -31,19 +55,36 @@
     [Parameter]
     public EventCallback OnCancel { get; set; }
 
+    // Shared by every type's form. A markup template stored in a property.
+    private RenderFragment Buttons =>
+        @<div class="buttons">
+            <button type="button" class="cancel" @onclick="OnCancel">Cancel</button>
+            <button type="submit" class="save">Save</button>
+        </div>;
+
     // Once, not in OnParametersSet: the panel re-renders on every library change,
     // and re-copying the entry here would wipe whatever the operator is typing.
     protected override void OnInitialized()
     {
-        if (Entry?.Message is LowerThirdKeywordMessage keyword)
+        switch (Entry?.Message)
         {
-            _keywordForm.Keyword = keyword.Keyword;
-            _keywordForm.Description = keyword.Description;
+            case LowerThirdKeywordMessage keyword:
+                _kind = LowerThirdKind.Keyword;
+                _keywordForm.Keyword = keyword.Keyword;
+                _keywordForm.Description = keyword.Description;
+                break;
+            case LowerThirdInformationMessage information:
+                _kind = LowerThirdKind.Information;
+                _informationForm.Message = information.Message;
+                break;
         }
     }
 
-    private Task SaveAsync() =>
+    private Task SaveKeywordAsync() =>
         OnSave.InvokeAsync(new LowerThirdKeywordMessage(_keywordForm.Keyword.Trim(), _keywordForm.Description.Trim()));
+
+    private Task SaveInformationAsync() =>
+        OnSave.InvokeAsync(new LowerThirdInformationMessage(_informationForm.Message.Trim()));
 
     private sealed class KeywordForm
     {
@@ -52,5 +93,11 @@
 
         [Required]
         public string Description { get; set; } = "";
+    }
+
+    private sealed class InformationForm
+    {
+        [Required]
+        public string Message { get; set; } = "";
     }
 }

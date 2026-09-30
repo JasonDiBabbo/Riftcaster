@@ -19,9 +19,8 @@ public sealed record LowerThirdSummary(string Badge, string BadgeColor, string P
     public static LowerThirdSummary For(LowerThirdMessage message) => message switch
     {
         LowerThirdKeywordMessage keyword => new("Keyword", BadgeHue(165), keyword.Keyword, keyword.Description),
-
-        // A type the dashboard doesn't know yet
-        _ => new(message.GetType().Name, "var(--text-muted)", message.GetType().Name, ""),
+        LowerThirdInformationMessage information => new("Information", BadgeHue(250), information.Message, "Information"),
+        _ => new(message.GetType().Name, "var(--text-muted)", message.GetType().Name, string.Empty),
     };
 
     /// <summary>

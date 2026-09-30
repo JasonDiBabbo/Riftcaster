@@ -4,4 +4,5 @@ namespace Riftcaster.Contracts;
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "type")]
 [JsonDerivedType(typeof(LowerThirdKeywordMessage), "keyword")]
+[JsonDerivedType(typeof(LowerThirdInformationMessage), "information")]
 public abstract record LowerThirdMessage;

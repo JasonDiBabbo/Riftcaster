@@ -8,9 +8,11 @@
     <script type="module" src="lowerThird.js"></script>
   </head>
   <body>
-    <!-- Starts hidden - a fresh OBS browser source shouldn't show anything
-         until a real state-update says a message is live. See
-         lowerThird.ts's render(). -->
+    <!-- One visual per message type, each starting hidden: a fresh OBS browser
+         source shouldn't show anything until the stream says a message is
+         live. See lowerThird.ts's render(). -->
+
+    <!-- Keyword (keywordVisual.ts, keyword.css) -->
     <div class="lower-third-stage">
       <div class="composition is-hidden" id="composition">
         <div class="parallelogram kw" id="kwShape">
@@ -30,6 +32,11 @@
           <div class="desc__diamond" id="descDiamond"></div>
         </div>
       </div>
+    </div>
+
+    <!-- Information, temporary until issue #23 (informationVisual.ts, information.css) -->
+    <div class="info is-hidden" id="info">
+      <p id="infoText"></p>
     </div>
   </body>
 </html>

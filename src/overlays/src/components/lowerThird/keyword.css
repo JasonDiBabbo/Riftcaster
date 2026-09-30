@@ -1,0 +1,288 @@
+/* Keyword lower third: a keyword parallelogram over a description
+   parallelogram. Ported from the reviewed keyword-lower-third mockup with no
+   changes to the animation timings/easing themselves - only the mockup's
+   demo-page chrome (broadcast frame, controls, spec tables) was dropped.
+   Driven by keywordVisual.ts. */
+
+:root {
+  --lower-third-kw-bg: #777b7a;
+  --lower-third-kw-text: #ffffff;
+  /* left->right, midpoint (equal blend) naturally at 50% - a plain 2-stop
+     gradient with no custom stop positions. */
+  --lower-third-desc-bg: linear-gradient(90deg, #1d3246 0%, #132130 100%);
+  --lower-third-desc-text: #ffffff;
+  --lower-third-accent: #d4af37;
+
+  /* Entrance: each parallelogram's own unveil/slide motion, shorter than
+     the fade so it finishes first. Fade: the whole composition's uniform
+     opacity fade-in, applied via .animate-in's own keyframe animation, not
+     this transition (see .composition below). Exit: the plain opacity
+     transition that runs when .is-hidden is added/removed - this is also
+     what keywordVisual.ts's hide() falls back to waiting for if
+     transitionend never fires. */
+  --lower-third-entrance-duration: 0.75s;
+  --lower-third-fade-duration: 1s;
+  --lower-third-exit-duration: 2s;
+}
+
+.lower-third-stage {
+  position: absolute;
+  left: 50%;
+  /* Together with .composition's own height below, this pins the true
+     lowest rendered pixel (the diamond's bottom tip, not just the
+     composition box) to exactly 60px above the viewport bottom - see the
+     comment there for the pixel accounting. */
+  bottom: 60px;
+  width: min(1200px, calc(100% - 32px));
+  transform: translateX(-50%);
+  /* Centers the composition natively - no JS measurement step. */
+  display: flex;
+  justify-content: center;
+}
+
+.composition {
+  position: relative;
+  /* Wraps the content exactly, not a round arbitrary number with dead space
+     below it: desc sits 10px below the top (margin-top) with its own
+     93px-tall box, so its bottom edge is at 103px - and desc__diamond (see
+     below) is centered exactly on that edge, straddling it. An unrotated
+     8px square there would push the lowest pixel to 107px (103 + half its
+     8px height), but the diamond is rotate(45deg): a square's
+     axis-aligned bounding box grows by a factor of sqrt(2) under a 45deg
+     rotation, so its true rendered half-height off that center point is
+     4px * sqrt(2) =~ 5.66px, not 4px - putting the actual lowest rendered
+     pixel at 103 + 5.66 =~ 108.66px. Sized to that so this box's own
+     bottom edge IS the component's lowest point, which is what
+     .lower-third-stage's `bottom` above then positions precisely. */
+  height: 108.66px;
+  display: flex;
+  align-items: flex-start;
+  transition: opacity var(--lower-third-exit-duration) ease;
+  opacity: 1;
+}
+
+.composition.is-hidden {
+  opacity: 0;
+}
+
+/* Two distinct entrance animations, not one: this is the uniform fade
+   (opacity only), applied once to the whole composition. The other is each
+   parallelogram's own slide/unveil motion, on its own shorter timer - see
+   kwUnveil/descSlideFade below, which finish before this fade completes. */
+.composition.animate-in {
+  animation: compositionFadeIn var(--lower-third-fade-duration) ease-out both;
+}
+
+@keyframes compositionFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ===== shared parallelogram shape ===== */
+
+.parallelogram {
+  height: 93px;
+  transform: skewX(-15deg);
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.parallelogram__inner {
+  transform: skewX(15deg);
+  display: flex;
+  align-items: center;
+}
+
+/* ===== keyword (top) ===== */
+
+.kw {
+  /* First flex child - its left edge is wherever the centered row starts.
+     Growth reads as "toward the overlap" rather than a pinned absolute
+     pixel (see .desc's margin-left below). */
+  z-index: 2;
+  background: var(--lower-third-kw-bg);
+  box-shadow: 4px 4px 2px rgba(0, 0, 0, 0.8);
+  clip-path: inset(0 0 0 0%);
+}
+
+.kw__inner {
+  /* equal on both sides - the inner content's own skewX(15deg) already
+     cancels the outer shape's skew, so this padding renders as an
+     ordinary, unskewed box around the text and reads as centered. */
+  padding: 0 44px;
+  justify-content: center;
+}
+
+.kw__text {
+  font-family:
+    'Roboto Condensed',
+    Arial Narrow,
+    Arial,
+    sans-serif;
+  font-style: italic;
+  font-weight: 800;
+  font-size: 48px;
+  line-height: 1;
+  color: var(--lower-third-kw-text);
+  letter-spacing: 0.5px;
+  /* Display-only - the stored/edited message keeps whatever case the admin
+     typed (see lowerThird.ts in app/components/admin), only the overlay
+     always renders it uppercase. */
+  text-transform: uppercase;
+}
+
+/* Unveil only - opacity is the shared .composition fade-in above, on its own
+   shorter timer so the unveil finishes first. */
+.kw.animate-in {
+  animation: kwUnveil var(--lower-third-entrance-duration) cubic-bezier(0.22, 0.8, 0.28, 1) both;
+}
+
+@keyframes kwUnveil {
+  from {
+    clip-path: inset(0 0 0 100%);
+  }
+  to {
+    clip-path: inset(0 0 0 0%);
+  }
+}
+
+/* ===== description (bottom) ===== */
+
+.desc {
+  /* position:relative - not for placement (that's the margins below), but
+     because .desc__bottom-edge/.desc__diamond are position:absolute and
+     need this as their containing block. */
+  position: relative;
+  /* The overlap and vertical offset, as plain flex-item margins: pulls
+     .desc left by exactly 38px into .kw (the overlap), and down 10px. */
+  margin-left: -38px;
+  margin-top: 10px;
+  z-index: 1;
+  background: var(--lower-third-desc-bg);
+  overflow: visible;
+  /* Static, not animated - present the instant the shape is, unlike the
+     bottom edge below which grows on show. */
+  border-left: 2px solid var(--lower-third-accent);
+  max-width: 560px;
+}
+
+.desc__inner {
+  /* left padding clears the keyword parallelogram's overlap zone (38px)
+     plus breathing room, so the description text never starts underneath
+     the keyword box. */
+  padding: 0 34px 0 68px;
+  max-width: 780px;
+}
+
+.desc__text {
+  font-family: 'Beaufort for LOL Medium', Georgia, 'Times New Roman', serif;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--lower-third-desc-text);
+  letter-spacing: 0.4px;
+  white-space: normal;
+  /* Display-only - same reasoning as .kw__text above. */
+  text-transform: uppercase;
+}
+
+/* Slide only - opacity is the shared .composition fade-in above, same
+   shorter timer as the keyword's unveil. */
+.desc.animate-in {
+  animation: descSlideFade var(--lower-third-entrance-duration) cubic-bezier(0.22, 0.8, 0.28, 1)
+    both;
+}
+
+@keyframes descSlideFade {
+  from {
+    transform: skewX(-15deg) translateX(-64px);
+  }
+  to {
+    transform: skewX(-15deg) translateX(0);
+  }
+}
+
+/* Bottom edge - a plain div, not an SVG stroke: a dashoffset-animated SVG
+   path under a non-uniform scale rendered as broken-up segments instead of
+   one solid line. A div's width is either "there" or "not there" at every
+   pixel along it, so there's no dash pattern to misrender. It lives on the
+   skewed shape itself (a sibling of the counter-skewed text) so it inherits
+   the parallelogram's own slant, same reasoning as the static border-left
+   above. */
+.desc__bottom-edge {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--lower-third-accent);
+  transform-origin: left center;
+  transform: scaleX(0.9);
+}
+
+/* Starts immediately on show, alongside the slide/fade-in. 2s total,
+   fast-then-slow, as one smooth curve rather than two straight segments
+   meeting at a hard corner - a single easing curve accelerates hard out of
+   the gate and eases off gradually, so the deceleration into the diamond
+   reveal below reads as a taper rather than a stop. */
+.desc__bottom-edge.animate-in {
+  animation: bottomEdgeGrow 2s cubic-bezier(0.15, 0.85, 0.35, 1) both;
+}
+
+@keyframes bottomEdgeGrow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(0.9);
+  }
+}
+
+.desc__diamond {
+  position: absolute;
+  /* fixed-pixel centering (not translate(-50%)) so rotate() pivots exactly
+     on the bottom edge's own endpoint (also at 90%). No counter-skew here,
+     deliberately - left un-countered, this small square inherits the same
+     parent skew the bottom edge renders through, so the two coincide
+     exactly. */
+  left: calc(90% - 4px);
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--lower-third-accent);
+  transform: rotate(45deg);
+  opacity: 1;
+}
+
+/* Reveals once the bottom edge finishes drawing, at 2s - its own gentle
+   ease-out keeps it reading as part of that same slow-down rather than a
+   separate, snappier pop once the line stops. */
+.desc__diamond.animate-in {
+  animation: diamondReveal 0.5s ease-out 2s both;
+}
+
+@keyframes diamondReveal {
+  from {
+    opacity: 0;
+    transform: rotate(45deg) scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(45deg) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composition,
+  .kw.animate-in,
+  .desc.animate-in,
+  .desc__bottom-edge.animate-in,
+  .desc__diamond.animate-in {
+    animation: none !important;
+    transition: none !important;
+  }
+}
