@@ -21,7 +21,8 @@ public sealed record PlayersState(IReadOnlyList<Player> Players, IReadOnlyList<T
     /// </remarks>
     /// <param name="other">The state to compare with.</param>
     /// <returns>
-    /// <see langword="true"/> if both hold equal players and equal teams in the same order.
+    /// <see langword="true"/> if both hold equal players and equal teams in the same order
+    /// and <see langword="false"/> otherwise.
     /// </returns>
     public bool Equals(PlayersState? other) =>
         other is not null && Players.SequenceEqual(other.Players) && Teams.SequenceEqual(other.Teams);
