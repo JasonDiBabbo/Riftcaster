@@ -1,0 +1,51 @@
+/* The 1px gaps show the --line background through, drawing the dividers between cells. */
+.strip {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1px;
+  border-bottom: 1px solid var(--line);
+  background: var(--line);
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, oklch(0.74 0.13 var(--player-hue) / 0.12), oklch(0.74 0.13 var(--player-hue) / 0.02)), var(--sunk);
+}
+
+.bar {
+  width: 3px;
+  align-self: stretch;
+  border-radius: 2px;
+  background: oklch(0.74 0.13 var(--player-hue));
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font: 500 var(--fs-small) / 1.2 var(--font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.sub {
+  color: var(--text-muted);
+  font: 500 var(--fs-label) / 1.4 var(--font);
+}
+
+.score {
+  font: 600 var(--fs-score) / 1 var(--font);
+}
+
+.of {
+  color: var(--text-faint);
+  font-size: var(--fs-small);
+}

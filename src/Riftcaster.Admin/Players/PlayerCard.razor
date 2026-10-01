@@ -6,7 +6,17 @@
     <div class="bar"></div>
     <header class="top">
         <h3 class="slot">Player @Number</h3>
-        <span class="side">@PlayerLabels.Side(Settings, Seat)</span>
+        <div class="tags">
+            @* Swapping seats is how a player changes side, or team in 2v2. Not in the design. *@
+            <select class="swap" aria-label="@($"Swap player {Number} with")" @bind:get="NoSwap" @bind:set="SwapWith">
+                <option value="@NoSwap">Swap…</option>
+                @foreach (var other in Enumerable.Range(0, Settings.PlayerCount).Where(other => other != Seat))
+                {
+                    <option value="@other">@PlayerLabels.Name(State.Players.Players[other], other)</option>
+                }
+            </select>
+            <span class="side">@PlayerLabels.Side(Settings, Seat)</span>
+        </div>
     </header>
 
     <div class="fields">
@@ -64,25 +74,35 @@
     public int Seat { get; set; }
 
     /// <summary>
-    /// The player shown on the card.
+    /// The match settings and players. The card shows the player in <see cref="Seat"/>; the
+    /// settings decide its colour, side label, stats and limits; the other players fill "Swap…".
     /// </summary>
     [Parameter, EditorRequired]
-    public Player Player { get; set; } = null!;
+    public MatchState State { get; set; } = null!;
 
-    /// <summary>
-    /// The match settings, which decide the card's colour, side label, stats and limits.
-    /// </summary>
-    [Parameter, EditorRequired]
-    public MatchSettings Settings { get; set; } = null!;
+    // The "Swap…" option's value. The select always shows it: picking a player swaps, then it resets.
+    private const string NoSwap = "";
 
     // What the operator sees: seats count from 1.
     private int Number => Seat + 1;
+
+    private Player Player => State.Players.Players[Seat];
+
+    private MatchSettings Settings => State.Settings;
 
     // Sent when the field loses focus or Enter is pressed (the default for @bind on an input), not on
     // every keystroke, so the overlay never shows a half-typed name.
     private void SetName(string? name)
     {
         Update(player => player with { Name = name?.Trim() ?? "" });
+    }
+
+    private void SwapWith(string? other)
+    {
+        if (int.TryParse(other, out var seat))
+        {
+            Players.SwapPlayers(Seat, seat);
+        }
     }
 
     private void Update(Func<Player, Player> change)

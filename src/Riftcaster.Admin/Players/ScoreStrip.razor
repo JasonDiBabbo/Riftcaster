@@ -1,0 +1,48 @@
+﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+
+<div class="strip">
+    @foreach (var cell in Cells())
+    {
+        <div class="cell" style="--player-hue: @cell.Hue">
+            <div class="bar"></div>
+            <div class="text">
+                <div class="name">@cell.Name</div>
+                <div class="sub">@cell.Detail</div>
+            </div>
+            <div class="score">@cell.Points<span class="of">/@State.Settings.PointsToWin</span></div>
+        </div>
+    }
+</div>
+
+@code {
+    /// <summary>
+    /// The match settings and players to summarize.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public MatchState State { get; set; } = null!;
+
+    // One cell per player in use, or one per team in 2v2, where the teams hold the scores.
+    private IEnumerable<ScoreCell> Cells()
+    {
+        var settings = State.Settings;
+        var players = State.Players;
+
+        if (settings.IsTeamMode)
+        {
+            return Enumerable.Range(0, PlayersService.TeamCount).Select(team => new ScoreCell(
+                PlayerLabels.TeamHue(team),
+                PlayerLabels.TeamName(team),
+                $"Games {players.Teams[team].GameWins}/{settings.MaxGameWins}",
+                players.Teams[team].Points));
+        }
+
+        return Enumerable.Range(0, settings.PlayerCount).Select(seat => new ScoreCell(
+            PlayerLabels.Hue(settings, seat),
+            PlayerLabels.Name(players.Players[seat], seat),
+            $"Games {players.Players[seat].GameWins}/{settings.MaxGameWins} · XP {players.Players[seat].Xp}",
+            players.Players[seat].Points));
+    }
+
+    private sealed record ScoreCell(int Hue, string Name, string Detail, int Points);
+}

@@ -29,9 +29,35 @@ public static class PlayerLabels
     public static string Side(MatchSettings settings, int seat) => settings.Mode switch
     {
         MatchMode.OneVsOne => seat == 0 ? "Left" : "Right",
-        MatchMode.TwoVsTwo => seat < 2 ? "Team A" : "Team B",
+        MatchMode.TwoVsTwo => TeamName(TeamOf(seat)),
         _ => $"Seat {seat + 1}",
     };
+
+    /// <summary>
+    /// A player's name, or "Player n" until the operator enters one.
+    /// </summary>
+    /// <param name="player">The player.</param>
+    /// <param name="seat">The player's seat, from 0.</param>
+    public static string Name(Player player, int seat) =>
+        string.IsNullOrEmpty(player.Name) ? $"Player {seat + 1}" : player.Name;
+
+    /// <summary>
+    /// "Team A" or "Team B".
+    /// </summary>
+    /// <param name="team">0 for Team A, 1 for Team B.</param>
+    public static string TeamName(int team) => team == 0 ? "Team A" : "Team B";
+
+    /// <summary>
+    /// The team a seat belongs to in 2v2: the first two seats are Team A (0), the last two Team B (1).
+    /// </summary>
+    /// <param name="seat">The player's seat, from 0.</param>
+    public static int TeamOf(int seat) => seat / 2;
+
+    /// <summary>
+    /// The seats of a team's two players in 2v2.
+    /// </summary>
+    /// <param name="team">0 for Team A, 1 for Team B.</param>
+    public static IEnumerable<int> SeatsOf(int team) => Enumerable.Range(team * 2, 2);
 
     /// <summary>
     /// The hue of a player's colour: one per seat, or one per team in 2v2 (Team A blue, Team B red).
@@ -39,5 +65,11 @@ public static class PlayerLabels
     /// <param name="settings">The match settings.</param>
     /// <param name="seat">The player's seat, from 0.</param>
     public static int Hue(MatchSettings settings, int seat) =>
-        settings.IsTeamMode ? SeatHues[seat < 2 ? 0 : 1] : SeatHues[seat];
+        settings.IsTeamMode ? TeamHue(TeamOf(seat)) : SeatHues[seat];
+
+    /// <summary>
+    /// The hue of a team's colour: Team A blue, Team B red, the same as their first two seats.
+    /// </summary>
+    /// <param name="team">0 for Team A, 1 for Team B.</param>
+    public static int TeamHue(int team) => SeatHues[team];
 }

@@ -1,5 +1,15 @@
 .content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   padding: 14px;
+}
+
+/* 2v2: a team header above its pair of cards. */
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .cards {
