@@ -1,0 +1,38 @@
+﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+@implements IDisposable
+@inject PlayersService Players
+
+@{
+    // One read, so the settings and players always belong together (see PlayersService.MatchState).
+    var state = Players.MatchState;
+}
+
+<Panel Title="Players" Meta="@PlayerLabels.Meta(state.Settings)">
+    <div class="content">
+        <div class="cards">
+            @foreach (var seat in Enumerable.Range(0, state.Settings.PlayerCount))
+            {
+                <PlayerCard @key="seat" Seat="seat" Player="state.Players.Players[seat]" Settings="state.Settings" />
+            }
+        </div>
+    </div>
+</Panel>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Also raised when the match settings change, which changes the cards shown.
+        Players.Changed += OnPlayersChanged;
+    }
+
+    private void OnPlayersChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Players.Changed -= OnPlayersChanged;
+    }
+}

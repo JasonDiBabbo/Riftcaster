@@ -1,0 +1,92 @@
+﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+@inject PlayersService Players
+
+<article class="card" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
+    <div class="bar"></div>
+    <header class="top">
+        <h3 class="slot">Player @Number</h3>
+        <span class="side">@PlayerLabels.Side(Settings, Seat)</span>
+    </header>
+
+    <div class="fields">
+        <Field Label="Name">
+            <input @bind:get="Player.Name" @bind:set="SetName" />
+        </Field>
+        <Field Label="Legend">
+            <CardSelect Options="PlaceholderCards.Legends"
+                        @bind-Value:get="Player.Legend"
+                        @bind-Value:set="legend => Update(player => player with { Legend = legend })" />
+        </Field>
+        <Field Label="Champion">
+            <CardSelect Options="PlaceholderCards.Champions"
+                        @bind-Value:get="Player.Champion"
+                        @bind-Value:set="champion => Update(player => player with { Champion = champion })" />
+        </Field>
+        <Field Label="Battlefield">
+            <CardSelect Options="PlaceholderCards.Battlefields"
+                        @bind-Value:get="Player.Battlefield"
+                        @bind-Value:set="battlefield => Update(player => player with { Battlefield = battlefield })" />
+        </Field>
+
+        @* In 2v2 the team holds the points and game wins (see the team headers), so each card shows XP only. *@
+        <div class="stats @(Settings.IsTeamMode ? "xp-only" : null)">
+            @if (!Settings.IsTeamMode)
+            {
+                <Field Label="Points" Composite>
+                    <Stepper Label="@($"Player {Number} points")"
+                             Max="Settings.PointsToWin"
+                             @bind-Value:get="Player.Points"
+                             @bind-Value:set="points => Update(player => player with { Points = points })" />
+                </Field>
+                <Field Label="Game wins" Composite>
+                    <Stepper Label="@($"Player {Number} game wins")"
+                             Max="Settings.MaxGameWins"
+                             @bind-Value:get="Player.GameWins"
+                             @bind-Value:set="wins => Update(player => player with { GameWins = wins })" />
+                </Field>
+            }
+            <Field Label="XP" Composite>
+                <Stepper Label="@($"Player {Number} XP")"
+                         Max="PlayersService.MaxXp"
+                         @bind-Value:get="Player.Xp"
+                         @bind-Value:set="xp => Update(player => player with { Xp = xp })" />
+            </Field>
+        </div>
+    </div>
+</article>
+
+@code {
+    /// <summary>
+    /// The player's seat, from 0.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public int Seat { get; set; }
+
+    /// <summary>
+    /// The player shown on the card.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public Player Player { get; set; } = null!;
+
+    /// <summary>
+    /// The match settings, which decide the card's colour, side label, stats and limits.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public MatchSettings Settings { get; set; } = null!;
+
+    // What the operator sees: seats count from 1.
+    private int Number => Seat + 1;
+
+    // Sent when the field loses focus or Enter is pressed (the default for @bind on an input), not on
+    // every keystroke, so the overlay never shows a half-typed name.
+    private void SetName(string? name)
+    {
+        Update(player => player with { Name = name?.Trim() ?? "" });
+    }
+
+    private void Update(Func<Player, Player> change)
+    {
+        Players.UpdatePlayer(Seat, change);
+    }
+}

@@ -1,0 +1,37 @@
+﻿<select @bind:get="Value ?? None" @bind:set="SetAsync">
+    <option value="@None">None</option>
+    @if (Value is not null && !Options.Contains(Value))
+    {
+        @* A saved name that's no longer in the list: keep it selectable rather than showing a blank select. *@
+        <option value="@Value">@Value</option>
+    }
+    @foreach (var option in Options)
+    {
+        <option value="@option">@option</option>
+    }
+</select>
+
+@code {
+    // The value of the "None" option. Not a card name, so it can't clash with one.
+    private const string None = "";
+
+    /// <summary>
+    /// The chosen card's name, or <see langword="null"/> if none is chosen.
+    /// </summary>
+    [Parameter]
+    public string? Value { get; set; }
+
+    /// <summary>
+    /// The callback for when the choice changes. Receives <see langword="null"/> for "None".
+    /// </summary>
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    /// <summary>
+    /// The card names to choose from.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public IReadOnlyList<string> Options { get; set; } = [];
+
+    private Task SetAsync(string? value) => ValueChanged.InvokeAsync(string.IsNullOrEmpty(value) ? null : value);
+}
