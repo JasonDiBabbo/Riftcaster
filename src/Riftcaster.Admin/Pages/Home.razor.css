@@ -1,5 +1,5 @@
 .dashboard {
-  /* Ultrawide width of the Players column: 0.62fr per player. #11 sets this from the player count. */
+  /* Ultrawide width of the Players column: 0.62fr per player (data-players, set from the match mode). */
   --players-fr: 1.24fr;
   flex: 1;
   min-height: 0;
@@ -81,6 +81,14 @@
   .lower-thirds-slot {
     flex: 1;
   }
+}
+
+.dashboard[data-players='3'] {
+  --players-fr: 1.86fr;
+}
+
+.dashboard[data-players='4'] {
+  --players-fr: 2.48fr;
 }
 
 /* Ultrawide: four columns, with Featured card and Lower thirds as their own columns. */
