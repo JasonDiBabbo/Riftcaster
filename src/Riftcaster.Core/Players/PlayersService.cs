@@ -1,4 +1,6 @@
-﻿using Riftcaster.Contracts;
+﻿using System.Runtime.CompilerServices;
+using System.Threading.Channels;
+using Riftcaster.Contracts;
 using Riftcaster.Core.Match;
 
 namespace Riftcaster.Core.Players;
@@ -45,7 +47,9 @@ public class PlayersService
 
     private readonly Lock _lock = new();
 
-    private PlayersState _state;
+    // The players together with the match settings they were last checked against, as one
+    // reference, so readers always see a matching pair.
+    private MatchState _current;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PlayersService"/> class.
@@ -56,21 +60,26 @@ public class PlayersService
     {
         _store = store;
         _match = match;
-        _state = Normalize(store.Load() ?? new PlayersState([], []), match.Settings);
+        _current = new MatchState(match.Settings, Normalize(store.Load() ?? new PlayersState([], []), match.Settings));
 
-        // Lower any scores above the new limits. Both services live as long as the app,
-        // so this handler never needs removing.
+        // Lower any scores above the new limits, and pass the new settings on to watchers.
+        // Both services live as long as the app, so this handler never needs removing.
         match.Changed += () => Apply(state => state);
     }
 
     /// <summary>
     /// The current players and teams.
     /// </summary>
-    public PlayersState State => _state;
+    public PlayersState State => _current.Players;
 
     /// <summary>
-    /// Raised after the players or teams change.
-    /// Handlers read <see cref="State"/> for the new values.
+    /// The current players and teams, with the match settings they were checked against.
+    /// </summary>
+    public MatchState MatchState => _current;
+
+    /// <summary>
+    /// Raised after the players, the teams or the match settings change.
+    /// Handlers read <see cref="State"/> or <see cref="MatchState"/> for the new values.
     /// </summary>
     /// <remarks>
     /// May be raised on any thread.
@@ -151,18 +160,70 @@ public class PlayersService
         Teams = [.. state.Teams.Select(team => team with { Points = 0, GameWins = 0 })],
     });
 
+    /// <summary>
+    /// Streams the players and match settings: first the current state, then each change.
+    /// </summary>
+    /// <remarks>
+    /// If changes arrive faster than the caller reads them, only the latest is sent.
+    /// </remarks>
+    /// <param name="cancellationToken">Ends the stream, normally rather than with an exception.</param>
+    /// <returns>The current state, then each new state.</returns>
+    public async IAsyncEnumerable<MatchState> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // A signal only: the reader looks up the current state itself, so it always sends the latest.
+        var changed = Channel.CreateBounded<bool>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropOldest });
+
+        void OnChanged()
+        {
+            changed.Writer.TryWrite(true);
+        }
+
+        using var registration = cancellationToken.Register(() => changed.Writer.TryComplete());
+        Changed += OnChanged;
+
+        try
+        {
+            var last = _current;
+            yield return last; // Initial state
+
+            // Not cancellationToken: cancellation completes the channel (above), which ends this loop
+            // normally. Passing the token would end it with an OperationCanceledException instead.
+            await foreach (var _ in changed.Reader.ReadAllAsync(CancellationToken.None))
+            {
+                var current = _current;
+                if (current == last)
+                {
+                    continue; // Already sent: it was read after an earlier signal
+                }
+
+                last = current;
+                yield return current;
+            }
+        }
+        finally
+        {
+            Changed -= OnChanged;
+        }
+    }
+
     private void Apply(Func<PlayersState, PlayersState> change)
     {
         lock (_lock)
         {
-            var updated = Normalize(change(_state), _match.Settings);
-            if (updated == _state)
+            var settings = _match.Settings;
+            var updated = new MatchState(settings, Normalize(change(_current.Players), settings));
+            if (updated == _current)
             {
                 return;
             }
 
-            _state = updated;
-            _store.Save(updated); // Inside the lock, so saves happen in the same order as the changes
+            var playersChanged = updated.Players != _current.Players;
+            _current = updated;
+
+            if (playersChanged)
+            {
+                _store.Save(updated.Players); // Inside the lock, so saves happen in the same order as the changes
+            }
         }
 
         Changed?.Invoke();

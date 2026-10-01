@@ -249,16 +249,82 @@ public class PlayersServiceTests
     }
 
     [Fact]
-    public void MatchChanged_ScoresWithinLimits_DoesNotSaveOrRaiseChanged()
+    public void MatchChanged_ScoresWithinLimits_RaisesChangedWithoutSaving()
     {
         _service.UpdatePlayer(0, player => player with { Points = 5 });
         var saveCount = _store.SaveCount;
         _changedCount = 0;
 
-        _match.Update(settings => settings with { DurationMinutes = 30 });
+        _match.Update(settings => settings with { Mode = MatchMode.TwoVsTwo });
 
+        Assert.Equal(MatchMode.TwoVsTwo, _service.MatchState.Settings.Mode);
         Assert.Equal(saveCount, _store.SaveCount);
-        Assert.Equal(0, _changedCount);
+        Assert.Equal(1, _changedCount);
+    }
+
+    [Fact]
+    public async Task WatchAsync_YieldsCurrentStateFirst()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+
+        Assert.True(await watch.MoveNextAsync());
+        Assert.Equal(new MatchState(_match.Settings, _service.State), watch.Current);
+    }
+
+    [Fact]
+    public async Task WatchAsync_YieldsPlayerChanges()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync()); // Consume the initial state
+
+        _service.UpdatePlayer(0, player => player with { Name = "Mara" });
+
+        Assert.True(await watch.MoveNextAsync());
+        Assert.Equal("Mara", watch.Current.Players.Players[0].Name);
+    }
+
+    [Fact]
+    public async Task WatchAsync_YieldsMatchChanges()
+    {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync()); // Consume the initial state
+
+        _match.Update(settings => settings with { Mode = MatchMode.FreeForAll3 });
+
+        Assert.True(await watch.MoveNextAsync());
+        Assert.Equal(MatchMode.FreeForAll3, watch.Current.Settings.Mode);
+    }
+
+    [Fact]
+    public async Task WatchAsync_LowerLimits_YieldsSettingsAndLoweredScoresTogether()
+    {
+        _match.Update(settings => settings with { PointsToWin = 12 });
+        _service.UpdatePlayer(0, player => player with { Points = 10 });
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync()); // Consume the initial state
+        var next = watch.MoveNextAsync(); // Wait for the next event before changing anything
+
+        _match.Update(settings => settings with { PointsToWin = 8 });
+
+        Assert.True(await next);
+        Assert.Equal(8, watch.Current.Settings.PointsToWin);
+        Assert.Equal(8, watch.Current.Players.Players[0].Points); // Never 10 against 8
+    }
+
+    [Fact]
+    public async Task WatchAsync_EndsWhenCancelled()
+    {
+        using var cts = new CancellationTokenSource(); // no timeout: we cancel it ourselves
+        await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();
+        Assert.True(await watch.MoveNextAsync());
+
+        cts.Cancel();
+
+        Assert.False(await watch.MoveNextAsync()); // Stream ended normally
     }
 
     private static Player NewPlayer(string name) => new(name, null, null, null, 0, 0, 0);
