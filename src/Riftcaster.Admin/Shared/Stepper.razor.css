@@ -13,9 +13,10 @@
   border-color: var(--acc);
 }
 
+/* The design allows 26-32px. A parent can narrow them with --step-width (e.g. three steppers side by side). */
 .step {
   flex: none;
-  width: 32px;
+  width: var(--step-width, 32px);
   height: 100%;
   padding: 0;
   border: none;

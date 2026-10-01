@@ -1,0 +1,46 @@
+﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+@inject PlayersService Players
+
+<div class="team" style="--player-hue: @PlayerLabels.TeamHue(Team)">
+    <div class="identity">
+        <h3 class="name">@Name</h3>
+        <span class="members">@Members</span>
+    </div>
+    <div class="scores">
+        <Field Label="Team points" Composite>
+            <Stepper Label="@($"{Name} points")"
+                     Max="State.Settings.PointsToWin"
+                     @bind-Value:get="Score.Points"
+                     @bind-Value:set="points => Players.UpdateTeam(Team, team => team with { Points = points })" />
+        </Field>
+        <Field Label="Game wins" Composite>
+            <Stepper Label="@($"{Name} game wins")"
+                     Max="State.Settings.MaxGameWins"
+                     @bind-Value:get="Score.GameWins"
+                     @bind-Value:set="wins => Players.UpdateTeam(Team, team => team with { GameWins = wins })" />
+        </Field>
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// 0 for Team A, 1 for Team B.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public int Team { get; set; }
+
+    /// <summary>
+    /// The match settings and players, for the team's score, its members and its limits.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public MatchState State { get; set; } = null!;
+
+    private string Name => PlayerLabels.TeamName(Team);
+
+    private TeamScore Score => State.Players.Teams[Team];
+
+    // e.g. "Mara Quill & Dex Okafor"
+    private string Members => string.Join(" & ",
+        PlayerLabels.SeatsOf(Team).Select(seat => PlayerLabels.Name(State.Players.Players[seat], seat)));
+}

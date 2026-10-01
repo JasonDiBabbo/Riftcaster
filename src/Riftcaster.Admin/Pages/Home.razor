@@ -1,13 +1,14 @@
 ﻿@page "/"
+@using Riftcaster.Core.Match
+@implements IDisposable
+@inject MatchService Match
 
 <PageTitle>Riftcaster Admin</PageTitle>
 
-<main class="dashboard" data-tab="@_tab">
+<main class="dashboard" data-tab="@_tab" data-players="@Match.Settings.PlayerCount">
     <div class="column players-column">
         <div class="slot players-slot">
-            <Panel Title="Players" Meta="1v1 · 2 players">
-                <p class="placeholder">Players panel (#11)</p>
-            </Panel>
+            <PlayersPanel />
         </div>
     </div>
 
@@ -44,4 +45,20 @@
     /// Wider screen layouts show every section and do not use tabs.
     /// </remarks>
     private DashboardTab _tab = DashboardTab.Players;
+
+    protected override void OnInitialized()
+    {
+        // The player count sets the Players column's width on ultrawide screens.
+        Match.Changed += OnMatchChanged;
+    }
+
+    private void OnMatchChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Match.Changed -= OnMatchChanged;
+    }
 }

@@ -1,0 +1,78 @@
+/* --player-hue is set on the card from the seat (see PlayerLabels.Hue); everything else follows from it. */
+.card {
+  --player: oklch(0.74 0.13 var(--player-hue));
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid oklch(0.74 0.13 var(--player-hue) / 0.32);
+  border-radius: var(--radius-card);
+  /* The player's colour washes the top 140px of the card. */
+  background: linear-gradient(180deg, oklch(0.74 0.13 var(--player-hue) / 0.13), oklch(0.74 0.13 var(--player-hue) / 0) 140px), var(--card);
+}
+
+.bar {
+  height: 3px;
+  background: var(--player);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 11px 14px 0;
+}
+
+.slot {
+  margin: 0;
+  color: var(--player);
+  font: 700 var(--fs-body) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* A small ghost select, so it doesn't compete with the fields below. Overrides the global select styles. */
+.swap {
+  width: auto;
+  max-width: 130px;
+  height: 24px;
+  padding: 0 4px;
+  border-color: var(--edge);
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 var(--fs-label) / 1 var(--font);
+  cursor: pointer;
+}
+
+.side {
+  color: var(--text-muted);
+  font: 500 var(--fs-label) / 1 var(--font);
+  text-transform: uppercase;
+}
+
+.fields {
+  display: grid;
+  gap: 11px;
+  padding: 12px 14px 14px;
+}
+
+/* Three steppers side by side need narrower buttons than the default, to leave room for the number. */
+.stats {
+  --step-width: 26px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.stats.xp-only {
+  grid-template-columns: minmax(0, 1fr);
+}

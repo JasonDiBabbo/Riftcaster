@@ -1,0 +1,63 @@
+﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+@implements IDisposable
+@inject PlayersService Players
+
+@{
+    // One read, so the settings and players always belong together (see PlayersService.MatchState).
+    var state = Players.MatchState;
+}
+
+<Panel Title="Players" Meta="@PlayerLabels.Meta(state.Settings)">
+    <Actions>
+        <button type="button" class="button-secondary" @onclick="Players.ResetScores">Reset scores</button>
+    </Actions>
+    <Strip>
+        <ScoreStrip State="state" />
+    </Strip>
+    <ChildContent>
+        <div class="content">
+            @if (state.Settings.IsTeamMode)
+            {
+                @foreach (var team in Enumerable.Range(0, PlayersService.TeamCount))
+                {
+                    <div class="group" @key="team">
+                        <TeamHeader Team="team" State="state" />
+                        @Cards(state, PlayerLabels.SeatsOf(team))
+                    </div>
+                }
+            }
+            else
+            {
+                @Cards(state, Enumerable.Range(0, state.Settings.PlayerCount))
+            }
+        </div>
+    </ChildContent>
+</Panel>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Also raised when the match settings change, which changes the cards shown.
+        Players.Changed += OnPlayersChanged;
+    }
+
+    // A grid of player cards: all the players in use, or one team's pair in 2v2.
+    private static RenderFragment Cards(MatchState state, IEnumerable<int> seats) =>
+        @<div class="cards">
+            @foreach (var seat in seats)
+            {
+                <PlayerCard @key="seat" Seat="seat" State="state" />
+            }
+        </div>;
+
+    private void OnPlayersChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Players.Changed -= OnPlayersChanged;
+    }
+}
