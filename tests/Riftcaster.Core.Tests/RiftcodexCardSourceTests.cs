@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Text;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
 
@@ -9,6 +10,9 @@ namespace Riftcaster.Core.Tests;
 public class RiftcodexCardSourceTests
 {
     private readonly InstantTimeProvider _time = new();
+
+    // Records what the source logs, so tests can check its messages.
+    private readonly FakeLogger<RiftcodexCardSource> _logger = new();
 
     // Real cards from the API (trimmed to the fields the source reads, plus one it doesn't), one of
     // each shape the mapping handles: two domains and no cost, a cost, and a landscape image. Their
@@ -50,6 +54,18 @@ public class RiftcodexCardSourceTests
 
         Assert.Equal(["Vi, Piltover Enforcer", "Star Spring"], cards.Select(card => card.Name));
         Assert.Equal(["/cards?page=1&size=100", "/cards?page=2&size=100"], api.Requests);
+    }
+
+    [Fact]
+    public async Task FetchAllAsync_LogsEachPageAsItArrives()
+    {
+        var api = new FakeApi(Page([Legend, ChampionUnit], pages: 2), Page([Battlefield], pages: 2));
+
+        await CreateSource(api).FetchAllAsync(CancellationToken.None);
+
+        Assert.Equal(
+            ["Fetched card page 1 of 2 (2 cards so far).", "Fetched card page 2 of 2 (3 cards so far)."],
+            _logger.Collector.GetSnapshot().Where(log => log.Level == LogLevel.Information).Select(log => log.Message));
     }
 
     [Fact]
@@ -143,7 +159,7 @@ public class RiftcodexCardSourceTests
     }
 
     private RiftcodexCardSource CreateSource(FakeApi api) =>
-        new(new HttpClient(api) { BaseAddress = new Uri("https://api.riftcodex.test/") }, _time, NullLogger<RiftcodexCardSource>.Instance);
+        new(new HttpClient(api) { BaseAddress = new Uri("https://api.riftcodex.test/") }, _time, _logger);
 
     private static HttpResponseMessage Page(string[] items, int pages) => new(HttpStatusCode.OK)
     {

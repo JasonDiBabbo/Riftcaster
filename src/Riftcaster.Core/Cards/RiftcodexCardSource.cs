@@ -19,7 +19,8 @@ namespace Riftcaster.Core.Cards;
 /// </param>
 /// <param name="time">The clock, for the pause between attempts. Tests pass one that doesn't wait.</param>
 /// <param name="logger">
-/// Logs pages that are tried again, cards skipped because they're missing something, and types or
+/// Logs each page as it arrives (a whole fetch can take minutes), pages that are tried again,
+/// cards skipped because they're missing something, and types or
 /// supertypes this version doesn't know yet (those cards are kept, as <see cref="CardType.Other"/>
 /// or <see cref="CardSupertype.Other"/>).
 /// </param>
@@ -68,6 +69,8 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
                     skipped++;
                 }
             }
+
+            logger.LogInformation("Fetched card page {Page} of {Pages} ({Count} cards so far).", page, result.Pages, cards.Count);
 
             if (page >= result.Pages)
             {
