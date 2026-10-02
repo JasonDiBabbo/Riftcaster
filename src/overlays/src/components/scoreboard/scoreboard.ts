@@ -4,7 +4,8 @@
  *
  * Each side has a circle for each point from 1 to one short of the points to win, counting towards
  * the middle, where one shared circle stands for the winning point. A side's current score is
- * highlighted, points it has passed stay plain, and points still ahead are dimmed.
+ * highlighted in gold. Points still ahead get an "inactive" class, which the first version's CSS
+ * styles the same as points already passed, so it's there to restyle if they should differ.
  *
  * The two sides are the two players in 1v1 and the two teams in 2v2. Free-for-all modes have more
  * than two sides, which this layout can't show, so the scoreboard is hidden in them.
