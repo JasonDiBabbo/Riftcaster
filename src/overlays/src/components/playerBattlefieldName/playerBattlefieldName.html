@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riftcaster Player Battlefield Name</title>
+    <link rel="stylesheet" href="playerBattlefieldName.css" />
+    <script type="module" src="playerBattlefieldName.js"></script>
+  </head>
+  <body>
+    <!-- Use ?player=n for player n (default 1). Hidden until the stream sends the match, and when
+         the match mode doesn't use that seat (see playerBattlefieldName.ts). -->
+    <div class="player-battlefield-name-container" id="container" hidden>
+      <div class="player-battlefield-name" id="battlefieldName"></div>
+    </div>
+  </body>
+</html>

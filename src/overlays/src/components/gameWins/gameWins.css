@@ -1,0 +1,80 @@
+/* Ported from the first version of this application (app/components/gameWins/gameWins.css), with its
+   default colours and sizes; that version could restyle it from the admin, this one can't. */
+:root {
+  --game-wins-primary: #010a15;
+  --game-wins-accent: #d4af37;
+  --game-wins-circle-diameter: 42px;
+  --game-wins-logo-diameter: 24px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.game-wins-container {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+/* Same border + pointer treatment as the scoreboard's final-point circle
+   (.score-circle.center in scoreboard.css), with the pointers on the
+   left/right instead of top/bottom. */
+.game-win-circle {
+  position: relative;
+  width: var(--game-wins-circle-diameter);
+  height: var(--game-wins-circle-diameter);
+  border-radius: 50%;
+  background: var(--game-wins-primary);
+  border: 3px solid var(--game-wins-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.game-win-circle::before,
+.game-win-circle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  pointer-events: none;
+}
+
+.game-win-circle::before {
+  left: -2px;
+  border-left: 6px solid var(--game-wins-accent);
+}
+
+.game-win-circle::after {
+  right: -2px;
+  border-right: 6px solid var(--game-wins-accent);
+}
+
+.game-win-logo {
+  width: var(--game-wins-logo-diameter);
+  height: var(--game-wins-logo-diameter);
+  position: relative;
+  z-index: 1;
+  opacity: 0.25;
+  transition: opacity 0.3s ease;
+}
+
+.game-win-circle.filled .game-win-logo {
+  opacity: 1;
+}

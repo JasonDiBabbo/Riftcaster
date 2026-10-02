@@ -1,0 +1,198 @@
+/* Ported from the first version of this application (app/components/scoreboard/scoreboard.css), with its
+   default colours and sizes; that version could restyle it from the admin, this one can't. */
+@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+
+:root {
+  --scoreboard-primary: #010a15;
+  --scoreboard-accent: #d4af37;
+  --scoreboard-min-height: 60px;
+  --scoreboard-font-size-1: 16px;
+  --scoreboard-font-size-2: 18px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  /* Anchored to the top rather than centered - growing to a second row of
+     circles then only pushes the bottom edge down, keeping the space above
+     the scoreboard constant so an OBS browser source sized around the
+     single-row height doesn't clip it when it grows. */
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.scoreboard-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  width: fit-content;
+  min-height: var(--scoreboard-min-height);
+  background: linear-gradient(
+    90deg,
+    rgba(1, 10, 21, 0) 0%,
+    var(--scoreboard-primary) 14.67%,
+    var(--scoreboard-primary) 85.33%,
+    rgba(1, 10, 21, 0) 100%
+  );
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-top: 3px solid;
+  border-bottom: 3px solid;
+  border-image: linear-gradient(90deg, transparent, var(--scoreboard-accent), transparent) 1 0 1 0;
+}
+
+/* Hidden by scoreboard.ts until the match arrives, and in free-for-all modes. */
+.scoreboard-container[hidden] {
+  display: none;
+}
+
+.scoreline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  position: relative;
+  padding: 0;
+  height: auto;
+  width: fit-content;
+}
+
+/* The row of circles: left side, the winning point, right side. */
+.circles {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+.circles-left {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.circles-right {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+/* Beyond 7 circles a side collapses into two stacked rows instead of
+   shrinking the circles. Rows are centered over one another (rather than
+   flush to one edge) so an uneven row count staggers symmetrically instead
+   of leaving an awkward gap under the first circle. The vertical padding
+   mirrors the breathing room the single-row view gets for free from the
+   container's height. */
+.circles-left.circles-two-row,
+.circles-right.circles-two-row {
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 0;
+}
+
+.circles-row {
+  display: flex;
+  gap: 3px;
+}
+
+.circles-center {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 0;
+}
+
+.score-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: var(--scoreboard-font-size-1);
+  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  background: var(--scoreboard-primary);
+  border: 1px solid var(--scoreboard-accent);
+  color: white;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.score-circle.center {
+  width: 44px;
+  height: 44px;
+  font-size: var(--scoreboard-font-size-2);
+  background: var(--scoreboard-primary);
+  border: 3px solid var(--scoreboard-accent);
+  color: white;
+  font-weight: 900;
+  box-shadow: none;
+  transform: scale(1);
+  font-family: 'Beaufort for LOL Heavy', sans-serif;
+}
+
+.score-circle.center.active {
+  background: var(--scoreboard-accent);
+  color: var(--scoreboard-primary);
+  box-shadow: none;
+}
+
+.score-circle.center:not(.active)::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 6px solid var(--scoreboard-accent);
+  pointer-events: none;
+}
+
+.score-circle.center:not(.active)::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 6px solid var(--scoreboard-accent);
+  pointer-events: none;
+}
+
+.score-circle.active {
+  background: var(--scoreboard-accent);
+  border: 1px solid var(--scoreboard-accent);
+  color: var(--scoreboard-primary);
+  font-weight: 900;
+  box-shadow: none;
+  transform: scale(1.05);
+}
+
+.score-circle.inactive {
+  background: var(--scoreboard-primary);
+  border: 1px solid var(--scoreboard-accent);
+  color: white;
+}

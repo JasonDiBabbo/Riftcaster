@@ -1,0 +1,62 @@
+/* Ported from the first version of this application (app/components/playerName/playerName.css), with its
+   default colours and sizes; that version could restyle it from the admin, this one can't. */
+@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+
+:root {
+  --player-name-font-size: 22px;
+  --player-name-min-width: 275px;
+  --player-name-max-width: 300px;
+  --player-name-accent: #d4af37;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.player-name-container {
+  width: fit-content;
+  min-width: var(--player-name-min-width);
+  max-width: var(--player-name-max-width);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px 0;
+  border-top: 1px solid;
+  border-bottom: 1px solid;
+  /* Opaque at the horizontal center, fading out so the outer 25% on either
+     side stays fully transparent instead of fading all the way to the edge. */
+  border-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      transparent 15%,
+      var(--player-name-accent) 50%,
+      transparent 85%,
+      transparent 100%
+    )
+    1 0 1 0;
+}
+
+.player-name {
+  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-size: var(--player-name-font-size);
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  overflow-wrap: normal;
+  min-width: 0;
+}
+
+/* Hidden by playerName.ts until the match arrives, and when the mode doesn't use this seat. */
+.player-name-container[hidden] {
+  display: none;
+}

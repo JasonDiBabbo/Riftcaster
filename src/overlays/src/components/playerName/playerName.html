@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riftcaster Player Name</title>
+    <link rel="stylesheet" href="playerName.css" />
+    <script type="module" src="playerName.js"></script>
+  </head>
+  <body>
+    <!-- Use ?player=n for player n (default 1). Hidden until the stream sends the match, and when
+         the match mode doesn't use that seat (see playerName.ts). -->
+    <div class="player-name-container" id="container" hidden>
+      <div class="player-name" id="playerName"></div>
+    </div>
+  </body>
+</html>
