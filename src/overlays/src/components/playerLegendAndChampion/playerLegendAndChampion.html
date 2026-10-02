@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riftcaster Player Legend and Champion</title>
+    <link rel="stylesheet" href="playerLegendAndChampion.css" />
+    <script type="module" src="playerLegendAndChampion.js"></script>
+  </head>
+  <body>
+    <!-- Use ?player=n for player n (default 1). Hidden until the stream sends the match, and when
+         the match mode doesn't use that seat (see playerLegendAndChampion.ts). -->
+    <div class="player-legend-and-champion-container" id="container" hidden>
+      <div class="legend-name" id="legendName"></div>
+      <div class="divider"></div>
+      <div class="champion-name" id="championName"></div>
+    </div>
+  </body>
+</html>

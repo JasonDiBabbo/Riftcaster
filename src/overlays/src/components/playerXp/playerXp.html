@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Riftcaster Player XP</title>
+    <link rel="stylesheet" href="playerXp.css" />
+    <script type="module" src="playerXp.js"></script>
+  </head>
+  <body>
+    <!-- Use ?player=n for player n (default 1). Hidden until the stream sends the match, and when
+         the match mode doesn't use that seat (see playerXp.ts). -->
+    <div class="player-xp-container" id="container" hidden>
+      <div class="player-xp-label" id="xpLabel">XP</div>
+      <div class="player-xp-value" id="xpValue"></div>
+    </div>
+  </body>
+</html>

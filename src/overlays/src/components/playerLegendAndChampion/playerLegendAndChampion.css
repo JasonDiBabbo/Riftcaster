@@ -1,0 +1,63 @@
+/* Ported from the first version of this application (app/components/playerLegendAndChampion/playerLegendAndChampion.css), with its
+   default colours and sizes; that version could restyle it from the admin, this one can't. */
+@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+
+:root {
+  --player-legend-and-champion-font-size: 12px;
+  --player-legend-and-champion-width: 245px;
+  --player-legend-and-champion-divider-width: 140px;
+  --player-legend-and-champion-accent: #d4af37;
+  --player-legend-and-champion-gap: 8px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.player-legend-and-champion-container {
+  width: var(--player-legend-and-champion-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.legend-name,
+.champion-name {
+  width: 100%;
+  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-size: var(--player-legend-and-champion-font-size);
+  font-weight: 900;
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  overflow-wrap: break-word;
+}
+
+.legend-name {
+  padding-bottom: var(--player-legend-and-champion-gap);
+}
+
+.champion-name {
+  padding-top: var(--player-legend-and-champion-gap);
+}
+
+.divider {
+  width: var(--player-legend-and-champion-divider-width);
+  height: 1px;
+  background-color: var(--player-legend-and-champion-accent);
+}
+
+/* Hidden by playerLegendAndChampion.ts until the match arrives, and when the mode doesn't use this seat. */
+.player-legend-and-champion-container[hidden] {
+  display: none;
+}
