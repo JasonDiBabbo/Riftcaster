@@ -11,7 +11,7 @@ namespace Riftcaster.Core.Cards;
 /// </summary>
 public static partial class RiftcodexNames
 {
-    // Tags that aren't a champion's name, so can't start a legend's name (e.g. "Yordle" on Kennen).
+    // Tags that aren't a champion's name, so can't start a card's name (e.g. "Yordle" on Kennen).
     private static readonly HashSet<string> NonChampionTags = ["Yordle", "Unit", "Spell", "Gear", "Champion"];
 
     /// <summary>
@@ -38,6 +38,13 @@ public static partial class RiftcodexNames
 
         // Riftcodex writes most champion cards "Champion - Title", and some "Champion, Title".
         name = name.Replace(" - ", ", ");
+
+        // Riftcodex has written at least one legend with its tribe in front of its champion
+        // ("Yordle, Kennen - Heart of the Tempest"): drop it, leaving "Champion, Title".
+        if (NonChampionTags.FirstOrDefault(tag => name.StartsWith($"{tag}, ", StringComparison.Ordinal)) is { } tribe)
+        {
+            name = name[(tribe.Length + 2)..];
+        }
 
         // Some legends are named by their title alone ("Master of Shadows"); their champion is a tag.
         if (type == CardType.Legend && !name.Contains(", ")
