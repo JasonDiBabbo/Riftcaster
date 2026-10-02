@@ -3,6 +3,7 @@ using Riftcaster.Contracts;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
+using Riftcaster.Core.Timer;
 
 namespace Riftcaster.Server;
 
@@ -32,6 +33,9 @@ public partial class Program
             services.GetRequiredService<ILogger<JsonFilePlayersStore>>()));
         builder.Services.AddSingleton<PlayersService>();
 
+        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<TimerService>();
+
         var app = builder.Build();
 
         app.UseOverlays();
@@ -39,6 +43,7 @@ public partial class Program
         app.MapGet("/api/info", (ServerIdentity identity) => identity);
         app.MapLowerThird();
         app.MapMatch();
+        app.MapTimer();
         app.MapStaticAssets();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
