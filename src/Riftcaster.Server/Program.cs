@@ -58,6 +58,7 @@ public partial class Program
                     UserAgent = { new ProductInfoHeaderValue("Riftcaster", services.GetRequiredService<ServerIdentity>().Version) },
                 },
             },
+            services.GetRequiredService<TimeProvider>(),
             services.GetRequiredService<ILogger<RiftcodexCardSource>>()));
         builder.Services.AddSingleton<CardCatalog>();
         builder.Services.AddHostedService<CardCatalogRefresher>();
