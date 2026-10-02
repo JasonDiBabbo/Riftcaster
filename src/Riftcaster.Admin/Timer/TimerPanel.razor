@@ -1,0 +1,171 @@
+﻿@using System.Globalization
+@using Riftcaster.Core.Timer
+@implements IDisposable
+@inject TimerService Timer
+
+@{
+    // One snapshot per render, so every part of the panel shows the same moment.
+    var state = Timer.State;
+    var readout = TimerReadout.From(state);
+}
+
+<Panel Title="Timer">
+    <Actions>
+        <span class="status @StatusClass(readout.Status)">
+            <span class="dot"></span>@StatusLabel(readout.Status)
+        </span>
+    </Actions>
+    <ChildContent>
+        <div class="content">
+            <div class="display @ToneClass(readout.Tone)">
+                <div class="time">@readout.Time</div>
+                <div class="sub">
+                    @TimerFormat.Format((int)(state.ElapsedMilliseconds / 1000)) elapsed of @TimerFormat.Format(state.TotalSeconds)@(state.AllowOvertime ? " · overtime on" : "")
+                </div>
+                <div class="track">
+                    <div class="fill" style="width: @Percent(readout.Progress)"></div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button type="button"
+                        class="start @(state.Running ? "running" : null)"
+                        disabled="@(readout.Status == TimerStatus.TimeUp)"
+                        @onclick="StartOrPause">
+                    @(state.Running ? "Pause" : state.ElapsedMilliseconds > 0 ? "Resume" : "Start")
+                </button>
+                <button type="button" class="reset" @onclick="Timer.Reset">Reset</button>
+            </div>
+
+            <div class="adjust">
+                @foreach (var (label, seconds) in Adjustments)
+                {
+                    <button type="button" @onclick="() => Timer.Adjust(seconds)">@label</button>
+                }
+            </div>
+
+            @* A form, so Enter in the input submits it like the Set button does. *@
+            <form class="set" @onsubmit="SetRemaining">
+                <input placeholder="Set remaining — mm:ss"
+                       aria-label="Set remaining, as mm:ss or minutes"
+                       aria-invalid="@(_setInvalid ? "true" : null)"
+                       class="@(_setInvalid ? "invalid" : null)"
+                       @bind="_setText"
+                       @bind:event="oninput" />
+                <button type="submit">Set</button>
+            </form>
+        </div>
+    </ChildContent>
+</Panel>
+
+@code {
+    // The adjust row: these change the total, not the time run.
+    private static readonly (string Label, int Seconds)[] Adjustments =
+    [
+        ("−1m", -60),
+        ("−10s", -10),
+        ("+10s", 10),
+        ("+1m", 60),
+    ];
+
+    // Stops the redraw loop when the panel goes away.
+    private readonly CancellationTokenSource _disposed = new();
+
+    private string _setText = "";
+
+    private bool _setInvalid;
+
+    protected override void OnInitialized()
+    {
+        Timer.Changed += OnTimerChanged;
+        _ = RedrawWhileRunningAsync(_disposed.Token);
+    }
+
+    // The server sends no events while the timer runs (see TimerService), so the panel redraws
+    // itself five times a second to keep the time moving. While stopped, it waits.
+    private async Task RedrawWhileRunningAsync(CancellationToken cancellationToken)
+    {
+        using var ticks = new PeriodicTimer(TimeSpan.FromMilliseconds(200));
+
+        try
+        {
+            while (await ticks.WaitForNextTickAsync(cancellationToken))
+            {
+                if (Timer.State.Running)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // The panel was disposed.
+        }
+    }
+
+    private void StartOrPause()
+    {
+        if (Timer.State.Running)
+        {
+            Timer.Pause();
+        }
+        else
+        {
+            Timer.Start();
+        }
+    }
+
+    // Invalid input stays in the box, marked, so the operator can fix it; valid input is cleared.
+    private void SetRemaining()
+    {
+        _setInvalid = !TimerFormat.TryParse(_setText, out var seconds) || seconds > TimerService.MaxTotalSeconds;
+        if (_setInvalid)
+        {
+            return;
+        }
+
+        Timer.SetRemaining(seconds);
+        _setText = "";
+    }
+
+    private static string StatusLabel(TimerStatus status) => status switch
+    {
+        TimerStatus.Ready => "Ready",
+        TimerStatus.Running => "Running",
+        TimerStatus.Paused => "Paused",
+        TimerStatus.Overtime => "Overtime",
+        TimerStatus.OvertimePaused => "Overtime · paused",
+        TimerStatus.TimeUp => "Time",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Unknown timer status."),
+    };
+
+    private static string? StatusClass(TimerStatus status) => status switch
+    {
+        TimerStatus.Running => "running",
+        TimerStatus.Overtime or TimerStatus.OvertimePaused or TimerStatus.TimeUp => "alert",
+        _ => null,
+    };
+
+    private static string? ToneClass(TimerTone tone) => tone switch
+    {
+        TimerTone.LowTime => "low",
+        TimerTone.Overtime => "overtime",
+        _ => null,
+    };
+
+    // Invariant, so a server set to a comma-decimal culture still writes "42.5%", not "42,5%".
+    private static string Percent(double fraction) =>
+        string.Create(CultureInfo.InvariantCulture, $"{fraction * 100:0.##}%");
+
+    private void OnTimerChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Timer.Changed -= OnTimerChanged;
+        _disposed.Cancel();
+        _disposed.Dispose();
+    }
+}
