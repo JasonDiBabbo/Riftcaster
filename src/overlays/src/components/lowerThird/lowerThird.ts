@@ -9,6 +9,7 @@
  * next message enters, even when the two are different types.
  */
 import type { LowerThirdMessage, LowerThirdState } from '../../generated';
+import { subscribe } from '../../shared/stream';
 import { createInformationVisual } from './informationVisual';
 import { createKeywordVisual } from './keywordVisual';
 import { createSocialsVisual } from './socialsVisual';
@@ -79,15 +80,6 @@ async function render(state: LowerThirdState): Promise<void> {
   onScreen = show(message);
 }
 
-// EventSource reconnects by itself (every few seconds) whenever the stream
-// drops, e.g. across a server restart; the first event after reconnecting is
-// the current state, which render() de-duplicates via currentKey.
-const source = new EventSource('/api/lower-third/events');
-
-source.onmessage = (event: MessageEvent<string>) => {
-  void render(JSON.parse(event.data) as LowerThirdState);
-};
-
-source.onerror = () => {
-  console.warn('Lower third stream interrupted; the browser will reconnect automatically.');
-};
+// The first event after a reconnect is the current state again; render() de-duplicates it via
+// currentKey.
+subscribe<LowerThirdState>('/api/lower-third/events', 'Lower third', (state) => void render(state));

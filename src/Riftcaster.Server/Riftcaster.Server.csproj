@@ -40,8 +40,11 @@
   <Target Name="BuildOverlays" AfterTargets="Build" Condition="'$(ShouldBuildOverlays)' == 'true'"
           DependsOnTargets="EnsureNode;RestoreOverlayPackages"
           Inputs="@(OverlaysInput)" Outputs="$(OverlaysBuildStamp)">
-    <Message Importance="high" Text="Building overlays (typecheck + lint + format check + bundle)..." />
+    <Message Importance="high" Text="Building overlays (typecheck + test + lint + format check + bundle)..." />
     <Exec Command="npm run typecheck" WorkingDirectory="$(OverlaysDir)" />
+    <!-- Vitest (src/**/*.test.ts). NO_COLOR: like Prettier below, colored output shows up as raw
+         escape codes in MSBuild logs. -->
+    <Exec Command="npm test" WorkingDirectory="$(OverlaysDir)" EnvironmentVariables="NO_COLOR=1" />
     <!-- Lint and formatting problems fail the build like type errors do; the old repo ran these in a
          pre-commit hook, this runs them for everyone on every build (and in CI). Fix with
          `npm run lint:fix` and `npm run format`. -->
