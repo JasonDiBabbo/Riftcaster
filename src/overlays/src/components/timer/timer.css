@@ -1,0 +1,46 @@
+/* Ported from the first version of this application (app/components/timer/timer.css), with its
+   default colours and sizes; that version could restyle the timer from the admin, this one can't. */
+@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+
+:root {
+  --timer-font-size: 34px;
+  --timer-width: 150px;
+  --timer-height: 50px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.timer-container {
+  background-color: #d4af37;
+  width: var(--timer-width);
+  height: var(--timer-height);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 4px;
+  border: 1px solid #c8aa6e;
+}
+
+.timer {
+  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-size: var(--timer-font-size);
+  font-weight: 900;
+  /* Equal-width digits, so the time doesn't shift sideways as it counts. */
+  font-variant-numeric: tabular-nums;
+  color: #010a15;
+  letter-spacing: 2px;
+  line-height: 1;
+  text-align: center;
+}
