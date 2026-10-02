@@ -1,0 +1,178 @@
+/* Status beside the title: a dot and a label in the status colour. */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status.running {
+  color: var(--ok);
+}
+
+.status.alert {
+  color: var(--live);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Fills the panel, so the display can take the spare height when the Timer slot grows. */
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 100%;
+  padding: 16px;
+}
+
+/* --tone is the time's colour; the progress bar uses it too. */
+.display {
+  --tone: var(--text-bright);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 120px;
+}
+
+.display.low {
+  --tone: var(--warn);
+}
+
+.display.overtime {
+  --tone: var(--live-soft);
+}
+
+.time {
+  color: var(--tone);
+  font: 600 var(--fs-timer) / 1 var(--font);
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.track {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--button);
+}
+
+.fill {
+  height: 100%;
+  background: var(--tone);
+}
+
+/* Start/Pause/Resume beside Reset. */
+.controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.controls button {
+  height: 44px;
+  border-radius: var(--radius-segmented);
+  font: 600 var(--fs-title) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.start {
+  border: none;
+  background: var(--acc);
+  color: var(--acc-ink);
+  font-weight: 700;
+}
+
+.start.running {
+  background: var(--button-strong);
+  color: var(--text-bright);
+}
+
+/* Not in the design: Start can't run once time is up with overtime off. */
+.start:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.reset {
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--text);
+}
+
+.reset:hover {
+  background: var(--button-hover);
+}
+
+.adjust {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.adjust button {
+  height: 34px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--text-secondary);
+  font: 500 var(--fs-small) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.adjust button:hover {
+  background: var(--button);
+  color: var(--text);
+}
+
+.set {
+  display: flex;
+  gap: 6px;
+}
+
+.set input {
+  flex: 1;
+  min-width: 0;
+}
+
+.set button {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--button);
+  color: var(--text);
+  font: 500 var(--fs-small) / 1 var(--font);
+  cursor: pointer;
+}
+
+.set button:hover {
+  background: var(--button-strong);
+}
+
+/* Phone: a slightly smaller time. */
+@media (width < 760px) {
+  .time {
+    font-size: 56px;
+  }
+}
