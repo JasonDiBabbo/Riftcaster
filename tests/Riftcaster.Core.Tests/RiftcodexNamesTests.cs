@@ -15,6 +15,8 @@ public class RiftcodexNamesTests
     [InlineData("Yasuo - Unforgiven (Metal)", CardType.Legend, "Yasuo, Unforgiven", "Metal")]
     [InlineData("Sprite (274) // Buff", CardType.Unit, "Sprite (274) // Buff", null)] // Brackets mid-name aren't a variant
     [InlineData("  Teemo - Swift Scout (Starter)  ", CardType.Legend, "Teemo, Swift Scout", "Starter")]
+    [InlineData("Yordle, Kennen - Heart of the Tempest", CardType.Legend, "Kennen, Heart of the Tempest", null)] // Tribe dropped
+    [InlineData("Yordle, Kennen - Heart of the Tempest (Overnumbered)", CardType.Legend, "Kennen, Heart of the Tempest", "Overnumbered")]
     public void Normalize_SplitsVariantAndUsesCommaForm(string name, CardType type, string expectedName, string? expectedVariant)
     {
         var (normalized, variant) = RiftcodexNames.Normalize(name, type, tags: null);

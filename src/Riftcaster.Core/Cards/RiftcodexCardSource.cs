@@ -12,6 +12,13 @@ namespace Riftcaster.Core.Cards;
 /// connection, a timeout, an overloaded server) is tried again, so one bad moment doesn't cost the
 /// whole fetch.
 /// </summary>
+/// <remarks>
+/// Riftcodex can list one printing more than once: re-importing Vendetta left the old records of
+/// 131 of its cards alongside the new ones, some with outdated names or no variant. Records with
+/// the same collector code and image are the same printing, and any updated well before the newest
+/// of them (see <see cref="StaleRecordAge"/>) are dropped. Genuinely different printings that share
+/// both, like a promo and its metal version, were added together, so both are kept.
+/// </remarks>
 /// <param name="http">
 /// A client whose base address is the API's (https://api.riftcodex.com/). It must send a
 /// User-Agent header, without which the API refuses every request, and allow for slow pages:
@@ -19,7 +26,8 @@ namespace Riftcaster.Core.Cards;
 /// </param>
 /// <param name="time">The clock, for the pause between attempts. Tests pass one that doesn't wait.</param>
 /// <param name="logger">
-/// Logs pages that are tried again, cards skipped because they're missing something, and types or
+/// Logs each page as it arrives (a whole fetch can take minutes), pages that are tried again,
+/// cards skipped because they're missing something, and types or
 /// supertypes this version doesn't know yet (those cards are kept, as <see cref="CardType.Other"/>
 /// or <see cref="CardSupertype.Other"/>).
 /// </param>
@@ -40,6 +48,13 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
     /// </summary>
     public static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(5);
 
+    /// <summary>
+    /// How much older than the newest record of the same printing a record must be to count as a
+    /// leftover from an earlier import. Separate printings added together are seconds apart; the
+    /// stale Vendetta records are days older.
+    /// </summary>
+    public static readonly TimeSpan StaleRecordAge = TimeSpan.FromHours(1);
+
     // Riftcodex's JSON names are snake_case (e.g. "image_url").
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
     {
@@ -49,7 +64,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
     /// <inheritdoc/>
     public async Task<IReadOnlyList<Card>> FetchAllAsync(CancellationToken cancellationToken)
     {
-        var cards = new List<Card>();
+        var fetched = new List<(Card Card, DateTimeOffset? UpdatedOn)>();
         var skipped = 0;
         var unknown = new SortedSet<string>();
 
@@ -61,13 +76,15 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
             {
                 if (ToCard(item, unknown) is { } card)
                 {
-                    cards.Add(card);
+                    fetched.Add((card, item?.Metadata?.UpdatedOn));
                 }
                 else
                 {
                     skipped++;
                 }
             }
+
+            logger.LogInformation("Fetched card page {Page} of {Pages} ({Count} cards so far).", page, result.Pages, fetched.Count);
 
             if (page >= result.Pages)
             {
@@ -83,6 +100,24 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
         if (unknown.Count > 0)
         {
             logger.LogWarning("Riftcodex has card types or supertypes this version doesn't know, shown as Other: {Unknown}.", string.Join(", ", unknown));
+        }
+
+        // Drop records left over from an earlier import of the same printing (a missing date counts as oldest).
+        var cards = fetched
+            .GroupBy(entry => (entry.Card.Code, entry.Card.ImageUrl))
+            .SelectMany(printing =>
+            {
+                var newest = printing.Max(entry => entry.UpdatedOn ?? DateTimeOffset.MinValue);
+                return printing.Where(entry => newest - (entry.UpdatedOn ?? DateTimeOffset.MinValue) <= StaleRecordAge);
+            })
+            .Select(entry => entry.Card)
+            .ToList();
+
+        if (cards.Count < fetched.Count)
+        {
+            logger.LogInformation(
+                "Dropped {Stale} Riftcodex records left over from an earlier import of the same printing.",
+                fetched.Count - cards.Count);
         }
 
         return cards;
@@ -202,7 +237,8 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
         CardSet? Set,
         CardMedia? Media,
         string? Orientation,
-        IReadOnlyList<string>? Tags);
+        IReadOnlyList<string>? Tags,
+        CardMetadata? Metadata);
 
     private sealed record CardClassification(string? Type, string? Supertype, IReadOnlyList<string>? Domain);
 
@@ -211,4 +247,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
     private sealed record CardSet(string? Label);
 
     private sealed record CardMedia(string? ImageUrl);
+
+    // When Riftcodex last changed the record ("updated_on" in the JSON).
+    private sealed record CardMetadata(DateTimeOffset? UpdatedOn);
 }
