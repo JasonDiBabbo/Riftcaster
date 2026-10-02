@@ -7,8 +7,8 @@ public static class TimerEndpoints
     public static WebApplication MapTimer(this WebApplication app)
     {
         app.MapGet("/api/timer/events",
-            (TimerService timer, IHostApplicationLifetime lifetime, CancellationToken requestAborted) =>
-                TypedResults.ServerSentEvents(EventStreams.UntilShutdown(timer.WatchAsync, requestAborted, lifetime.ApplicationStopping)));
+            (HttpContext context, TimerService timer, IHostApplicationLifetime lifetime) =>
+                StateSockets.SendStatesAsync(context, timer.WatchAsync, lifetime.ApplicationStopping));
 
         return app;
     }

@@ -7,8 +7,8 @@ public static class LowerThirdEndpoints
     public static WebApplication MapLowerThird(this WebApplication app)
     {
         app.MapGet("/api/lower-third/events",
-            (LowerThirdService lowerThird, IHostApplicationLifetime lifetime, CancellationToken requestAborted) =>
-                TypedResults.ServerSentEvents(EventStreams.UntilShutdown(lowerThird.WatchAsync, requestAborted, lifetime.ApplicationStopping)));
+            (HttpContext context, LowerThirdService lowerThird, IHostApplicationLifetime lifetime) =>
+                StateSockets.SendStatesAsync(context, lowerThird.WatchAsync, lifetime.ApplicationStopping));
 
         return app;
     }
