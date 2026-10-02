@@ -7,8 +7,8 @@ public static class MatchEndpoints
     public static WebApplication MapMatch(this WebApplication app)
     {
         app.MapGet("/api/match/events",
-            (PlayersService players, IHostApplicationLifetime lifetime, CancellationToken requestAborted) =>
-                TypedResults.ServerSentEvents(EventStreams.UntilShutdown(players.WatchAsync, requestAborted, lifetime.ApplicationStopping)));
+            (HttpContext context, PlayersService players, IHostApplicationLifetime lifetime) =>
+                StateSockets.SendStatesAsync(context, players.WatchAsync, lifetime.ApplicationStopping));
 
         return app;
     }

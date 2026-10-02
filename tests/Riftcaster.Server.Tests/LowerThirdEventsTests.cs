@@ -1,7 +1,4 @@
-﻿using System.Net.ServerSentEvents;
-using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Riftcaster.Contracts;
 using Riftcaster.Core.LowerThird;
 
@@ -10,34 +7,23 @@ namespace Riftcaster.Server.Tests;
 public class LowerThirdEventsTests(RiftcasterWebApplicationFactory factory) : IClassFixture<RiftcasterWebApplicationFactory>
 {
     [Fact]
-    public async Task Events_StreamsCurrentStateThenChanges()
+    public async Task Events_SendsCurrentStateThenChanges()
     {
-        var client = factory.CreateClient(); // starts the test server, which can be slow on a cold CI runner
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)); // starting the test server can be slow on a cold CI runner
+        using var socket = await factory.ConnectSocketAsync("/api/lower-third/events", cts.Token);
 
-        // 1. Send the request, but return as soon as the headers arrive
-        using var response = await client.GetAsync("/api/lower-third/events", HttpCompletionOption.ResponseHeadersRead, cts.Token);
-        response.EnsureSuccessStatusCode();
-        Assert.Equal("text/event-stream", response.Content.Headers.ContentType?.MediaType);
-
-        // 2. Turn the raw body into a stream of SSE events
-        await using var body = await response.Content.ReadAsStreamAsync(cts.Token);
-        await using var events = SseParser.Create(body).EnumerateAsync(cts.Token).GetAsyncEnumerator(cts.Token);
-
-        // 3. First event: the current state (nothing showing)
-        Assert.True(await events.MoveNextAsync());
-        var initial = JsonSerializer.Deserialize<LowerThirdState>(events.Current.Data, JsonSerializerOptions.Web);
+        // First message: the current state (nothing showing)
+        var (_, initial) = await socket.ReceiveStateAsync<LowerThirdState>(cts.Token);
         Assert.Null(initial?.Message);
 
-        // 4. Change the state through the server's own service
+        // Change the state through the server's own service
         var service = factory.Services.GetRequiredService<LowerThirdService>();
         var message = new LowerThirdKeywordMessage("Burn", "Send cards to the trash.");
         service.Show(service.Add(message).Id);
 
-        // 5. Next event: the change
-        Assert.True(await events.MoveNextAsync());
-        Assert.Contains("\"type\":\"keyword\"", events.Current.Data);
-        var changed = JsonSerializer.Deserialize<LowerThirdState>(events.Current.Data, JsonSerializerOptions.Web);
+        // Next message: the change
+        var (json, changed) = await socket.ReceiveStateAsync<LowerThirdState>(cts.Token);
+        Assert.Contains("\"type\":\"keyword\"", json);
         Assert.Equal(message, changed?.Message);
     }
 }
