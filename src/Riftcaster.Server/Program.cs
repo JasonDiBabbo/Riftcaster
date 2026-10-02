@@ -1,5 +1,7 @@
+using System.Net.Http.Headers;
 using Riftcaster.Admin;
 using Riftcaster.Contracts;
+using Riftcaster.Core.Cards;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
@@ -35,6 +37,31 @@ public partial class Program
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<TimerService>();
+
+        builder.Services.AddSingleton<ICardStore>(services => new JsonFileCardStore(
+            Path.Combine(dataDirectory, "cards.json"),
+            services.GetRequiredService<ILogger<JsonFileCardStore>>()));
+        builder.Services.AddSingleton<ICardSource>(services => new RiftcodexCardSource(
+            new HttpClient(new SocketsHttpHandler
+            {
+                // The client lives as long as the app, so refresh its connections now and then
+                // to pick up DNS changes.
+                PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+            })
+            {
+                BaseAddress = new Uri("https://api.riftcodex.com/"),
+                // Per request: one page of 100 cards can take half a minute.
+                Timeout = TimeSpan.FromMinutes(2),
+                // Riftcodex refuses requests without a User-Agent.
+                DefaultRequestHeaders =
+                {
+                    UserAgent = { new ProductInfoHeaderValue("Riftcaster", services.GetRequiredService<ServerIdentity>().Version) },
+                },
+            },
+            services.GetRequiredService<TimeProvider>(),
+            services.GetRequiredService<ILogger<RiftcodexCardSource>>()));
+        builder.Services.AddSingleton<CardCatalog>();
+        builder.Services.AddHostedService<CardCatalogRefresher>();
 
         var app = builder.Build();
 
