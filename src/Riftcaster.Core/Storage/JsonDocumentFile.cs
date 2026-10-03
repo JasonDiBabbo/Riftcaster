@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Riftcaster.Core.Storage;
@@ -21,17 +22,13 @@ namespace Riftcaster.Core.Storage;
 /// <typeparam name="T">The document's type.</typeparam>
 /// <param name="path">The file. Its folder is created on the first write.</param>
 /// <param name="logger">The owning store's logger.</param>
-public sealed class JsonDocumentFile<T>(string path, ILogger logger) where T : class
+/// <param name="converters">
+/// Converters for reading and writing the document, on top of the defaults, e.g. to read a shape
+/// saved by an earlier version.
+/// </param>
+public sealed class JsonDocumentFile<T>(string path, ILogger logger, params IEnumerable<JsonConverter> converters) where T : class
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        WriteIndented = true,
-
-        // Reject documents with missing or null values (e.g. a Socials message with no links) instead of
-        // loading nulls that would crash later. The file is then treated as invalid and backed up.
-        RespectRequiredConstructorParameters = true,
-        RespectNullableAnnotations = true,
-    };
+    private readonly JsonSerializerOptions _serializerOptions = CreateOptions(converters);
 
     private readonly string _path = Path.GetFullPath(path);
 
@@ -56,7 +53,7 @@ public sealed class JsonDocumentFile<T>(string path, ILogger logger) where T : c
             T? document;
             using (var stream = File.OpenRead(_path))
             {
-                document = JsonSerializer.Deserialize<T>(stream, SerializerOptions);
+                document = JsonSerializer.Deserialize<T>(stream, _serializerOptions);
             }
 
             if (document is not null)
@@ -95,7 +92,7 @@ public sealed class JsonDocumentFile<T>(string path, ILogger logger) where T : c
             // Write the whole file, then swap it in, so a crash mid-save leaves the old file intact.
             using (var stream = File.Create(tempPath))
             {
-                JsonSerializer.Serialize(stream, document, SerializerOptions);
+                JsonSerializer.Serialize(stream, document, _serializerOptions);
             }
 
             File.Move(tempPath, _path, overwrite: true);
@@ -104,6 +101,26 @@ public sealed class JsonDocumentFile<T>(string path, ILogger logger) where T : c
         {
             _logger.LogError(exception, "Could not save data to {Path}.", _path);
         }
+    }
+
+    private static JsonSerializerOptions CreateOptions(IEnumerable<JsonConverter> converters)
+    {
+        var options = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            WriteIndented = true,
+
+            // Reject documents with missing or null values (e.g. a Socials message with no links) instead of
+            // loading nulls that would crash later. The file is then treated as invalid and backed up.
+            RespectRequiredConstructorParameters = true,
+            RespectNullableAnnotations = true,
+        };
+
+        foreach (var converter in converters)
+        {
+            options.Converters.Add(converter);
+        }
+
+        return options;
     }
 
     private void MoveAside()

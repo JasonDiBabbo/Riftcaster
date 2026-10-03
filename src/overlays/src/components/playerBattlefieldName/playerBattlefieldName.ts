@@ -16,7 +16,7 @@ const battlefield = getElement('battlefieldName');
 function render(state: MatchState): void {
   const player = playerAt(state, seat);
   container.hidden = player === null;
-  battlefield.textContent = player?.battlefield ?? '';
+  battlefield.textContent = player?.battlefield?.name ?? '';
 }
 
 subscribe<MatchState>('/api/match/events', `Battlefield (player ${seat + 1})`, render);

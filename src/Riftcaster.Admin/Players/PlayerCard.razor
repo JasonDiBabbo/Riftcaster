@@ -1,5 +1,7 @@
-﻿@using Riftcaster.Core.Match
+﻿@using Riftcaster.Core.Cards
+@using Riftcaster.Core.Match
 @using Riftcaster.Core.Players
+@inject CardCatalog Catalog
 @inject PlayersService Players
 
 <article class="card" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
@@ -24,17 +26,17 @@
             <input @bind:get="Player.Name" @bind:set="SetName" />
         </Field>
         <Field Label="Legend">
-            <CardSelect Options="PlaceholderCards.Legends"
+            <CardSelect Options="Catalog.Legends"
                         @bind-Value:get="Player.Legend"
                         @bind-Value:set="legend => Update(player => player with { Legend = legend })" />
         </Field>
         <Field Label="Champion">
-            <CardSelect Options="PlaceholderCards.Champions"
+            <CardSelect Options="CardChoices.ChampionsFor(Player.Legend, Catalog.ChampionUnits)"
                         @bind-Value:get="Player.Champion"
                         @bind-Value:set="champion => Update(player => player with { Champion = champion })" />
         </Field>
         <Field Label="Battlefield">
-            <CardSelect Options="PlaceholderCards.Battlefields"
+            <CardSelect Options="Catalog.Battlefields"
                         @bind-Value:get="Player.Battlefield"
                         @bind-Value:set="battlefield => Update(player => player with { Battlefield = battlefield })" />
         </Field>

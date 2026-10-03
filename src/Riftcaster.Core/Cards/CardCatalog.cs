@@ -70,17 +70,19 @@ public sealed class CardCatalog
     public DateTimeOffset? FetchedAt => _index.FetchedAt;
 
     /// <summary>
-    /// Legends, by name, for the Players panel.
+    /// Legends, by name, for the Players panel: one printing of each (see <see cref="Battlefields"/>).
     /// </summary>
     public IReadOnlyList<Card> Legends => _index.Legends;
 
     /// <summary>
-    /// Champion units (the cards a player chooses as their champion), by name, for the Players panel.
+    /// Champion units (the cards a player chooses as their champion), by name, for the Players panel:
+    /// one printing of each (see <see cref="Battlefields"/>).
     /// </summary>
     public IReadOnlyList<Card> ChampionUnits => _index.ChampionUnits;
 
     /// <summary>
-    /// Battlefields, by name, for the Players panel.
+    /// Battlefields, by name, for the Players panel: one printing of each, the standard one where
+    /// there is one, since the panel chooses a card, not a printing.
     /// </summary>
     public IReadOnlyList<Card> Battlefields => _index.Battlefields;
 
@@ -267,14 +269,19 @@ public sealed class CardCatalog
                 .ThenBy(card => card.Variant ?? "", StringComparer.OrdinalIgnoreCase)
                 .ToList();
 
+            // One printing per name, for the Players panel's lists. ByName puts the standard printing
+            // of each name first.
+            IReadOnlyList<Card> OnePerName(Func<Card, bool> include) =>
+                [.. byName.Where(include).DistinctBy(card => card.Name, StringComparer.OrdinalIgnoreCase)];
+
             return new CardIndex(
                 cards,
                 snapshot?.FetchedAt,
                 byName,
                 cards.DistinctBy(card => card.Id).ToDictionary(card => card.Id),
-                [.. byName.Where(card => card.Type == CardType.Legend)],
-                [.. byName.Where(card => card.Type == CardType.Unit && card.Supertype == CardSupertype.Champion)],
-                [.. byName.Where(card => card.Type == CardType.Battlefield)]);
+                OnePerName(card => card.Type == CardType.Legend),
+                OnePerName(card => card.Type == CardType.Unit && card.Supertype == CardSupertype.Champion),
+                OnePerName(card => card.Type == CardType.Battlefield));
         }
     }
 }

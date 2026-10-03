@@ -1,6 +1,8 @@
-﻿@using Riftcaster.Core.Match
+﻿@using Riftcaster.Core.Cards
+@using Riftcaster.Core.Match
 @using Riftcaster.Core.Players
 @implements IDisposable
+@inject CardCatalog Catalog
 @inject PlayersService Players
 
 @{
@@ -40,6 +42,9 @@
     {
         // Also raised when the match settings change, which changes the cards shown.
         Players.Changed += OnPlayersChanged;
+
+        // New cards for the legend, champion and battlefield selects.
+        Catalog.Changed += OnPlayersChanged;
     }
 
     // A grid of player cards: all the players in use, or one team's pair in 2v2.
@@ -59,5 +64,6 @@
     public void Dispose()
     {
         Players.Changed -= OnPlayersChanged;
+        Catalog.Changed -= OnPlayersChanged;
     }
 }

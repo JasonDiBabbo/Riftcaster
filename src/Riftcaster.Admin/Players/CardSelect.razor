@@ -1,37 +1,53 @@
-﻿<select @bind:get="Value ?? None" @bind:set="SetAsync">
-    <option value="@None">None</option>
-    @if (Value is not null && !Options.Contains(Value))
+﻿<select disabled="@(Options.Count == 0)" @bind:get="Value?.Id ?? None" @bind:set="SetAsync">
+    @* Each option is keyed by its card, so when the options change around an unchanged choice (the
+       catalogue arriving after a restart), the chosen option's element is kept rather than replaced.
+       Blazor only sets the select's value when the value changes, so a replaced element would leave
+       the browser showing "None". *@
+    <option @key="None" value="@None">@(Options.Count == 0 ? EmptyText : "None")</option>
+    @if (Value is not null && !Options.Any(option => option.Id == Value.Id))
     {
-        @* A saved name that's no longer in the list: keep it selectable rather than showing a blank select. *@
-        <option value="@Value">@Value</option>
+        @* A saved card that isn't in the list (e.g. while the catalogue loads): keep it shown rather than a blank select. *@
+        <option @key="Value.Id" value="@Value.Id">@Value.Name</option>
     }
     @foreach (var option in Options)
     {
-        <option value="@option">@option</option>
+        <option @key="option.Id" value="@option.Id">@option.Name</option>
     }
 </select>
 
 @code {
-    // The value of the "None" option. Not a card name, so it can't clash with one.
+    // The value of the "None" option. Not a card id, so it can't clash with one.
     private const string None = "";
 
     /// <summary>
-    /// The chosen card's name, or <see langword="null"/> if none is chosen.
+    /// The chosen card, or <see langword="null"/> if none is chosen.
     /// </summary>
     [Parameter]
-    public string? Value { get; set; }
+    public Card? Value { get; set; }
 
     /// <summary>
     /// The callback for when the choice changes. Receives <see langword="null"/> for "None".
     /// </summary>
     [Parameter]
-    public EventCallback<string?> ValueChanged { get; set; }
+    public EventCallback<Card?> ValueChanged { get; set; }
 
     /// <summary>
-    /// The card names to choose from.
+    /// The cards to choose from. While there are none, the select is disabled and shows <see cref="EmptyText"/>.
     /// </summary>
     [Parameter, EditorRequired]
-    public IReadOnlyList<string> Options { get; set; } = [];
+    public IReadOnlyList<Card> Options { get; set; } = [];
 
-    private Task SetAsync(string? value) => ValueChanged.InvokeAsync(string.IsNullOrEmpty(value) ? null : value);
+    /// <summary>
+    /// What the select says while there are no cards to choose from.
+    /// </summary>
+    [Parameter]
+    public string EmptyText { get; set; } = "Loading cards…";
+
+    private Task SetAsync(string? id)
+    {
+        var card = string.IsNullOrEmpty(id) ? null
+            : id == Value?.Id ? Value
+            : Options.FirstOrDefault(option => option.Id == id);
+        return ValueChanged.InvokeAsync(card);
+    }
 }

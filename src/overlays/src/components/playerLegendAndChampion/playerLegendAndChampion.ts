@@ -17,8 +17,8 @@ const champion = getElement('championName');
 function render(state: MatchState): void {
   const player = playerAt(state, seat);
   container.hidden = player === null;
-  legend.textContent = player?.legend ?? '';
-  champion.textContent = player?.champion ?? '';
+  legend.textContent = player?.legend?.name ?? '';
+  champion.textContent = player?.champion?.name ?? '';
 }
 
 subscribe<MatchState>('/api/match/events', `Legend and champion (player ${seat + 1})`, render);

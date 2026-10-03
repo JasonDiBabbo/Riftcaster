@@ -48,13 +48,13 @@ public class PlayersStateTests
     public void Serialize_RoundTrips()
     {
         var state = new PlayersState(
-            [new Player("Mara", "Jinx, Loose Cannon", null, null, Points: 5, GameWins: 1, Xp: 12)],
+            [new Player("Mara", null, null, null, Points: 5, GameWins: 1, Xp: 12)],
             [new TeamScore(3, 1)]);
 
         var json = JsonSerializer.Serialize(state, JsonSerializerOptions.Web);
 
         Assert.Equal(
-            """{"players":[{"name":"Mara","legend":"Jinx, Loose Cannon","champion":null,"battlefield":null,"points":5,"gameWins":1,"xp":12}],"teams":[{"points":3,"gameWins":1}]}""",
+            """{"players":[{"name":"Mara","legend":null,"champion":null,"battlefield":null,"points":5,"gameWins":1,"xp":12}],"teams":[{"points":3,"gameWins":1}]}""",
             json);
         Assert.Equal(state, JsonSerializer.Deserialize<PlayersState>(json, JsonSerializerOptions.Web));
     }
