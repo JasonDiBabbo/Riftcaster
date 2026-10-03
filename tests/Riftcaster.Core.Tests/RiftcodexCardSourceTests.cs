@@ -34,7 +34,7 @@ public class RiftcodexCardSourceTests
     {
         var api = new FakeApi(Page([Legend, ChampionUnit, Battlefield], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(
             [
@@ -50,7 +50,7 @@ public class RiftcodexCardSourceTests
     {
         var api = new FakeApi(Page([Legend], pages: 2), Page([Battlefield], pages: 2));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(["Vi, Piltover Enforcer", "Star Spring"], cards.Select(card => card.Name));
         Assert.Equal(["/cards?page=1&size=100", "/cards?page=2&size=100"], api.Requests);
@@ -61,11 +61,22 @@ public class RiftcodexCardSourceTests
     {
         var api = new FakeApi(Page([Legend, ChampionUnit], pages: 2), Page([Battlefield], pages: 2));
 
-        await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(
             ["Fetched card page 1 of 2 (2 cards so far).", "Fetched card page 2 of 2 (3 cards so far)."],
             _logger.Collector.GetSnapshot().Where(log => log.Level == LogLevel.Information).Select(log => log.Message));
+    }
+
+    [Fact]
+    public async Task FetchAllAsync_ReportsEachPageAsItArrives()
+    {
+        var api = new FakeApi(Page([Legend, ChampionUnit], pages: 2), Page([Battlefield], pages: 2));
+        var reports = new List<CardFetchProgress>();
+
+        await CreateSource(api).FetchAllAsync(new ListProgress(reports), CancellationToken.None);
+
+        Assert.Equal([new CardFetchProgress(1, 2), new CardFetchProgress(2, 2)], reports);
     }
 
     [Fact]
@@ -76,7 +87,7 @@ public class RiftcodexCardSourceTests
         const string Newer = """{"id":"new","riftbound_id":"ven-143-166","name":"Zed - Master of Shadows","classification":{"type":"Legend"},"set":{"label":"Vendetta"},"media":{"image_url":"https://zed.png"},"tags":["Zed"],"metadata":{"updated_on":"2026-07-14T21:35:18+00:00"}}""";
         var api = new FakeApi(Page([Newer, Legend, Older], pages: 1)); // The newer first, to show order doesn't decide
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(["new", "69c4407c9288b1e85d94de8a"], cards.Select(card => card.Id));
     }
@@ -90,7 +101,7 @@ public class RiftcodexCardSourceTests
         const string Newer = """{"id":"new","riftbound_id":"ven-197-166","name":"Yordle, Kennen - Heart of the Tempest (Overnumbered)","classification":{"type":"Legend"},"set":{"label":"Vendetta"},"media":{"image_url":"https://kennen.png"},"tags":["Yordle","Kennen"],"metadata":{"updated_on":"2026-07-14T21:35:18+00:00"}}""";
         var api = new FakeApi(Page([Older, Newer], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         var kennen = Assert.Single(cards);
         Assert.Equal(("Kennen, Heart of the Tempest", "Overnumbered"), (kennen.Name, kennen.Variant));
@@ -105,7 +116,7 @@ public class RiftcodexCardSourceTests
         const string Metal = """{"id":"b","riftbound_id":"opp-259-298","name":"Yasuo - Unforgiven (Metal)","classification":{"type":"Legend"},"set":{"label":"Promo"},"media":{"image_url":"https://yasuo.png"},"metadata":{"updated_on":"2026-07-10T22:45:27+00:00"}}""";
         var api = new FakeApi(Page([Standard, Metal], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal([null, "Metal"], cards.Select(card => card.Variant));
     }
@@ -118,7 +129,7 @@ public class RiftcodexCardSourceTests
         const string NoCode = """{"id":"z","name":"Z","classification":{"type":"Unit"},"set":{"label":"Origins"},"media":{"image_url":"https://z.png"}}""";
         var api = new FakeApi(Page([NoName, Legend, NoImage, NoCode], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(["Vi, Piltover Enforcer"], cards.Select(card => card.Name));
     }
@@ -129,7 +140,7 @@ public class RiftcodexCardSourceTests
         const string NewKind = """{"id":"n","riftbound_id":"new-1-100","name":"Something New","classification":{"type":"Sigil","supertype":"Mythic","domain":["Mind"]},"set":{"label":"Future"},"media":{"image_url":"https://n.png"}}""";
         var api = new FakeApi(Page([NewKind], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal((CardType.Other, CardSupertype.Other), (cards[0].Type, cards[0].Supertype));
     }
@@ -140,7 +151,7 @@ public class RiftcodexCardSourceTests
         // What Riftcodex answers without a User-Agent: trying again would only be refused again.
         var api = new FakeApi(new HttpResponseMessage(HttpStatusCode.Forbidden));
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => CreateSource(api).FetchAllAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<HttpRequestException>(() => CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None));
         Assert.Single(api.Requests);
     }
 
@@ -158,7 +169,7 @@ public class RiftcodexCardSourceTests
     {
         var api = new FakeApi(failure, Page([Legend], pages: 1));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(["Vi, Piltover Enforcer"], cards.Select(card => card.Name));
         Assert.Equal(["/cards?page=1&size=100", "/cards?page=1&size=100"], api.Requests);
@@ -170,7 +181,7 @@ public class RiftcodexCardSourceTests
     {
         var api = new FakeApi(Page([Legend], pages: 2), new HttpResponseMessage(HttpStatusCode.BadGateway), Page([Battlefield], pages: 2));
 
-        var cards = await CreateSource(api).FetchAllAsync(CancellationToken.None);
+        var cards = await CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None);
 
         Assert.Equal(2, cards.Count);
         Assert.Equal(["/cards?page=1&size=100", "/cards?page=2&size=100", "/cards?page=2&size=100"], api.Requests);
@@ -184,7 +195,7 @@ public class RiftcodexCardSourceTests
             new HttpResponseMessage(HttpStatusCode.ServiceUnavailable),
             new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
 
-        await Assert.ThrowsAsync<HttpRequestException>(() => CreateSource(api).FetchAllAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<HttpRequestException>(() => CreateSource(api).FetchAllAsync(progress: null, CancellationToken.None));
         Assert.Equal(RiftcodexCardSource.MaxAttempts, api.Requests.Count);
         Assert.Equal([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10)], _time.Delays); // Each pause longer
     }
@@ -196,7 +207,7 @@ public class RiftcodexCardSourceTests
         cts.Cancel();
         var api = new FakeApi(new TaskCanceledException());
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => CreateSource(api).FetchAllAsync(cts.Token));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => CreateSource(api).FetchAllAsync(progress: null, cts.Token));
         Assert.Empty(_time.Delays);
     }
 
@@ -231,6 +242,14 @@ public class RiftcodexCardSourceTests
                 var other => throw new InvalidOperationException($"Not a response: {other}"),
             };
         }
+    }
+
+    /// <summary>
+    /// Collects each report as it's made.
+    /// </summary>
+    private sealed class ListProgress(List<CardFetchProgress> reports) : IProgress<CardFetchProgress>
+    {
+        public void Report(CardFetchProgress value) => reports.Add(value);
     }
 
     /// <summary>
