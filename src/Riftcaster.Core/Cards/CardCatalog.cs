@@ -19,6 +19,13 @@ public sealed class CardCatalog
     /// </summary>
     public const int DefaultSearchLimit = 50;
 
+    /// <summary>
+    /// The smallest share of the current catalogue a fetched one may have. A fetch that brings fewer
+    /// cards than this is more likely a broken or cut-short answer than cards actually removed, so
+    /// the catalogue keeps what it has.
+    /// </summary>
+    public const double SmallestAcceptedShare = 0.5;
+
     private readonly ICardStore _store;
 
     private readonly ICardSource _source;
@@ -118,8 +125,9 @@ public sealed class CardCatalog
     /// the cards differ from before.
     /// </summary>
     /// <remarks>
-    /// Never throws for a failed fetch (unreachable, an error, a timeout or an empty catalogue): it
-    /// logs it and keeps the cards it has. Does nothing if a refresh is already running.
+    /// Never throws for a failed fetch (unreachable, an error, a timeout, or an empty or suspiciously
+    /// small catalogue: see <see cref="SmallestAcceptedShare"/>): it logs it and keeps the cards it
+    /// has. Does nothing if a refresh is already running.
     /// </remarks>
     /// <param name="cancellationToken">Cancels the fetch, e.g. when the server shuts down.</param>
     /// <returns>Whether a new catalogue was swapped in.</returns>
@@ -147,6 +155,14 @@ public sealed class CardCatalog
             if (cards.Count == 0)
             {
                 _logger.LogWarning("The card source returned no cards; keeping the {Count} cards already loaded.", Cards.Count);
+                return false;
+            }
+
+            if (cards.Count < Cards.Count * SmallestAcceptedShare)
+            {
+                _logger.LogWarning(
+                    "The card source returned only {Fetched} cards, well short of the {Count} already loaded; keeping those.",
+                    cards.Count, Cards.Count);
                 return false;
             }
 

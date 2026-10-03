@@ -112,6 +112,31 @@ public class CardCatalogTests
     }
 
     [Fact]
+    public async Task RefreshAsync_FarFewerCards_KeepsTheCardsItHas()
+    {
+        var catalog = CreateCatalog([Jinx, Poppy, Recruit]);
+        _source.Cards = [Jinx]; // Under half: more likely a broken answer than cards removed
+
+        var refreshed = await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.False(refreshed);
+        Assert.Equal([Jinx, Poppy, Recruit], catalog.Cards);
+        Assert.Equal(1, _store.SaveCount); // Only the arranged save
+    }
+
+    [Fact]
+    public async Task RefreshAsync_SomewhatFewerCards_SwapsThemIn()
+    {
+        var catalog = CreateCatalog([Jinx, Poppy, Recruit, StarSpring]);
+        _source.Cards = [Jinx, Poppy]; // Exactly half: cards can be removed, e.g. stale duplicates
+
+        var refreshed = await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.True(refreshed);
+        Assert.Equal([Jinx, Poppy], catalog.Cards);
+    }
+
+    [Fact]
     public async Task RefreshAsync_CancelledDuringFetch_Throws()
     {
         var catalog = CreateCatalog();
