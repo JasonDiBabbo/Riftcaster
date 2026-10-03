@@ -261,13 +261,22 @@ public class CardCatalogTests
     }
 
     [Fact]
-    public void Lists_HoldTheirCardsByNameThenVariant()
+    public void Lists_HoldTheirCardsByName()
     {
-        var catalog = CreateCatalog([StarSpring, Recruit, JinxMetal, Poppy, Jinx, Jinxed]);
+        var catalog = CreateCatalog([StarSpring, Recruit, Poppy, Jinx, Jinxed]);
 
-        Assert.Equal([Jinx, JinxMetal], catalog.Legends); // Standard printing first
+        Assert.Equal([Jinx], catalog.Legends);
         Assert.Equal([Poppy], catalog.ChampionUnits); // Not Recruit: a unit, but not a champion
         Assert.Equal([StarSpring], catalog.Battlefields);
+    }
+
+    [Fact]
+    public void Lists_HoldOnePrintingPerName_TheStandardOne()
+    {
+        var catalog = CreateCatalog([JinxMetal, Jinx]);
+
+        Assert.Equal([Jinx], catalog.Legends);
+        Assert.Equal([Jinx, JinxMetal], catalog.Search("jinx, loose")); // Search still finds every printing
     }
 
     [Theory]
