@@ -1,7 +1,7 @@
 /**
  * Game wins overlay for one player: a circle for each game that can be won (1 in a best of 1,
  * 2 in a best of 3), with the Riftbound logo lit in each one won. In 2v2 it shows the player's
- * team's wins. Streamed from the server over Server-Sent Events (GET /api/match/events).
+ * team's wins. Streamed from the server over a WebSocket (/api/match/events).
  *
  * Shows the player in ?player=n (default 1), and nothing when the match mode doesn't use that seat.
  */

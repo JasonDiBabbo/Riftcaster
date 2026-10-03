@@ -1,6 +1,6 @@
 /**
  * Legend and champion overlay for one player: the two names, one above the other, streamed from
- * the server over Server-Sent Events (GET /api/match/events). Either is blank until chosen.
+ * the server over a WebSocket (/api/match/events). Either is blank until chosen.
  *
  * Shows the player in ?player=n (default 1), and nothing when the match mode doesn't use that seat.
  */
