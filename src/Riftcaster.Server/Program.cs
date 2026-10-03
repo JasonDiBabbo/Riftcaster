@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using Riftcaster.Admin;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
+using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
@@ -63,12 +64,18 @@ public partial class Program
         builder.Services.AddSingleton<CardCatalog>();
         builder.Services.AddHostedService<CardCatalogRefresher>();
 
+        builder.Services.AddSingleton<IFeaturedCardStore>(services => new JsonFileFeaturedCardStore(
+            Path.Combine(dataDirectory, "featuredCard.json"),
+            services.GetRequiredService<ILogger<JsonFileFeaturedCardStore>>()));
+        builder.Services.AddSingleton<FeaturedCardService>();
+
         var app = builder.Build();
 
         app.UseOverlays();
         app.UseAntiforgery();
         app.UseWebSockets();
         app.MapGet("/api/info", (ServerIdentity identity) => identity);
+        app.MapFeaturedCard();
         app.MapLowerThird();
         app.MapMatch();
         app.MapTimer();
