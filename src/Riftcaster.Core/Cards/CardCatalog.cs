@@ -19,6 +19,13 @@ public sealed class CardCatalog
     /// </summary>
     public const int DefaultSearchLimit = 50;
 
+    /// <summary>
+    /// The smallest share of the current catalogue a fetched one may have. A fetch that brings fewer
+    /// cards than this is more likely a broken or cut-short answer than cards actually removed, so
+    /// the catalogue keeps what it has.
+    /// </summary>
+    public const double SmallestAcceptedShare = 0.5;
+
     private readonly ICardStore _store;
 
     private readonly ICardSource _source;
@@ -32,6 +39,9 @@ public sealed class CardCatalog
 
     // Replaced whole, never changed, so a reader always sees one consistent catalogue.
     private CardIndex _index;
+
+    // Replaced whole too. Only a refresh changes it, and only one runs at a time.
+    private CardCatalogStatus _status = CardCatalogStatus.Idle;
 
     /// <summary>
     /// Creates the catalogue with the last saved cards, if any.
@@ -75,12 +85,25 @@ public sealed class CardCatalog
     public IReadOnlyList<Card> Battlefields => _index.Battlefields;
 
     /// <summary>
+    /// Whether a fetch is running and how far it has got, and why the last one failed, if it did.
+    /// </summary>
+    public CardCatalogStatus Status => _status;
+
+    /// <summary>
     /// Raised after a refresh brings different cards.
     /// </summary>
     /// <remarks>
     /// May be raised on any thread.
     /// </remarks>
     public event Action? Changed;
+
+    /// <summary>
+    /// Raised after <see cref="Status"/> changes: when a fetch starts, at each page, and when it ends.
+    /// </summary>
+    /// <remarks>
+    /// May be raised on any thread.
+    /// </remarks>
+    public event Action? StatusChanged;
 
     /// <summary>
     /// Finds a card by its id.
@@ -118,8 +141,9 @@ public sealed class CardCatalog
     /// the cards differ from before.
     /// </summary>
     /// <remarks>
-    /// Never throws for a failed fetch (unreachable, an error, a timeout or an empty catalogue): it
-    /// logs it and keeps the cards it has. Does nothing if a refresh is already running.
+    /// Never throws for a failed fetch (unreachable, an error, a timeout, or an empty or suspiciously
+    /// small catalogue: see <see cref="SmallestAcceptedShare"/>): it logs it and keeps the cards it
+    /// has. Does nothing if a refresh is already running.
     /// </remarks>
     /// <param name="cancellationToken">Cancels the fetch, e.g. when the server shuts down.</param>
     /// <returns>Whether a new catalogue was swapped in.</returns>
@@ -133,20 +157,33 @@ public sealed class CardCatalog
 
         try
         {
+            SetStatus(_status with { Fetching = true, Progress = null });
+
             IReadOnlyList<Card> cards;
             try
             {
-                cards = await _source.FetchAllAsync(cancellationToken);
+                cards = await _source.FetchAllAsync(new Reporter(progress => SetStatus(_status with { Progress = progress })), cancellationToken);
             }
             catch (Exception exception) when (IsFetchFailure(exception) && !cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning(exception, "Couldn't fetch the card catalogue; keeping the {Count} cards already loaded.", Cards.Count);
+                Fail(exception.Message);
                 return false;
             }
 
             if (cards.Count == 0)
             {
                 _logger.LogWarning("The card source returned no cards; keeping the {Count} cards already loaded.", Cards.Count);
+                Fail("The card source returned no cards.");
+                return false;
+            }
+
+            if (cards.Count < Cards.Count * SmallestAcceptedShare)
+            {
+                _logger.LogWarning(
+                    "The card source returned only {Fetched} cards, well short of the {Count} already loaded; keeping those.",
+                    cards.Count, Cards.Count);
+                Fail($"The card source returned only {cards.Count} cards, well short of the {Cards.Count} already loaded.");
                 return false;
             }
 
@@ -154,6 +191,7 @@ public sealed class CardCatalog
             var snapshot = new CardCatalogSnapshot(cards, _time.GetUtcNow());
             _index = CardIndex.Build(snapshot);
             _store.Save(snapshot); // Even when unchanged, so the saved FetchedAt stays current
+            SetStatus(CardCatalogStatus.Idle);
 
             if (changed)
             {
@@ -164,8 +202,24 @@ public sealed class CardCatalog
         }
         finally
         {
+            if (_status.Fetching)
+            {
+                SetStatus(_status with { Fetching = false, Progress = null }); // Cancelled: no new failure to report
+            }
+
             _refreshing.Release();
         }
+    }
+
+    private void SetStatus(CardCatalogStatus status)
+    {
+        _status = status;
+        StatusChanged?.Invoke();
+    }
+
+    private void Fail(string reason)
+    {
+        SetStatus(new CardCatalogStatus(Fetching: false, Progress: null, new CardFetchFailure(_time.GetUtcNow(), reason)));
     }
 
     // HttpClient's own timeout surfaces as a TaskCanceledException (an OperationCanceledException)
@@ -181,6 +235,15 @@ public sealed class CardCatalog
         : card.Type.ToString().Contains(query, StringComparison.OrdinalIgnoreCase)
             || card.Domain.Contains(query, StringComparison.OrdinalIgnoreCase) ? 2
         : null;
+
+    /// <summary>
+    /// Passes each report straight on. Unlike <see cref="Progress{T}"/>, which hands reports to the
+    /// thread pool, so they could arrive out of order or after the fetch has ended.
+    /// </summary>
+    private sealed class Reporter(Action<CardFetchProgress> report) : IProgress<CardFetchProgress>
+    {
+        public void Report(CardFetchProgress value) => report(value);
+    }
 
     /// <summary>
     /// One catalogue, with the lookups worked out once when it's loaded rather than on every use.

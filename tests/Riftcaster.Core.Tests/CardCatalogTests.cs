@@ -112,6 +112,31 @@ public class CardCatalogTests
     }
 
     [Fact]
+    public async Task RefreshAsync_FarFewerCards_KeepsTheCardsItHas()
+    {
+        var catalog = CreateCatalog([Jinx, Poppy, Recruit]);
+        _source.Cards = [Jinx]; // Under half: more likely a broken answer than cards removed
+
+        var refreshed = await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.False(refreshed);
+        Assert.Equal([Jinx, Poppy, Recruit], catalog.Cards);
+        Assert.Equal(1, _store.SaveCount); // Only the arranged save
+    }
+
+    [Fact]
+    public async Task RefreshAsync_SomewhatFewerCards_SwapsThemIn()
+    {
+        var catalog = CreateCatalog([Jinx, Poppy, Recruit, StarSpring]);
+        _source.Cards = [Jinx, Poppy]; // Exactly half: cards can be removed, e.g. stale duplicates
+
+        var refreshed = await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.True(refreshed);
+        Assert.Equal([Jinx, Poppy], catalog.Cards);
+    }
+
+    [Fact]
     public async Task RefreshAsync_CancelledDuringFetch_Throws()
     {
         var catalog = CreateCatalog();
@@ -139,6 +164,91 @@ public class CardCatalogTests
         Assert.False(second);
         Assert.True(await first.WaitAsync(TestTimeout));
         Assert.Equal(1, _source.FetchCount);
+    }
+
+    [Fact]
+    public void Status_IsIdleInitially()
+    {
+        Assert.Equal(CardCatalogStatus.Idle, CreateCatalog().Status);
+    }
+
+    [Fact]
+    public async Task Status_WhileFetching_ShowsHowFarItHasGot()
+    {
+        var catalog = CreateCatalog();
+        _source.Cards = [Jinx];
+        _source.Gate = new TaskCompletionSource();
+        _source.ProgressBeforeGate = new CardFetchProgress(4, 15);
+        var refresh = catalog.RefreshAsync(CancellationToken.None); // Waits at the gate, after reporting
+
+        Assert.Equal(new CardCatalogStatus(Fetching: true, new CardFetchProgress(4, 15), LastFailure: null), catalog.Status);
+
+        _source.Gate.SetResult();
+        await refresh.WaitAsync(TestTimeout);
+        Assert.Equal(CardCatalogStatus.Idle, catalog.Status);
+    }
+
+    [Fact]
+    public async Task Status_RaisesStatusChangedAtEachStep()
+    {
+        var catalog = CreateCatalog();
+        var statuses = new List<CardCatalogStatus>();
+        catalog.StatusChanged += () => statuses.Add(catalog.Status);
+        _source.Cards = [Jinx];
+
+        await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal([new CardCatalogStatus(Fetching: true, Progress: null, LastFailure: null), CardCatalogStatus.Idle], statuses);
+    }
+
+    [Fact]
+    public async Task Status_AfterAFailedFetch_SaysWhyAndWhen()
+    {
+        var catalog = CreateCatalog();
+        _source.Failure = new HttpRequestException("Service unavailable");
+
+        await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal(new CardFetchFailure(_time.GetUtcNow(), "Service unavailable"), catalog.Status.LastFailure);
+        Assert.False(catalog.Status.Fetching);
+    }
+
+    [Fact]
+    public async Task Status_AfterTooFewCards_SaysWhy()
+    {
+        var catalog = CreateCatalog([Jinx, Poppy, Recruit]);
+        _source.Cards = [Jinx];
+
+        await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal("The card source returned only 1 cards, well short of the 3 already loaded.", catalog.Status.LastFailure?.Reason);
+    }
+
+    [Fact]
+    public async Task Status_AFetchThatWorks_ClearsTheLastFailure()
+    {
+        var catalog = CreateCatalog();
+        _source.Cards = [];
+        await catalog.RefreshAsync(CancellationToken.None); // No cards: a failure
+
+        _source.Cards = [Jinx];
+        await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal(CardCatalogStatus.Idle, catalog.Status);
+    }
+
+    [Fact]
+    public async Task Status_AfterCancelling_StopsFetchingWithoutAFailure()
+    {
+        var catalog = CreateCatalog();
+        using var cts = new CancellationTokenSource();
+        _source.Gate = new TaskCompletionSource();
+        var refresh = catalog.RefreshAsync(cts.Token);
+
+        cts.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => refresh.WaitAsync(TestTimeout));
+
+        Assert.Equal(CardCatalogStatus.Idle, catalog.Status);
     }
 
     [Fact]
@@ -219,7 +329,8 @@ public class CardCatalogTests
 
     /// <summary>
     /// Returns <see cref="Cards"/>, or throws <see cref="Failure"/>. If <see cref="Gate"/> is set, it
-    /// first waits for the gate to open, or for the fetch to be cancelled.
+    /// first reports <see cref="ProgressBeforeGate"/> (if set), then waits for the gate to open, or
+    /// for the fetch to be cancelled.
     /// </summary>
     private sealed class FakeCardSource : ICardSource
     {
@@ -229,13 +340,20 @@ public class CardCatalogTests
 
         public TaskCompletionSource? Gate { get; set; }
 
+        public CardFetchProgress? ProgressBeforeGate { get; set; }
+
         public int FetchCount { get; private set; }
 
-        public async Task<IReadOnlyList<Card>> FetchAllAsync(CancellationToken cancellationToken)
+        public async Task<IReadOnlyList<Card>> FetchAllAsync(IProgress<CardFetchProgress>? progress, CancellationToken cancellationToken)
         {
             FetchCount++;
             if (Gate is not null)
             {
+                if (ProgressBeforeGate is not null)
+                {
+                    progress?.Report(ProgressBeforeGate);
+                }
+
                 await Gate.Task.WaitAsync(cancellationToken);
             }
 

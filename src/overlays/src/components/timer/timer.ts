@@ -1,9 +1,9 @@
 /**
- * Timer overlay. Shows the match timer, streamed from the server over Server-Sent Events
- * (GET /api/timer/events): the current state on connect, then one event per change (start, pause,
+ * Timer overlay. Shows the match timer, streamed from the server over a WebSocket
+ * (/api/timer/events): the current state on connect, then one message per change (start, pause,
  * adjust and so on), never one per second.
  *
- * Between events this page counts by itself, from when the last event arrived (see elapsedAt in
+ * Between messages this page counts by itself, from when the last message arrived (see elapsedAt in
  * shared/timer.ts). In overtime it counts up as +mm:ss; without overtime it stops at 00:00.
  */
 import type { TimerState } from '../../generated';

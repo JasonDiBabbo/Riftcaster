@@ -22,7 +22,7 @@ public sealed class InMemoryCardSource : ICardSource
     private int _fetchCount;
 
     /// <inheritdoc/>
-    public Task<IReadOnlyList<Card>> FetchAllAsync(CancellationToken cancellationToken)
+    public Task<IReadOnlyList<Card>> FetchAllAsync(IProgress<CardFetchProgress>? progress, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref _fetchCount);
         return Task.FromResult(Cards);

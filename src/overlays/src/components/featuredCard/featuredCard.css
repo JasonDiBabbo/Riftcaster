@@ -1,0 +1,35 @@
+/* Ported from the first version of this application (app/components/featuredCard/featuredCard.css), with its
+   default sizes; that version could restyle it from the admin, this one can't. */
+:root {
+  --featured-card-max-height: 90vh;
+  --featured-card-fade-duration: 1s;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.featured-card-image {
+  display: block;
+  max-width: 100%;
+  max-height: var(--featured-card-max-height);
+  height: auto;
+  /* Invisible, not hidden, until featuredCard.ts adds .visible: opacity is what the transition
+     can animate, so the image stays laid out the whole time. */
+  opacity: 0;
+  transition: opacity var(--featured-card-fade-duration) ease-in-out;
+}
+
+.featured-card-image.visible {
+  opacity: 1;
+}

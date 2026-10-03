@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Riftcaster.Core.Cards;
+using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
@@ -35,6 +36,9 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<ICardSource>();
             services.AddSingleton<ICardSource, InMemoryCardSource>();
+
+            services.RemoveAll<IFeaturedCardStore>();
+            services.AddSingleton<IFeaturedCardStore, InMemoryFeaturedCardStore>();
         });
     }
 }

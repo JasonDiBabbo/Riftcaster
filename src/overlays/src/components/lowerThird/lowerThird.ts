@@ -1,7 +1,7 @@
 /**
  * Lower third overlay. Shows whatever the admin panel puts on air, streamed
- * from the server over Server-Sent Events (GET /api/lower-third/events): the
- * current state on connect, then one event per change.
+ * from the server over a WebSocket (/api/lower-third/events): the
+ * current state on connect, then one message per change.
  *
  * Each message type has its own visual (keywordVisual.ts, informationVisual.ts,
  * socialsVisual.ts), with its own entrance and exit. This file only decides which visual shows

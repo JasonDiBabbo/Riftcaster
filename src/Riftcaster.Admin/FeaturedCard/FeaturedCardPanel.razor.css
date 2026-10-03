@@ -1,0 +1,220 @@
+/* Design handoff, "4. Featured card": list view. */
+.search {
+  flex: none;
+  padding: 12px 16px 10px;
+}
+
+.search input {
+  height: 38px;
+  padding: 0 12px;
+  font: 400 var(--fs-body) / 1 var(--font);
+}
+
+.results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 16px 14px;
+}
+
+.empty {
+  margin: 0;
+  padding: 28px 0;
+  color: var(--text-muted);
+  font: 400 var(--fs-small) / 1.4 var(--font);
+  text-align: center;
+}
+
+.empty p {
+  margin: 0;
+}
+
+/* Not in the design, which has no card fetch. The catalogue's state, in the meta while not searching. */
+.catalog-status.warn {
+  color: var(--warn);
+  cursor: help;
+}
+
+/* How far the first fetch has got, while there are no cards to search yet. */
+.progress {
+  width: min(240px, 100%);
+  height: 4px;
+  margin: 12px auto 0;
+  border-radius: 2px;
+  background: var(--button);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--acc);
+  transition: width 0.3s ease-out;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 5px 10px 5px 5px;
+  border: 1px solid var(--list-line);
+  border-radius: var(--radius-segmented);
+  background: var(--card);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.result:hover {
+  background: var(--button-hover);
+}
+
+.result.live {
+  border-color: var(--acc-line);
+  background: var(--acc-wash);
+}
+
+/* Card art sits on a striped placeholder, which shows while the image loads or if it can't. */
+.thumb,
+.art {
+  flex: none;
+  overflow: hidden;
+  background: repeating-linear-gradient(135deg, #1f2226 0 5px, #1a1c20 5px 10px);
+}
+
+.thumb img,
+.art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb {
+  width: 32px;
+  height: 45px;
+  border-radius: var(--radius-small);
+}
+
+/* Battlefields are landscape: the same size, turned. */
+.thumb.landscape {
+  width: 45px;
+  height: 32px;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.name,
+.meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  font: 500 var(--fs-small) / 1.25 var(--font);
+}
+
+.meta {
+  color: var(--text-muted);
+  font: 400 var(--fs-label) / 1.4 var(--font);
+}
+
+.live-badge {
+  flex: none;
+  padding: 3px 5px;
+  border-radius: var(--radius-badge);
+  background: var(--live);
+  color: #fff;
+  font: 600 9px / 1 var(--font);
+}
+
+.featured {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--sunk);
+}
+
+.art {
+  width: 92px;
+  aspect-ratio: 63 / 88;
+  border: 1px solid var(--acc-line);
+  border-radius: var(--radius-control);
+}
+
+.art.landscape {
+  width: 128px;
+  aspect-ratio: 88 / 63;
+}
+
+.details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--live);
+}
+
+.label {
+  color: var(--live-soft);
+  font: 600 var(--fs-label) / 1 var(--font);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.heading .button-secondary {
+  height: 28px;
+}
+
+.featured-name {
+  font: 600 var(--fs-featured) / 1.2 var(--font);
+  overflow-wrap: anywhere;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 14px;
+  margin: 0;
+  font: 400 var(--fs-small) / 1.35 var(--font);
+}
+
+.facts dt {
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.none {
+  margin: 0;
+  color: var(--text-muted);
+  font: 400 var(--fs-small) / 1.4 var(--font);
+}

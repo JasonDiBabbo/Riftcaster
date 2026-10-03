@@ -62,7 +62,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
     };
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<Card>> FetchAllAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<Card>> FetchAllAsync(IProgress<CardFetchProgress>? progress, CancellationToken cancellationToken)
     {
         var fetched = new List<(Card Card, DateTimeOffset? UpdatedOn)>();
         var skipped = 0;
@@ -85,6 +85,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
             }
 
             logger.LogInformation("Fetched card page {Page} of {Pages} ({Count} cards so far).", page, result.Pages, fetched.Count);
+            progress?.Report(new CardFetchProgress(page, result.Pages));
 
             if (page >= result.Pages)
             {

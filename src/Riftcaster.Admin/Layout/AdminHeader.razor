@@ -1,6 +1,8 @@
-﻿@using Riftcaster.Core.LowerThird
+﻿@using Riftcaster.Core.FeaturedCard
+@using Riftcaster.Core.LowerThird
 @using Riftcaster.Core.Match
 @implements IDisposable
+@inject FeaturedCardService FeaturedCard
 @inject LowerThirdService LowerThird
 @inject MatchService Match
 
@@ -15,7 +17,10 @@
     <div class="spacer"></div>
 
     <div class="status">
-        @* The featured card pill arrives with #14. *@
+        @if (FeaturedCard.Current is { } card)
+        {
+            <OnAirPill Label="Card" Text="@card.Name" MaxWidth="260" OnClear="FeaturedCard.Clear" />
+        }
         @if (LowerThird.CurrentMessage is { } message)
         {
             <OnAirPill Label="Lower third" Text="@LowerThirdSummary.For(message).Primary" MaxWidth="280" OnClear="LowerThird.Hide" />
@@ -29,6 +34,7 @@
 @code {
     protected override void OnInitialized()
     {
+        FeaturedCard.Changed += OnStateChanged;
         LowerThird.Changed += OnStateChanged;
         Match.Changed += OnStateChanged;
     }
@@ -40,6 +46,7 @@
 
     public void Dispose()
     {
+        FeaturedCard.Changed -= OnStateChanged;
         LowerThird.Changed -= OnStateChanged;
         Match.Changed -= OnStateChanged;
     }

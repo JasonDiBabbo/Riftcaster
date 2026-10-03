@@ -1,6 +1,6 @@
 /**
  * Scoreboard overlay. Shows the two sides' points as a row of numbered circles, streamed from the
- * server over Server-Sent Events (GET /api/match/events).
+ * server over a WebSocket (/api/match/events).
  *
  * Each side has a circle for each point from 1 to one short of the points to win, counting towards
  * the middle, where one shared circle stands for the winning point. A side's current score is

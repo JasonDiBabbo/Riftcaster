@@ -6,6 +6,10 @@
         {
             <span class="meta">@Meta</span>
         }
+        else if (MetaContent is not null)
+        {
+            <span class="meta">@MetaContent</span>
+        }
         <div class="spacer"></div>
         @Actions
     </div>
@@ -13,6 +17,7 @@
     <div class="body">
         @ChildContent
     </div>
+    @Footer
 </section>
 
 @code {
@@ -28,6 +33,13 @@
     /// </summary>
     [Parameter]
     public string? Meta { get; set; }
+
+    /// <summary>
+    /// Meta information with its own markup, such as a warning, for when plain text isn't enough.
+    /// Shown only when <see cref="Meta"/> isn't set.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? MetaContent { get; set; }
 
     /// <summary>
     /// Actions to render in the header, such as buttons for creating or filtering items.
@@ -47,4 +59,11 @@
     /// </summary>
     [Parameter]
     public RenderFragment? Strip { get; set; }
+
+    /// <summary>
+    /// Content below the body, such as the Featured card panel's featured card.
+    /// It stays in place while the body scrolls.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
 }
