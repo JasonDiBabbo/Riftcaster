@@ -36,12 +36,6 @@
   flex: none;
 }
 
-.placeholder {
-  margin: 0;
-  padding: 14px 16px;
-  color: var(--text-faint);
-}
-
 /* Tablet: Players across the top, then two columns. The page scrolls. */
 @media (width >= 760px) {
   .dashboard {

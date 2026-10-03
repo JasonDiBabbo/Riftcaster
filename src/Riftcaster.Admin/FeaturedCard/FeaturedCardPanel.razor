@@ -1,0 +1,145 @@
+﻿@using Riftcaster.Core.Cards
+@using Riftcaster.Core.FeaturedCard
+@implements IDisposable
+@inject CardCatalog Catalog
+@inject FeaturedCardService FeaturedCard
+
+<Panel Title="Featured card" Meta="@ResultCount">
+    <Strip>
+        <div class="search">
+            <input type="search"
+                   placeholder="Search cards by name, type or domain"
+                   aria-label="Search cards"
+                   @bind:get="_query"
+                   @bind:set="Search"
+                   @bind:event="oninput" />
+        </div>
+    </Strip>
+    <ChildContent>
+        <div class="results">
+            @if (Catalog.Cards.Count == 0)
+            {
+                <p class="empty">Loading the card catalogue. The first fetch can take a few minutes.</p>
+            }
+            else if (string.IsNullOrWhiteSpace(_query))
+            {
+                <p class="empty">Type to search for a card.</p>
+            }
+            else if (_results.Count == 0)
+            {
+                <p class="empty">No cards match “@_query.Trim()”.</p>
+            }
+            else
+            {
+                var featuredId = FeaturedCard.Current?.Id;
+                foreach (var card in _results.Take(ResultLimit))
+                {
+                    var live = card.Id == featuredId;
+                    <button type="button" @key="card.Id" class="result @(live ? "live" : "")" @onclick="() => Feature(card)">
+                        <span class="thumb @(card.Landscape ? "landscape" : "")">
+                            <img src="@card.ImageUrl" alt="" loading="lazy" />
+                        </span>
+                        <span class="text">
+                            <span class="name">@card.Name</span>
+                            <span class="meta">@CardLabels.Meta(card)</span>
+                        </span>
+                        @if (live)
+                        {
+                            <span class="live-badge">LIVE</span>
+                        }
+                    </button>
+                }
+            }
+        </div>
+    </ChildContent>
+    <Footer>
+        <div class="featured">
+            @if (FeaturedCard.Current is { } card)
+            {
+                <span class="art @(card.Landscape ? "landscape" : "")">
+                    <img src="@card.ImageUrl" alt="@card.Name" />
+                </span>
+                <div class="details">
+                    <div class="heading">
+                        <span class="dot"></span>
+                        <span class="label">Featured</span>
+                        <span class="spacer"></span>
+                        <button type="button" class="button-secondary" @onclick="FeaturedCard.Clear">Clear</button>
+                    </div>
+                    <div class="featured-name">@card.Name</div>
+                    <dl class="facts">
+                        <dt>Type</dt>
+                        <dd>@CardLabels.Type(card)</dd>
+                        <dt>Domain</dt>
+                        <dd>@CardLabels.Domain(card)</dd>
+                        <dt>Cost</dt>
+                        <dd>@CardLabels.Cost(card)</dd>
+                        @if (card.Variant is { } variant)
+                        {
+                            <dt>Variant</dt>
+                            <dd>@variant</dd>
+                        }
+                        <dt>Set</dt>
+                        <dd>@card.Set</dd>
+                    </dl>
+                </div>
+            }
+            else
+            {
+                <p class="none">No featured card. Click a search result to feature it.</p>
+            }
+        </div>
+    </Footer>
+</Panel>
+
+@code {
+    // Results shown at once. One more is fetched, to tell "exactly 50" from "more than 50".
+    private const int ResultLimit = 50;
+
+    private string _query = "";
+
+    private IReadOnlyList<Card> _results = [];
+
+    private string? ResultCount => string.IsNullOrWhiteSpace(_query) ? null
+        : _results.Count > ResultLimit ? $"{ResultLimit}+ results"
+        : $"{_results.Count} results";
+
+    protected override void OnInitialized()
+    {
+        Catalog.Changed += OnCatalogChanged;
+        FeaturedCard.Changed += OnFeaturedCardChanged;
+    }
+
+    private void Search(string? query)
+    {
+        _query = query ?? "";
+        _results = Catalog.Search(_query, ResultLimit + 1);
+    }
+
+    // Featuring a card puts it on air at once, and clears the search (design handoff, "Featured card").
+    private void Feature(Card card)
+    {
+        FeaturedCard.Feature(card.Id);
+        Search("");
+    }
+
+    private void OnCatalogChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            Search(_query); // The same query, over the new cards
+            StateHasChanged();
+        });
+    }
+
+    private void OnFeaturedCardChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Catalog.Changed -= OnCatalogChanged;
+        FeaturedCard.Changed -= OnFeaturedCardChanged;
+    }
+}

@@ -13,6 +13,7 @@
     <div class="body">
         @ChildContent
     </div>
+    @Footer
 </section>
 
 @code {
@@ -47,4 +48,11 @@
     /// </summary>
     [Parameter]
     public RenderFragment? Strip { get; set; }
+
+    /// <summary>
+    /// Content below the body, such as the Featured card panel's featured card.
+    /// It stays in place while the body scrolls.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Footer { get; set; }
 }
