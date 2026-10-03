@@ -6,6 +6,8 @@ namespace Riftcaster.Core.Tests;
 
 public class PlayersServiceTests
 {
+    private static readonly Card Jinx = new("1", "ogn-251-298", "Jinx, Loose Cannon", null, CardType.Legend, null, "Fury / Chaos", null, "Origins", "https://cards.test/1.png", Landscape: false);
+
     private readonly InMemoryPlayersStore _store = new();
 
     private readonly MatchService _match = new(new InMemoryMatchStore()); // 8 points to win, best of 3
@@ -81,9 +83,9 @@ public class PlayersServiceTests
     [Fact]
     public void UpdatePlayer_ChangesOnlyThatPlayer()
     {
-        _service.UpdatePlayer(1, player => player with { Name = "Dex", Legend = "Jinx, Loose Cannon" });
+        _service.UpdatePlayer(1, player => player with { Name = "Dex", Legend = Jinx });
 
-        Assert.Equal(NewPlayer("Dex") with { Legend = "Jinx, Loose Cannon" }, _service.State.Players[1]);
+        Assert.Equal(NewPlayer("Dex") with { Legend = Jinx }, _service.State.Players[1]);
         Assert.Equal(["", "Dex", "", ""], _service.State.Players.Select(player => player.Name));
     }
 
@@ -177,12 +179,12 @@ public class PlayersServiceTests
     public void SwapPlayers_MovesDetailsAndScoresBetweenSeats()
     {
         _service.UpdatePlayer(1, player => player with { Name = "Dex", Points = 3, Xp = 9 });
-        _service.UpdatePlayer(2, player => player with { Name = "Juno", Legend = "Jinx, Loose Cannon" });
+        _service.UpdatePlayer(2, player => player with { Name = "Juno", Legend = Jinx });
         _changedCount = 0;
 
         _service.SwapPlayers(1, 2);
 
-        Assert.Equal(NewPlayer("Juno") with { Legend = "Jinx, Loose Cannon" }, _service.State.Players[1]);
+        Assert.Equal(NewPlayer("Juno") with { Legend = Jinx }, _service.State.Players[1]);
         Assert.Equal(NewPlayer("Dex") with { Points = 3, Xp = 9 }, _service.State.Players[2]);
         Assert.Equal(1, _changedCount);
     }
@@ -219,13 +221,13 @@ public class PlayersServiceTests
     [Fact]
     public void ResetScores_ZeroesScoresAndKeepsDetails()
     {
-        _service.UpdatePlayer(0, player => player with { Name = "Mara", Legend = "Jinx, Loose Cannon", Points = 5, GameWins = 1, Xp = 12 });
+        _service.UpdatePlayer(0, player => player with { Name = "Mara", Legend = Jinx, Points = 5, GameWins = 1, Xp = 12 });
         _service.UpdateTeam(1, team => team with { Points = 3, GameWins = 1 });
         _changedCount = 0;
 
         _service.ResetScores();
 
-        Assert.Equal(NewPlayer("Mara") with { Legend = "Jinx, Loose Cannon" }, _service.State.Players[0]);
+        Assert.Equal(NewPlayer("Mara") with { Legend = Jinx }, _service.State.Players[0]);
         Assert.Equal([new TeamScore(0, 0), new TeamScore(0, 0)], _service.State.Teams);
         Assert.Equal(1, _changedCount);
     }
