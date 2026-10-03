@@ -45,8 +45,8 @@
   flex-wrap: wrap;
 }
 
-/* The connection pill's greens are only used here, so they aren't tokens. */
-.connected {
+/* The connection pill's greens and ambers are only used here, so they aren't tokens. */
+.connection {
   display: flex;
   align-items: center;
   gap: 7px;
@@ -65,6 +65,17 @@
   height: 7px;
   border-radius: 50%;
   background: var(--ok);
+}
+
+/* Not in the design, whose pill is always connected: with no overlays, it's a warning. */
+.connection.none {
+  border-color: #3a3122;
+  background: #1c1912;
+  color: #d9c7a3;
+}
+
+.connection.none .dot {
+  background: var(--warn);
 }
 
 @media (width < 760px) {
