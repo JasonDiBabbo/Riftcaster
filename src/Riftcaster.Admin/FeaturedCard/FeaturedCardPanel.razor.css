@@ -143,7 +143,7 @@
   background: var(--sunk);
 }
 
-/* Centred beside the details, which are usually taller (with Set, and Variant when there is one),
+/* Centered beside the details, which are usually taller (with Set, and Variant when there is one),
    so any spare height splits above and below rather than collecting underneath. */
 .art {
   align-self: center;
