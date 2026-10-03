@@ -13,6 +13,18 @@
   <PropertyGroup>
     <ShouldRunNpmInstall>false</ShouldRunNpmInstall>
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
+
+    <!-- Lists the Vitest tests (src/**/*.test.ts) in Visual Studio's Test Explorer. IDE-only too:
+         the build still runs them with npm test (see Riftcaster.Server.csproj).
+
+         This is why package.json pins Vitest to 4.x: Visual Studio's Vitest helper (its own
+         TestFrameworks\Vitest\VitestRunner.ts, as of VS 18.10) imports "vitest/runners", which
+         Vitest 5 no longer exports, so discovery finds nothing. Upgrade Vitest once Visual Studio
+         supports 5, and check the tests still appear in Test Explorer.
+
+         Visual Studio only finds tests one level inside a describe block, so keep tests that way. -->
+    <JavaScriptTestFramework>Vitest</JavaScriptTestFramework>
+    <JavaScriptTestRoot>src\</JavaScriptTestRoot>
   </PropertyGroup>
 
 </Project>
