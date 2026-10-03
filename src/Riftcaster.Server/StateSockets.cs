@@ -1,5 +1,6 @@
 ﻿using System.Net.WebSockets;
 using System.Text.Json;
+using Riftcaster.Core.Overlays;
 
 namespace Riftcaster.Server;
 
@@ -12,6 +13,9 @@ namespace Riftcaster.Server;
 /// connections to one host, and OBS shares one browser across all its sources, so a 7th
 /// server-sent events stream would never connect. WebSockets aren't counted against that limit.
 /// See issue #32.
+///
+/// Every overlay stream comes through here, so this is also where overlays are counted for the
+/// admin header (see <see cref="OverlayConnections"/>).
 /// </remarks>
 internal static class StateSockets
 {
@@ -41,6 +45,9 @@ internal static class StateSockets
         }
 
         using var socket = await context.WebSockets.AcceptWebSocketAsync();
+
+        // Counted as connected until this method returns: however the socket ends, the using uncounts it.
+        using var connection = context.RequestServices.GetRequiredService<OverlayConnections>().Connect();
 
         // Ends the watch when the overlay leaves or the server stops, whichever comes first.
         using var done = CancellationTokenSource.CreateLinkedTokenSource(context.RequestAborted, stopping);
