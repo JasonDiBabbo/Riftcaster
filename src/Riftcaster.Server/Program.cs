@@ -5,6 +5,7 @@ using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
+using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
 using Riftcaster.Core.Timer;
 
@@ -35,6 +36,8 @@ public partial class Program
             Path.Combine(dataDirectory, "players.json"),
             services.GetRequiredService<ILogger<JsonFilePlayersStore>>()));
         builder.Services.AddSingleton<PlayersService>();
+
+        builder.Services.AddSingleton<OverlayConnections>();
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<TimerService>();
