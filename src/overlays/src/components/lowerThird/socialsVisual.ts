@@ -28,7 +28,7 @@ const PLATE_HEIGHT = 78;
 const FADE_SECONDS = Math.min(1.5, SLOT_SECONDS / 2 - 0.05);
 
 // Must match socials.css's .socials__handle.
-const HANDLE_FONT = "600 27px 'Roboto Condensed'";
+const HANDLE_FONT = "600 27px 'Roboto Condensed Variable'";
 const HANDLE_FONT_SIZE = 27;
 const HANDLE_LETTER_SPACING_EM = 0.02;
 
