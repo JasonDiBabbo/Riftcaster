@@ -1,0 +1,92 @@
+﻿@using Riftcaster.Core.Network
+@implements IDisposable
+@inject NetworkAccess Network
+
+@* The header's network access pill, which opens the switch (issue #16). Only this computer can
+   reach the admin (see RemoteAccess in the server), so everyone who sees this may change it. Once
+   remote operators can sign in, the switch must stay on this computer only, so a remote user can't
+   cut themselves (and everyone else) off. *@
+<div class="network">
+    <button type="button"
+            class="pill @(Network.Enabled ? "on" : null)"
+            aria-expanded="@(_open ? "true" : "false")"
+            aria-controls="network-panel"
+            @onclick="() => _open = !_open">
+        <span class="dot" aria-hidden="true"></span>
+        @(Network.Enabled ? "On network" : "Local only")
+    </button>
+
+    @if (_open)
+    {
+        @* Behind the panel, covering the page: a tap or click outside the panel closes it. *@
+        <div class="scrim" aria-hidden="true" @onclick="Close"></div>
+
+        <section id="network-panel" class="panel" aria-labelledby="network-title" @onkeydown="CloseOnEscape">
+            <h2 id="network-title" class="title">Network access</h2>
+
+            <Toggle Label="Let other devices connect" Value="Network.Enabled" ValueChanged="Network.SetEnabled" />
+
+            @if (Network.Enabled)
+            {
+                var urls = Network.NetworkUrls();
+                if (urls.Count > 0)
+                {
+                    <p class="text">Overlays on other devices (OBS on another computer):</p>
+                    <ul class="urls">
+                        @foreach (var url in urls)
+                        {
+                            <li><code>@url/overlays/…</code></li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text warn">This computer has no network address. Check it's connected to the network.</p>
+                }
+                <p class="text muted">The admin stays on this computer. If Windows Firewall asks, allow access on private networks.</p>
+            }
+            else
+            {
+                <p class="text muted">Only this computer can reach the overlays and the admin. Off every time the server starts.</p>
+            }
+
+            <p class="text muted">Switching briefly reconnects the admin and every overlay.</p>
+
+            <div class="actions">
+                <button type="button" class="button-secondary" @onclick="Close">Done</button>
+            </div>
+        </section>
+    }
+</div>
+
+@code {
+    private bool _open;
+
+    private void Close()
+    {
+        _open = false;
+    }
+
+    private void CloseOnEscape(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Close();
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Network.Changed += OnNetworkChanged;
+    }
+
+    private void OnNetworkChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Network.Changed -= OnNetworkChanged;
+    }
+}

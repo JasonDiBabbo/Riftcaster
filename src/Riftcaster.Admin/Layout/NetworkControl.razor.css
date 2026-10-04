@@ -1,0 +1,128 @@
+/* Not in the design, which has no network setting. A pill like the overlay connection one beside
+   it, opening a small panel below the header.
+
+   The panel hangs from the header's right edge (the header is positioned), not from the pill:
+   the header wraps on tablets and phones, depending on which pills are showing, so the pill can
+   sit anywhere along it, and a panel hung from the pill would run off the screen. On desktop the
+   pill is at the header's right end, so the panel still sits under it. */
+.pill {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.pill:hover {
+  background: var(--button-hover);
+}
+
+.pill:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+.pill.on {
+  border-color: var(--acc-line);
+  background: var(--acc-wash);
+  color: var(--segment-text);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--text-faint);
+}
+
+.pill.on .dot {
+  background: var(--acc);
+}
+
+/* Invisible, under the panel and over everything else: a tap or click on it closes the panel. */
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 16px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(360px, calc(100% - 32px));
+  /* Scrolls rather than running off the bottom of a short screen. */
+  max-height: calc(100dvh - 120px);
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  box-shadow: 0 16px 40px rgb(0 0 0 / 0.45);
+}
+
+.title {
+  margin: 0;
+  font: 600 var(--fs-body) / 1.2 var(--font);
+}
+
+.text {
+  margin: 0;
+  font: 400 var(--fs-small) / 1.4 var(--font);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: var(--fs-meta);
+}
+
+.warn {
+  color: var(--warn);
+}
+
+.urls {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.urls code {
+  overflow-wrap: anywhere; /* A long address wraps rather than widening the panel */
+  font: 500 var(--fs-small) / 1.3 ui-monospace, Consolas, monospace;
+  color: var(--text-bright);
+  user-select: all;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Phones: the full width of the header, with the dashboard's 16px gutters. */
+@media (width < 760px) {
+  .panel {
+    left: 16px;
+    right: 16px;
+    width: auto;
+    max-height: calc(100dvh - 220px); /* Clears the header above and the tab bar below */
+  }
+
+  /* Easier to tap. */
+  .pill {
+    height: 34px;
+  }
+}
