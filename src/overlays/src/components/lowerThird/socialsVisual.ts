@@ -2,7 +2,7 @@
  * The Socials lower third: a gilded plate that slides up from below the frame and
  * cycles through the entry's links one at a time, in order, until it's hidden.
  * Implements the Socials design handoff (README.md there is the spec; every timing and
- * size below comes from it). Styles: socials.css. Plate artwork: socialsPlate.ts.
+ * size below comes from it). Styles: socials.css. Plate artwork: plate.ts.
  *
  * Animated with requestAnimationFrame rather than CSS transitions: the slide is
  * reversible mid-way (a value that moves toward a target), and the cycle's cross-fade
@@ -11,7 +11,7 @@
 import { getElement } from '../../shared/dom';
 import type { LowerThirdSocialsMessage, SocialLink } from '../../generated';
 import { socialIconPaths } from './socialIcons';
-import { gemSvg, plateSvg } from './socialsPlate';
+import { gemSvg, plateSvg } from './plate';
 import type { LowerThirdVisual } from './visual';
 
 const SHOW_SECONDS = 0.7;
@@ -22,6 +22,9 @@ const SLIDE_PX = 166;
 
 /** Each link's time on screen, including its fade in and out. */
 const SLOT_SECONDS = 8;
+
+/** Must match socials.css's .socials. The width depends on the handles (see plateWidth). */
+const PLATE_HEIGHT = 78;
 const FADE_SECONDS = Math.min(1.5, SLOT_SECONDS / 2 - 0.05);
 
 // Must match socials.css's .socials__handle.
@@ -72,7 +75,7 @@ export function createSocialsVisual(): LowerThirdVisual<LowerThirdSocialsMessage
   const link = getElement('socialsLink');
   const icon = getElement('socialsIcon');
   const handle = getElement('socialsHandle');
-  getElement('socialsGem').innerHTML = gemSvg();
+  getElement('socialsGem').innerHTML = gemSvg('socials');
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -149,7 +152,7 @@ export function createSocialsVisual(): LowerThirdVisual<LowerThirdSocialsMessage
     const width = plateWidth(links);
     root.style.width = `${width}px`;
     root.style.marginLeft = `${-width / 2}px`;
-    plate.innerHTML = plateSvg(width);
+    plate.innerHTML = plateSvg('socials', width, PLATE_HEIGHT);
     showLink(0);
     link.style.opacity = '1';
 
