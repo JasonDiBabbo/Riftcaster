@@ -10,6 +10,7 @@
     <Project Path="src/Riftcaster.Server/Riftcaster.Server.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Riftcaster.Admin.Tests/Riftcaster.Admin.Tests.csproj" />
     <Project Path="tests/Riftcaster.Core.Tests/Riftcaster.Core.Tests.csproj" />
     <Project Path="tests/Riftcaster.Server.Tests/Riftcaster.Server.Tests.csproj" />
   </Folder>

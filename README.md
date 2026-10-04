@@ -71,9 +71,35 @@ To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
 dotnet test
 ```
 
-The tests start the real server in memory with `WebApplicationFactory` and exercise it over HTTP.
+Four test suites:
 
-[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request.
+| Project | What it tests |
+| --- | --- |
+| `tests/Riftcaster.Core.Tests` | The services and their rules (players, match, timer, cards, access code and so on), with in-memory stores |
+| `tests/Riftcaster.Server.Tests` | The real server, started in memory with `WebApplicationFactory` and exercised over HTTP and WebSockets |
+| `tests/Riftcaster.Admin.Tests` | The admin's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
+| `src/overlays` (Vitest) | The overlays' logic, run by the build's `npm test` step |
+
+bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
+
+[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request, then checks code coverage.
+
+### Coverage
+
+Every C# source file must keep a minimum line coverage, set in [`tools/coverage/minimums.mjs`](tools/coverage/minimums.mjs). Files are checked one by one, so well-tested files can't hide untested ones.
+
+- **Each project has one minimum** (Core and Server 90%, Contracts 100%, Admin 80%), which every file in it must meet. New files need no entry: they're held to their project's minimum automatically.
+- **A few files have their own, lower minimum,** each with the reason: code that's hard to test, or panels not tested yet. These are exceptions, to delete once a file's tests bring it up to its project's minimum.
+- **CI fails** if a file drops below its minimum, if a new project has no minimum, or if an exception names a file that no longer exists.
+
+To check locally:
+
+```bash
+dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
+node tools/coverage/check-coverage.mjs TestResults
+```
+
+Delete `TestResults` between runs (it's ignored by Git), or the check also reads older reports. When tests are added, raise the minimums they lift; never lower one without saying why.
 
 ## Pre-commit checks
 
