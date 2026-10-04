@@ -5,6 +5,7 @@ using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
+using Riftcaster.Core.Network;
 using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
 using Riftcaster.Core.Timer;
@@ -16,6 +17,16 @@ public partial class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        // Network access: off unless started with --network on (see NetworkAccess).
+        if (!NetworkAccess.TryParseOption(builder.Configuration["network"], out var networkOn))
+        {
+            Console.Error.WriteLine($"Unknown --network value '{builder.Configuration["network"]}': use on or off. Starting with network access off.");
+        }
+
+        var network = new NetworkAccess(networkOn, NetworkAccess.ParseUrls(builder.Configuration["urls"]));
+        builder.Services.AddSingleton(network);
+        builder.Configuration.Sources.Add(new NetworkEndpointsSource(network));
 
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
@@ -74,6 +85,11 @@ public partial class Program
 
         var app = builder.Build();
 
+        // Say where other devices can reach the server: at startup, and whenever the switch changes.
+        app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network));
+        network.Changed += () => LogNetworkAccess(app.Logger, network);
+
+        app.UseRemoteAccessLimits();
         app.UseOverlays();
         app.UseAntiforgery();
         app.UseWebSockets();
@@ -86,5 +102,25 @@ public partial class Program
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
         app.Run();
+    }
+
+    private static void LogNetworkAccess(ILogger logger, NetworkAccess network)
+    {
+        if (!network.Enabled)
+        {
+            logger.LogInformation("Network access is off: only this computer can reach the server. Turn it on from the admin, or start with --network on.");
+            return;
+        }
+
+        var urls = network.NetworkUrls();
+        if (urls.Count == 0)
+        {
+            logger.LogWarning("Network access is on, but this computer has no network address. Check it's connected to the network.");
+            return;
+        }
+
+        logger.LogInformation(
+            "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). The admin stays on this computer.",
+            string.Join(" or ", urls));
     }
 }

@@ -16,6 +16,11 @@
                       ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <!-- The tests check internal pieces directly, such as which paths other devices may reach. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Riftcaster.Server.Tests" />
+  </ItemGroup>
+
   <!--
     Overlays build (src/overlays): runs npm as part of every build of this project, from any IDE
     or `dotnet build`, so the served overlay pages are never stale. Each step is incremental and is
