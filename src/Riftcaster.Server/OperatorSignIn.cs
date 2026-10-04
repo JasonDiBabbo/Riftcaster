@@ -99,6 +99,7 @@ internal static class OperatorSignIn
     /// </summary>
     public static WebApplication MapOperatorSignIn(this WebApplication app)
     {
+        // Pages, not part of the REST API, so left out of its OpenAPI document.
         app.MapGet(SignInPath, async (HttpContext context, AccessCode accessCode, IAntiforgery antiforgery) =>
         {
             if (NetworkAccess.IsLocal(context.Connection.RemoteIpAddress) || context.User.Identity?.IsAuthenticated == true)
@@ -108,7 +109,7 @@ internal static class OperatorSignIn
 
             await WritePageAsync(context, accessCode.IsSet ? antiforgery.GetAndStoreTokens(context) : null, message: null);
             return Results.Empty;
-        });
+        }).ExcludeFromDescription();
 
         app.MapPost(SignInPath, async (HttpContext context, [FromForm] string? code, AccessCode accessCode, IAntiforgery antiforgery) =>
         {
@@ -125,13 +126,13 @@ internal static class OperatorSignIn
             var identity = new ClaimsIdentity([new Claim(CodeVersionClaim, accessCode.Version!)], CookieAuthenticationDefaults.AuthenticationScheme);
             await context.SignInAsync(new ClaimsPrincipal(identity), new AuthenticationProperties { IsPersistent = true });
             return Results.Redirect("/");
-        }).RequireRateLimiting(AttemptsPolicy);
+        }).RequireRateLimiting(AttemptsPolicy).ExcludeFromDescription();
 
         app.MapPost(SignOutPath, async (HttpContext context) =>
         {
             await context.SignOutAsync();
             return Results.Redirect(SignInPath);
-        });
+        }).ExcludeFromDescription();
 
         return app;
     }

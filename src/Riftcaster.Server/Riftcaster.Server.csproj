@@ -4,6 +4,11 @@
     <!-- blazor.web.js is only included automatically for projects that contain .razor files;
        ours live in Riftcaster.Admin, so opt in explicitly. -->
     <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
+    <!-- The XML doc comments on the REST API's request types become their descriptions in the
+         OpenAPI document. Only the API's types need them, so missing comments elsewhere aren't
+         warnings (CS1591). -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +27,13 @@
   <ItemGroup>
     <Content Remove="data\**" />
     <None Remove="data\**" />
+  </ItemGroup>
+
+  <!-- The REST API's OpenAPI document (/openapi/v1.json), and the Scalar page that shows it
+       (/api/docs). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.17.13" />
   </ItemGroup>
 
   <!-- The tests check internal pieces directly, such as which paths other devices may reach. -->
