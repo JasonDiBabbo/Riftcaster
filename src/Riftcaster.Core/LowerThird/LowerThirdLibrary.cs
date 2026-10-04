@@ -12,11 +12,6 @@ namespace Riftcaster.Core.LowerThird;
 public sealed record LowerThirdLibrary(ImmutableList<LowerThirdEntry> Entries, Guid? LiveEntryId)
 {
     /// <summary>
-    /// A library with no entries and nothing on air.
-    /// </summary>
-    public static readonly LowerThirdLibrary Empty = new([], null);
-
-    /// <summary>
     /// The live entry's message, or <see langword="null" /> when nothing is showing.
     /// </summary>
     public LowerThirdMessage? LiveMessage => LiveEntryId is { } id ? Entries.Find(entry => entry.Id == id)?.Message : null;
