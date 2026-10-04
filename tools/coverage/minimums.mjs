@@ -51,11 +51,6 @@ export const minimums = [
     why: 'The untested lines handle an overlay dropping mid-send and a close that never completes.',
   },
   {
-    match: 'src/Riftcaster.Server/OverlayHostingExtensions.cs',
-    min: 65,
-    why: 'The untested lines warn when the overlays folder is missing or not configured; see #48.',
-  },
-  {
     match: 'src/Riftcaster.Server/',
     min: 90,
     why: 'Endpoints, sign-in and the network switch, covered by the integration tests.',
@@ -67,11 +62,6 @@ export const minimums = [
     match: 'src/Riftcaster.Admin/Layout/OnAirPill.razor',
     min: 0,
     why: 'Not tested yet: a label and a clear button, used by the header.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Layout/AdminHeader.razor',
-    min: 70,
-    why: 'Not tested directly yet; rendered through the server tests. The pills inside it are tested.',
   },
   {
     match: 'src/Riftcaster.Admin/LowerThird/LowerThirdListItem.razor',

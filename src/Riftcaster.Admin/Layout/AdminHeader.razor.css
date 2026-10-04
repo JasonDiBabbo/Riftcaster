@@ -83,6 +83,17 @@
   background: var(--warn);
 }
 
+/* No overlay files at all: an error, not a warning. */
+.connection.missing {
+  border-color: #4a2523;
+  background: #221413;
+  color: var(--live-soft);
+}
+
+.connection.missing .dot {
+  background: var(--live);
+}
+
 @media (width < 760px) {
   .summary {
     display: none;

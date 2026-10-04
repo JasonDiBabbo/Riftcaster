@@ -7,6 +7,7 @@
 @inject LowerThirdService LowerThird
 @inject MatchService Match
 @inject OverlayConnections Overlays
+@inject OverlayFiles OverlayFiles
 
 <header class="header">
     <div class="brand">
@@ -28,12 +29,21 @@
             <OnAirPill Label="Lower third" Text="@LowerThirdSummary.For(message).Primary" MaxWidth="280" OnClear="LowerThird.Hide" />
         }
         <NetworkControl />
-        @{
-            var overlays = Overlays.Count;
+        @if (!OverlayFiles.Found)
+        {
+            @* In place of the count: no overlay can connect, and every OBS source is blank. *@
+            <div class="connection missing" role="alert"
+                 title="The server can't find its overlay pages, so OBS shows nothing. Its console says where it looked.">
+                <span class="dot"></span>Overlay files missing
+            </div>
         }
-        <div class="connection @(overlays == 0 ? "none" : null)" role="status">
-            <span class="dot"></span>@ConnectionText(overlays)
-        </div>
+        else
+        {
+            var overlays = Overlays.Count;
+            <div class="connection @(overlays == 0 ? "none" : null)" role="status">
+                <span class="dot"></span>@ConnectionText(overlays)
+            </div>
+        }
     </div>
 </header>
 
