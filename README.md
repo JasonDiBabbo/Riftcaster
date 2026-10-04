@@ -82,7 +82,18 @@ Four test suites:
 
 bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
 
-[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request.
+[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request, then checks code coverage.
+
+### Coverage
+
+Every C# source file has a minimum line coverage, in [`tools/coverage/minimums.mjs`](tools/coverage/minimums.mjs), each with the reason for its number. Files are checked one by one, so well-tested files can't hide untested ones. CI fails if a file drops below its minimum, if a new file has no minimum yet, or if a minimum no longer matches a file. To check locally:
+
+```bash
+dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
+node tools/coverage/check-coverage.mjs TestResults
+```
+
+Delete `TestResults` between runs (it's ignored by Git), or the check also reads older reports. When tests are added, raise the minimums they lift; never lower one without saying why.
 
 ## Pre-commit checks
 

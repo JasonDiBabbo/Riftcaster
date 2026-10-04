@@ -34,5 +34,10 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
+      # Also records line coverage (coverlet), one report per test project, for the next step.
       - name: Test
-        run: dotnet test --configuration Release --no-build
+        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      # Each C# file's coverage against its minimum in tools/coverage/minimums.mjs.
+      - name: Check coverage
+        run: node tools/coverage/check-coverage.mjs TestResults
