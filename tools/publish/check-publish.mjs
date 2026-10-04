@@ -3,7 +3,8 @@
 /**
  * Checks that a published server works on its own (issue #48): starts it from the publish folder,
  * as Production and from a different current folder (as a shortcut or a terminal elsewhere would),
- * then fetches the admin and every overlay page, with the scripts and stylesheets each one links.
+ * then fetches the admin, every overlay page and the REST API's docs page, with the scripts and
+ * stylesheets each one links, and the API's OpenAPI document.
  *
  * Also fails if the publish folder contains a data folder: that's the computer's own saved state
  * (the access code, players and so on), which must never be handed out with the server.
@@ -76,8 +77,13 @@ server.stderr.on('data', (chunk) => (log += chunk));
 try {
   await waitForServer();
 
-  for (const page of ['/', ...overlayPages]) {
+  for (const page of ['/', ...overlayPages, '/api/docs/']) {
     await checkPage(page);
+  }
+
+  const document = await fetch(new URL('/openapi/v1.json', baseUrl));
+  if (!document.ok || !document.headers.get('content-type')?.startsWith('application/json')) {
+    failures.push(`/openapi/v1.json: ${document.status}`);
   }
 
   if (/no overlays will be served/i.test(log)) {
@@ -105,7 +111,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `The published server serves the admin and ${overlayPages.length} overlays, with their scripts and stylesheets.`
+  `The published server serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
 );
 
 /**

@@ -6,7 +6,7 @@ Riftcaster runs as a single server process on the same machine as OBS. It serves
 
 - **Overlay pages.** Each overlay element is its own page, added to OBS as a Browser Source, so OBS's own scene editor handles layout and positioning.
 - **The admin panel.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
-- **An API** that the overlays use to get their data.
+- **An API:** live streams the overlays read their data from, and a REST API for controlling the show from Stream Deck, Bitfocus Companion or scripts (see "The REST API").
 
 ## Tech stack
 
@@ -63,6 +63,7 @@ Once it's running:
 | --- | --- |
 | http://localhost:5062/ | Admin panel |
 | http://localhost:5062/api/info | Server identity (JSON) |
+| http://localhost:5062/api/docs | REST API docs, where you can try each endpoint |
 | http://localhost:5062/overlays/serverIdentity/serverIdentity.html | Example overlay |
 
 To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
@@ -164,6 +165,28 @@ Other devices can always open the overlays while network access is on. The admin
 Only the computer running the server can switch network access or change the code; signed-in devices can use everything else, and sign out from the network panel. Wrong codes are limited to a few attempts a minute per device. The code is saved encrypted in `data/accessCode.json`.
 
 The connection is plain HTTP, so the code stops casual tampering by others on the network, but not someone capturing its traffic. Changing the code after each event limits that.
+
+## The REST API
+
+Everything the admin does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the admin, so the admin and the overlays update together.
+
+**[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
+
+| Button | Request |
+| --- | --- |
+| Start the timer | `POST /api/timer/start` |
+| Take a minute off the timer | `POST /api/timer/adjust` with `{ "seconds": -60 }` |
+| +1 point for player 1 | `POST /api/players/1/adjust` with `{ "points": 1 }` |
+| +1 point for Team B (2v2) | `POST /api/teams/b/adjust` with `{ "points": 1 }` |
+| Show a saved lower third | `POST /api/lower-third/messages/{id}/show` (ids are in `GET /api/lower-third`) |
+| Hide the lower third | `POST /api/lower-third/hide` |
+| Feature a card | `PUT /api/featured-card` with `{ "cardId": "..." }` (ids are in `GET /api/cards?search=jinx`) |
+
+Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the admin. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
+
+- **From the computer running the server,** no code is needed.
+- **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the admin can also use the docs page.
+- **Other websites can't use it.** A page open in a browser on this computer could otherwise send requests to `localhost`, so changes that come from another website's page are refused. Stream Deck, Companion and scripts aren't affected, and nor are the server's own pages.
 
 ## Working on overlays
 
