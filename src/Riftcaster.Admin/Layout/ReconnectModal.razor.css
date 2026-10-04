@@ -1,0 +1,120 @@
+/* Not in the design, which has no reconnection state. Shaped like a panel, in the dashboard's
+   tokens; amber while reconnecting, red once Blazor has given up. */
+.reconnect {
+  width: min(440px, calc(100vw - 32px));
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.55);
+}
+
+.reconnect[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+}
+
+.reconnect::backdrop {
+  background: rgb(8 9 10 / 0.72);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--warn);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.components-reconnect-failed .dot,
+.components-reconnect-resume-failed .dot {
+  background: var(--live);
+  animation: none;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    animation: none;
+  }
+}
+
+.title {
+  margin: 0;
+  font: 600 var(--fs-title) / 1.2 var(--font);
+}
+
+.status {
+  margin: 0;
+  color: var(--text-bright);
+  font: 400 var(--fs-body) / 1.45 var(--font);
+}
+
+.countdown,
+.note {
+  margin: 0;
+  color: var(--text-muted);
+  font: 400 var(--fs-meta) / 1.4 var(--font);
+}
+
+.countdown:empty {
+  display: none;
+}
+
+/* Buttons only for the states that need one: Try again and Reload once Blazor has given up,
+   Resume when the server paused the session, Reload when resuming failed. */
+.actions {
+  display: none;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.components-reconnect-failed .actions,
+.components-reconnect-paused .actions,
+.components-reconnect-resume-failed .actions {
+  display: flex;
+}
+
+.actions button {
+  display: none;
+}
+
+.components-reconnect-failed #reconnect-retry,
+.components-reconnect-failed #reconnect-reload,
+.components-reconnect-paused #reconnect-resume,
+.components-reconnect-resume-failed #reconnect-reload {
+  display: inline-block;
+}
+
+/* Like the timer's Start button. */
+.primary {
+  height: 30px;
+  padding: 0 14px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--acc);
+  color: var(--acc-ink);
+  font: 700 var(--fs-meta) / 1 var(--font);
+  cursor: pointer;
+}
+
+.actions button:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
