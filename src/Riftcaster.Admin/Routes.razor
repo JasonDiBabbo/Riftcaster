@@ -1,6 +1,29 @@
-﻿<Router AppAssembly="typeof(Routes).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData"
-                   DefaultLayout="typeof(MainLayout)" />
-    </Found>
-</Router>
+﻿<CascadingValue Value="_session" IsFixed="true">
+    <Router AppAssembly="typeof(Routes).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData"
+                       DefaultLayout="typeof(MainLayout)" />
+        </Found>
+    </Router>
+</CascadingValue>
+
+@code {
+    private OperatorSession _session = new(IsLocal: false, CodeVersion: null);
+
+    /// <summary>
+    /// Whether the page was opened on the computer running the server (see <see cref="OperatorSession"/>).
+    /// </summary>
+    [Parameter]
+    public bool IsLocal { get; set; }
+
+    /// <summary>
+    /// The access code's version when the page was opened (see <see cref="OperatorSession"/>).
+    /// </summary>
+    [Parameter]
+    public string? CodeVersion { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        _session = new OperatorSession(IsLocal, CodeVersion);
+    }
+}

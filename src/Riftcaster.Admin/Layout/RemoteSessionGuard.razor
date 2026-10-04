@@ -1,0 +1,33 @@
+﻿@using Riftcaster.Core.Network
+@implements IDisposable
+@inject AccessCode AccessCode
+@inject NavigationManager Navigation
+
+@* Signs a remote operator out as soon as the access code they signed in with is changed or
+   removed: their admin page is already open, so it would otherwise keep working until it made a
+   new request. Reloading sends it back through the server, which no longer accepts the old
+   sign-in and shows the sign-in page. Renders nothing. *@
+
+@code {
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        AccessCode.Changed += OnAccessCodeChanged;
+        OnAccessCodeChanged(); // In case it changed between the page loading and this connecting
+    }
+
+    private void OnAccessCodeChanged()
+    {
+        if (!Session.IsLocal && AccessCode.Version != Session.CodeVersion)
+        {
+            _ = InvokeAsync(() => Navigation.NavigateTo("/signin", forceLoad: true));
+        }
+    }
+
+    public void Dispose()
+    {
+        AccessCode.Changed -= OnAccessCodeChanged;
+    }
+}

@@ -1,11 +1,12 @@
 ﻿@using Riftcaster.Core.Network
 @implements IDisposable
 @inject NetworkAccess Network
+@inject AccessCode AccessCode
 
-@* The header's network access pill, which opens the switch (issue #16). Only this computer can
-   reach the admin (see RemoteAccess in the server), so everyone who sees this may change it. Once
-   remote operators can sign in, the switch must stay on this computer only, so a remote user can't
-   cut themselves (and everyone else) off. *@
+@* The header's network access pill, which opens the network panel (issue #16). On the computer
+   running the server, the panel switches network access and manages the access code. Remote
+   operators only see whether network access is on, and can sign out: they can't switch it off,
+   or change the code, so nobody can lock themselves (or everyone else) out. *@
 <div class="network">
     <button type="button"
             class="pill @(Network.Enabled ? "on" : null)"
@@ -24,37 +25,93 @@
         <section id="network-panel" class="panel" aria-labelledby="network-title" @onkeydown="CloseOnEscape">
             <h2 id="network-title" class="title">Network access</h2>
 
-            <Toggle Label="Let other devices connect" Value="Network.Enabled" ValueChanged="Network.SetEnabled" />
-
-            @if (Network.Enabled)
+            @if (Session.IsLocal)
             {
-                var urls = Network.NetworkUrls();
-                if (urls.Count > 0)
+                <Toggle Label="Let other devices connect" Value="Network.Enabled" ValueChanged="Network.SetEnabled" />
+
+                @if (Network.Enabled)
                 {
-                    <p class="text">Overlays on other devices (OBS on another computer):</p>
-                    <ul class="urls">
-                        @foreach (var url in urls)
-                        {
-                            <li><code>@url/overlays/…</code></li>
-                        }
-                    </ul>
+                    var urls = Network.NetworkUrls();
+                    if (urls.Count > 0)
+                    {
+                        <p class="text">Other devices on this network:</p>
+                        <ul class="urls">
+                            @foreach (var url in urls)
+                            {
+                                <li><span class="url-label">Overlays</span> <code>@url/overlays/…</code></li>
+                                @if (AccessCode.IsSet)
+                                {
+                                    <li><span class="url-label">Admin</span> <code>@url/</code></li>
+                                }
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <p class="text warn">This computer has no network address. Check it's connected to the network.</p>
+                    }
+                    <p class="text muted">If Windows Firewall asks, allow access on private networks.</p>
                 }
                 else
                 {
-                    <p class="text warn">This computer has no network address. Check it's connected to the network.</p>
+                    <p class="text muted">Only this computer can reach the overlays and the admin. Off every time the server starts.</p>
                 }
-                <p class="text muted">The admin stays on this computer. If Windows Firewall asks, allow access on private networks.</p>
+
+                <p class="text muted">Switching briefly reconnects the admin and every overlay.</p>
+
+                <h3 class="subtitle">Access code</h3>
+                @if (AccessCode.IsSet)
+                {
+                    <p class="text muted">Approved operators sign in with it to use the admin on their own devices while network access is on. Changing or removing it signs them all out.</p>
+                    <div class="code-row">
+                        <code class="code">@(_showCode ? AccessCode.Code : "••••••••")</code>
+                        <button type="button" class="ghost" @onclick="() => _showCode = !_showCode">@(_showCode ? "Hide" : "Show")</button>
+                    </div>
+                }
+                else
+                {
+                    <p class="text muted">No access code: the admin is on this computer only. Set one to let approved operators sign in from their own devices.</p>
+                }
+
+                <div class="code-form">
+                    <input type="text"
+                           aria-label="@(AccessCode.IsSet ? "New access code" : "Access code")"
+                           placeholder="@($"At least {AccessCode.MinLength} characters")"
+                           autocomplete="off"
+                           spellcheck="false"
+                           @bind="_newCode"
+                           @bind:event="oninput" />
+                    <button type="button" class="ghost" @onclick="Generate">Generate</button>
+                    <button type="button" class="primary" disabled="@string.IsNullOrWhiteSpace(_newCode)" @onclick="SetCode">@(AccessCode.IsSet ? "Change" : "Set")</button>
+                </div>
+                @if (_codeError)
+                {
+                    <p class="text warn" role="alert">Use @AccessCode.MinLength to @AccessCode.MaxLength characters (spaces and dashes don't count).</p>
+                }
+
+                <div class="actions">
+                    @if (AccessCode.IsSet)
+                    {
+                        <button type="button" class="button-secondary" @onclick="RemoveCode">Remove code</button>
+                    }
+                    <span class="spacer"></span>
+                    <button type="button" class="button-secondary" @onclick="Close">Done</button>
+                </div>
             }
             else
             {
-                <p class="text muted">Only this computer can reach the overlays and the admin. Off every time the server starts.</p>
+                <p class="text">@(Network.Enabled ? "On: other devices can connect." : "Off.")</p>
+                <p class="text muted">You're signed in on this device with the access code. Only the computer running the server can switch network access or change the code.</p>
+
+                <div class="actions">
+                    @* A plain form post: signing out clears the sign-in cookie, which needs a real request. *@
+                    <form method="post" action="/signout" data-enhance="false">
+                        <button type="submit" class="button-secondary">Sign out</button>
+                    </form>
+                    <span class="spacer"></span>
+                    <button type="button" class="button-secondary" @onclick="Close">Done</button>
+                </div>
             }
-
-            <p class="text muted">Switching briefly reconnects the admin and every overlay.</p>
-
-            <div class="actions">
-                <button type="button" class="button-secondary" @onclick="Close">Done</button>
-            </div>
         </section>
     }
 </div>
@@ -62,9 +119,25 @@
 @code {
     private bool _open;
 
+    private bool _showCode;
+
+    private string _newCode = "";
+
+    private bool _codeError;
+
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        Network.Changed += OnChanged;
+        AccessCode.Changed += OnChanged;
+    }
+
     private void Close()
     {
         _open = false;
+        _showCode = false;
     }
 
     private void CloseOnEscape(KeyboardEventArgs e)
@@ -75,18 +148,36 @@
         }
     }
 
-    protected override void OnInitialized()
+    private void Generate()
     {
-        Network.Changed += OnNetworkChanged;
+        _newCode = AccessCode.Generate();
+        _codeError = false;
     }
 
-    private void OnNetworkChanged()
+    private void SetCode()
+    {
+        _codeError = !AccessCode.Set(_newCode);
+        if (!_codeError)
+        {
+            _newCode = "";
+            _showCode = true; // So it can be read out straight away
+        }
+    }
+
+    private void RemoveCode()
+    {
+        AccessCode.Remove();
+        _showCode = false;
+    }
+
+    private void OnChanged()
     {
         _ = InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        Network.Changed -= OnNetworkChanged;
+        Network.Changed -= OnChanged;
+        AccessCode.Changed -= OnChanged;
     }
 }
