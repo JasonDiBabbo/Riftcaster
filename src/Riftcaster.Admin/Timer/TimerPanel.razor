@@ -44,16 +44,25 @@
                 }
             </div>
 
-            @* A form, so Enter in the input submits it like the Set button does. *@
-            <form class="set" @onsubmit="SetRemaining">
-                <input placeholder="Set remaining — mm:ss"
-                       aria-label="Set remaining, as mm:ss or minutes"
-                       aria-invalid="@(_setInvalid ? "true" : null)"
-                       class="@(_setInvalid ? "invalid" : null)"
-                       @bind="_setText"
-                       @bind:event="oninput" />
-                <button type="submit">Set</button>
-            </form>
+            <div class="set-field">
+                @* A form, so Enter in the input submits it like the Set button does. *@
+                <form class="set" @onsubmit="SetRemaining">
+                    <input placeholder="Set remaining — mm:ss"
+                           aria-label="Set remaining, as mm:ss or minutes"
+                           aria-invalid="@(_setInvalid ? "true" : null)"
+                           aria-describedby="@(_setInvalid ? _setErrorId : null)"
+                           class="@(_setInvalid ? "invalid" : null)"
+                           @bind="_setText"
+                           @bind:event="oninput"
+                           @bind:after="RecheckSetText"
+                           @onblur="CheckSetText" />
+                    <button type="submit">Set</button>
+                </form>
+                @if (_setInvalid)
+                {
+                    <p id="@_setErrorId" class="validation-message">@SetErrorMessage(_setError)</p>
+                }
+            </div>
         </div>
     </ChildContent>
 </Panel>
@@ -73,7 +82,13 @@
 
     private string _setText = "";
 
-    private bool _setInvalid;
+    // What's wrong with the Set remaining box, shown under it; None while it isn't marked.
+    private TimeEntryError _setError;
+
+    private bool _setInvalid => _setError != TimeEntryError.None;
+
+    // Ties the error to the box for screen readers. Unique per panel, in case a page shows two.
+    private readonly string _setErrorId = $"set-remaining-error-{Guid.NewGuid():N}";
 
     protected override void OnInitialized()
     {
@@ -118,7 +133,7 @@
     // Invalid input stays in the box, marked, so the operator can fix it; valid input is cleared.
     private void SetRemaining()
     {
-        _setInvalid = !TimerFormat.TryParse(_setText, out var seconds) || seconds > TimerService.MaxTotalSeconds;
+        _setError = TimerFormat.Check(_setText, out var seconds);
         if (_setInvalid)
         {
             return;
@@ -127,6 +142,32 @@
         Timer.SetRemaining(seconds);
         _setText = "";
     }
+
+    // Leaving the box marks what's typed if it isn't a time, before Set is pressed. Leaving it empty
+    // isn't a mistake: it just means nothing was set.
+    private void CheckSetText()
+    {
+        _setError = string.IsNullOrWhiteSpace(_setText) ? TimeEntryError.None : TimerFormat.Check(_setText, out _);
+    }
+
+    // Once marked, the box is checked again as the operator types, so the mark goes as soon as the
+    // time is fixed (or the box is emptied). Unmarked text isn't checked while it's being typed.
+    private void RecheckSetText()
+    {
+        if (_setInvalid)
+        {
+            CheckSetText();
+        }
+    }
+
+    // 999:59 is also the timer's longest (TimerService.MaxTotalSeconds), so a time Check accepts can
+    // always be set.
+    private static string SetErrorMessage(TimeEntryError error) => error switch
+    {
+        TimeEntryError.Negative => "Input time must not be negative.",
+        TimeEntryError.TooLong => $"Input time must be no greater than {TimerFormat.MaxMinutes}:59.",
+        _ => "Input time must use mm:ss formatting, or be a whole number of minutes.",
+    };
 
     private static string StatusLabel(TimerStatus status) => status switch
     {

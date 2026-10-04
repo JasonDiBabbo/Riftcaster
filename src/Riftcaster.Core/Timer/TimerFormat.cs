@@ -60,6 +60,40 @@ public static class TimerFormat
         return false;
     }
 
+    /// <summary>
+    /// Parses text as <see cref="TryParse"/> does, and says why it isn't a time when it isn't.
+    /// </summary>
+    /// <param name="text">The typed text. Surrounding spaces are ignored.</param>
+    /// <param name="seconds">The parsed time in seconds, or 0 if the text isn't a valid time.</param>
+    /// <returns><see cref="TimeEntryError.None"/> for a time, otherwise what's wrong with it.</returns>
+    public static TimeEntryError Check(string? text, out int seconds)
+    {
+        if (TryParse(text, out seconds))
+        {
+            return TimeEntryError.None;
+        }
+
+        var trimmed = text?.Trim() ?? "";
+        if (trimmed.StartsWith('-') && IsTimeShaped(trimmed[1..]))
+        {
+            return TimeEntryError.Negative;
+        }
+
+        // Shaped like a time, so only the minutes can be at fault: there are more than MaxMinutes.
+        return IsTimeShaped(trimmed) ? TimeEntryError.TooLong : TimeEntryError.Format;
+    }
+
+    // Whole minutes, or minutes and seconds under 60, however many minutes.
+    private static bool IsTimeShaped(string text) =>
+        text.Trim().Split(':') switch
+        {
+            [var minutes] => IsDigits(minutes),
+            [var minutes, var secs] => IsDigits(minutes) && TryParseNumber(secs, out var parsed) && parsed < 60,
+            _ => false,
+        };
+
+    private static bool IsDigits(string text) => text.Length > 0 && text.All(char.IsAsciiDigit);
+
     private static bool TryParseMinutes(string text, out int minutes) =>
         TryParseNumber(text, out minutes) && minutes <= MaxMinutes;
 

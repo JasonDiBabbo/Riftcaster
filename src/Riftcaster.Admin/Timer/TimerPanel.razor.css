@@ -26,9 +26,10 @@
 
 /* Fills the panel, so the display can take the spare height when the Timer slot grows. */
 .content {
+  --row-gap: 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--row-gap);
   min-height: 100%;
   padding: 16px;
 }
@@ -130,6 +131,18 @@
   cursor: pointer;
 }
 
+
+/* The Set remaining form, with its error under it (the shared .validation-message). */
+.set-field {
+  display: grid;
+}
+
+/* Spaced like a row of its own: as far below the box as the rows above are from each other. The
+   shared style's small top margin would crowd it against the box, and a paragraph's own bottom
+   margin would add to the panel's padding below it. */
+.set-field .validation-message {
+  margin: var(--row-gap) 0 0;
+}
 
 .set {
   display: flex;

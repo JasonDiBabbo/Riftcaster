@@ -63,4 +63,29 @@ public class TimerFormatTests
         Assert.False(parsed);
         Assert.Equal(0, seconds);
     }
+
+    [Theory]
+    [InlineData("12:30", TimeEntryError.None)]
+    [InlineData("999:59", TimeEntryError.None)]
+    [InlineData(null, TimeEntryError.Format)]
+    [InlineData("", TimeEntryError.Format)]
+    [InlineData("abc", TimeEntryError.Format)]
+    [InlineData("12:60", TimeEntryError.Format)] // Seconds are part of the format: 00 to 59
+    [InlineData("+5", TimeEntryError.Format)]
+    [InlineData("1.5", TimeEntryError.Format)]
+    [InlineData("12:", TimeEntryError.Format)]
+    [InlineData("1:2:3", TimeEntryError.Format)]
+    [InlineData("-", TimeEntryError.Format)]
+    [InlineData("-abc", TimeEntryError.Format)]
+    [InlineData("-5", TimeEntryError.Negative)]
+    [InlineData(" -1:30 ", TimeEntryError.Negative)]
+    [InlineData("-1000", TimeEntryError.Negative)] // Negative first: that's the bigger mistake
+    [InlineData("1000", TimeEntryError.TooLong)]
+    [InlineData("1000:00", TimeEntryError.TooLong)]
+    [InlineData("99999999999", TimeEntryError.TooLong)] // Too big even for an int
+    public void Check_SaysWhatsWrong(string? text, TimeEntryError expected)
+    {
+        Assert.Equal(expected, TimerFormat.Check(text, out var seconds));
+        Assert.Equal(expected == TimeEntryError.None, seconds > 0);
+    }
 }

@@ -35,10 +35,20 @@
 }
 
 @media (hover: hover) {
-  .step:hover {
+  .step:hover:not([aria-disabled='true']) {
     background: var(--button-hover);
     color: var(--text);
   }
+}
+
+/* At the minimum or maximum: faded like a disabled button, but still focusable (see Stepper.razor). */
+.step[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.step[aria-disabled='true']:active {
+  filter: none;
 }
 
 /* Inside the button: the box's overflow: hidden would cut off a ring outside it. */

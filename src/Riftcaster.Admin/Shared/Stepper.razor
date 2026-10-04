@@ -1,14 +1,16 @@
 ﻿@using System.Globalization
 
 <div class="stepper">
-    <button type="button" class="step" aria-label="Decrease @Label" @onclick="() => SetAsync(StepDown())">−</button>
+    @* aria-disabled rather than disabled: a disabled button loses keyboard focus, so pressing + up
+       to the maximum would drop focus out of the stepper. Clicks at a limit already do nothing. *@
+    <button type="button" class="step" aria-label="Decrease @Label" aria-disabled="@(Value <= Min ? "true" : null)" @onclick="() => SetAsync(StepDown())">−</button>
     <input type="number"
            class="value"
            inputmode="numeric"
            aria-label="@Label"
            @bind:get="Text"
            @bind:set="OnTypedAsync" />
-    <button type="button" class="step" aria-label="Increase @Label" @onclick="() => SetAsync(StepUp())">+</button>
+    <button type="button" class="step" aria-label="Increase @Label" aria-disabled="@(Value >= Max ? "true" : null)" @onclick="() => SetAsync(StepUp())">+</button>
 </div>
 
 @code {

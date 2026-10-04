@@ -73,6 +73,7 @@
   --pressed: brightness(0.88);
   --focus-ring: var(--acc);
   --focus-glow: oklch(0.78 0.12 165 / 0.22);
+  --invalid-glow: rgb(229 83 75 / 0.25); /* --live, for a focused invalid field */
   --duration-fast: 120ms;
   /* Radii */
   --radius-badge: 3px;
@@ -212,10 +213,17 @@ select option {
   }
 }
 
-/* Blazor's validation classes. Not in the design (the prototype has no
-   validation), so these use the existing status colours. */
-:where(input, select, textarea).invalid {
+/* Blazor's validation classes, and invalid input elsewhere (the timer's Set remaining). Not in
+   the design (the prototype has no validation), so these use the existing status colours. Red
+   replaces the mint focus rather than mixing with it, and hover leaves it alone. */
+:where(input, select, textarea).invalid,
+:where(input, select, textarea).invalid:hover {
   border-color: var(--live);
+}
+
+:where(input, select, textarea).invalid:focus {
+  border-color: var(--live);
+  box-shadow: 0 0 0 3px var(--invalid-glow);
 }
 
 .validation-message {
