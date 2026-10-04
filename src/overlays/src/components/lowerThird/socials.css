@@ -1,5 +1,5 @@
 /* Socials lower third: a gilded plate that cycles through social handles. Implements the
-   Socials design handoff; driven by socialsVisual.ts, plate artwork in socialsPlate.ts.
+   Socials design handoff; driven by socialsVisual.ts, plate artwork in plate.ts.
    Designed for a 1920x1080 OBS browser source. */
 
 .socials {
@@ -7,7 +7,7 @@
   left: 50%;
   bottom: 48px;
   /* width and margin-left (centring) are set by socialsVisual.ts from the longest handle */
-  height: 78px; /* socialsPlate.ts's PLATE_HEIGHT */
+  height: 78px; /* socialsVisual.ts's PLATE_HEIGHT */
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   will-change: transform;
 }

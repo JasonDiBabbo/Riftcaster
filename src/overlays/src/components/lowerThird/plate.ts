@@ -1,14 +1,13 @@
 /**
- * The Socials lower third's plate: a navy body in a thin gold ring, notched at every
- * corner, with gold filigree along the top and bottom edges and a hex gem at the bottom
- * centre. Ported from the Socials design handoff's prototype (riftcaster-lower-third-v3.jsx:
- * SCALLOP, Framed, Gilded and HexGem), which is the source of every number here.
+ * The gilded plate shared by the Socials and Information lower thirds: a navy body in a
+ * thin gold ring, notched at every corner, with gold filigree along the top and bottom
+ * edges and a hex gem at the bottom centre. Ported from the Socials design handoff's
+ * prototype (riftcaster-lower-third-v3.jsx: SCALLOP, Framed, Gilded and HexGem), which is
+ * the source of every number here.
  *
- * Returned as SVG markup; nothing in it comes from user input.
+ * Returned as SVG markup; nothing in it comes from user input. Both visuals live on the
+ * same page, so each passes its own `id` to keep the SVG ids (gradients, masks) unique.
  */
-
-/** Plate height, in px; must match socials.css's .socials. The width depends on the handles (see socialsVisual.ts). */
-const PLATE_HEIGHT = 78;
 
 /** Width of the gold ring around the navy body. */
 const RING = 1.9;
@@ -74,9 +73,8 @@ function filigreePaths(w: number, h: number): string[] {
   return [half(h, 1, -1, true), half(h, 1, 1, true), half(0, -1, -1, false), half(0, -1, 1, false)];
 }
 
-/** The plate for a given width: ring, body and filigree. The gem is separate (gemSvg). */
-export function plateSvg(w: number): string {
-  const h = PLATE_HEIGHT;
+/** The plate for a given size: ring, body and filigree. The gem is separate (gemSvg). */
+export function plateSvg(id: string, w: number, h: number): string {
   const band = RING + 6; // the border plus 3px either side, cut out of the filigree
   const lines = filigreePaths(w, h)
     .map((d) => `<path d="${d}" />`)
@@ -85,25 +83,25 @@ export function plateSvg(w: number): string {
   return `
     <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" overflow="visible">
       <defs>
-        <linearGradient id="socials-ring" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="${id}-ring" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#ecd49a" />
           <stop offset="0.5" stop-color="${GOLD}" />
           <stop offset="1" stop-color="#7a5c26" />
         </linearGradient>
-        <linearGradient id="socials-body" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id="${id}-body" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stop-color="#172040" />
           <stop offset="1" stop-color="#0d1327" />
         </linearGradient>
         <!-- Hides the filigree where it crosses the border, so it reads as passing under it -->
-        <mask id="socials-filigree-cut" maskUnits="userSpaceOnUse" x="-20" y="-40" width="${w + 40}" height="${h + 80}">
+        <mask id="${id}-filigree-cut" maskUnits="userSpaceOnUse" x="-20" y="-40" width="${w + 40}" height="${h + 80}">
           <rect x="-20" y="-40" width="${w + 40}" height="${h + 80}" fill="#fff" />
           <rect x="-20" y="${h - RING - 3}" width="${w + 40}" height="${band}" fill="#000" />
           <rect x="-20" y="-3" width="${w + 40}" height="${band}" fill="#000" />
         </mask>
       </defs>
-      <path d="${notchedRect(0, 0, w, h, NOTCH)}" fill="url(#socials-ring)" />
-      <path d="${notchedRect(RING, RING, w - RING, h - RING, NOTCH)}" fill="url(#socials-body)" />
-      <g mask="url(#socials-filigree-cut)" fill="none" stroke="${GOLD}" stroke-width="1.25" stroke-linejoin="miter">
+      <path d="${notchedRect(0, 0, w, h, NOTCH)}" fill="url(#${id}-ring)" />
+      <path d="${notchedRect(RING, RING, w - RING, h - RING, NOTCH)}" fill="url(#${id}-body)" />
+      <g mask="url(#${id}-filigree-cut)" fill="none" stroke="${GOLD}" stroke-width="1.25" stroke-linejoin="miter">
         ${lines}
       </g>
     </svg>`;
@@ -114,7 +112,7 @@ export function plateSvg(w: number): string {
  * pale highlight at the centre toward its own colour, with faint spokes, a centre glow
  * and a dark outline.
  */
-export function gemSvg(): string {
+export function gemSvg(id: string): string {
   const size = 20;
   const r = size / 2;
   const facetColors = ['#f6d93a', '#d9a70f', '#a97a06', '#c08a0a', '#e3b014', '#fbe463'];
@@ -130,7 +128,7 @@ export function gemSvg(): string {
       const midX = (vertex[0] + nx) / 2;
       const midY = (vertex[1] + ny) / 2;
       return `
-        <linearGradient id="socials-gem-${i}" gradientUnits="userSpaceOnUse" x1="${r}" y1="${r}" x2="${midX}" y2="${midY}">
+        <linearGradient id="${id}-gem-${i}" gradientUnits="userSpaceOnUse" x1="${r}" y1="${r}" x2="${midX}" y2="${midY}">
           <stop offset="0" stop-color="#fff6b8" />
           <stop offset="0.35" stop-color="${facetColors[i]}" />
           <stop offset="1" stop-color="${facetColors[i]}" />
@@ -140,7 +138,7 @@ export function gemSvg(): string {
   const facets = vertices
     .map((vertex, i) => {
       const [nx, ny] = next(i);
-      return `<polygon points="${r},${r} ${vertex[0]},${vertex[1]} ${nx},${ny}" fill="url(#socials-gem-${i})" />`;
+      return `<polygon points="${r},${r} ${vertex[0]},${vertex[1]} ${nx},${ny}" fill="url(#${id}-gem-${i})" />`;
     })
     .join('');
   const spokes = vertices
@@ -155,7 +153,7 @@ export function gemSvg(): string {
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" overflow="visible">
       <defs>
         ${gradients}
-        <radialGradient id="socials-gem-glow" cx="0.5" cy="0.5" r="0.5">
+        <radialGradient id="${id}-gem-glow" cx="0.5" cy="0.5" r="0.5">
           <stop offset="0" stop-color="#fffbe0" stop-opacity="0.95" />
           <stop offset="0.3" stop-color="#fff2a0" stop-opacity="0.4" />
           <stop offset="1" stop-color="#fff2a0" stop-opacity="0" />
@@ -163,7 +161,7 @@ export function gemSvg(): string {
       </defs>
       ${facets}
       ${spokes}
-      <circle cx="${r}" cy="${r}" r="${r * 0.7}" fill="url(#socials-gem-glow)" />
+      <circle cx="${r}" cy="${r}" r="${r * 0.7}" fill="url(#${id}-gem-glow)" />
       <polygon points="${outline}" fill="none" stroke="#8a6206" stroke-width="0.6" />
     </svg>`;
 }
