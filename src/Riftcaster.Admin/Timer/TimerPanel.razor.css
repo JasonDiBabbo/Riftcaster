@@ -106,20 +106,11 @@
   color: var(--text-bright);
 }
 
-/* Not in the design: Start can't run once time is up with overtime off. */
-.start:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
+/* Start is disabled (the shared disabled style, in admin.css) once time is up with overtime off. */
 .reset {
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--text);
-}
-
-.reset:hover {
-  background: var(--button-hover);
 }
 
 .adjust {
@@ -139,10 +130,6 @@
   cursor: pointer;
 }
 
-.adjust button:hover {
-  background: var(--button);
-  color: var(--text);
-}
 
 .set {
   display: flex;
@@ -166,8 +153,27 @@
   cursor: pointer;
 }
 
-.set button:hover {
-  background: var(--button-strong);
+@media (hover: hover) {
+  .start:hover {
+    background: var(--acc-hover);
+  }
+
+  .start.running:hover {
+    background: var(--button-strong-hover);
+  }
+
+  .reset:hover {
+    background: var(--button-hover);
+  }
+
+  .adjust button:hover {
+    background: var(--button);
+    color: var(--text);
+  }
+
+  .set button:hover {
+    background: var(--button-strong);
+  }
 }
 
 /* Phone: a slightly smaller time. */

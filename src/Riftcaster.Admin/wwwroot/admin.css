@@ -57,6 +57,23 @@
   --button: #23262b;
   --button-strong: #2b2f36;
   --button-hover: #1f2226;
+  /* Interaction states (issue #38). The design handoff only gives resting states, plus a hover for
+     ghost buttons and steppers (--button-hover), so the rest follow from it. Hover moves each
+     surface one step lighter:
+     - transparent (ghost and outlined buttons, tabs, steppers, rows) -> --button-hover;
+     - --button -> --button-strong -> --button-strong-hover;
+     - mint (--acc) -> --acc-hover, and red (--live) -> --live-hover;
+     - field and outline borders (--edge) -> --edge-hover.
+     Pressing darkens whatever is showing (--pressed); keyboard focus draws a ring (--focus-ring),
+     and focused fields keep the design's mint border with a glow around it (--focus-glow). */
+  --button-strong-hover: #343941;
+  --edge-hover: #3a3e45;
+  --acc-hover: oklch(0.84 0.12 165);
+  --live-hover: #ec6b64;
+  --pressed: brightness(0.88);
+  --focus-ring: var(--acc);
+  --focus-glow: oklch(0.78 0.12 165 / 0.22);
+  --duration-fast: 120ms;
   /* Radii */
   --radius-badge: 3px;
   --radius-small: 4px;
@@ -143,6 +160,56 @@ select option {
 
 :where(input, select, textarea):focus {
   border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--focus-glow);
+}
+
+@media (hover: hover) {
+  :where(input:not([type='checkbox'], [type='radio'], [type='button'], [type='submit']), select, textarea):hover:not(:focus, :disabled) {
+    border-color: var(--edge-hover);
+  }
+}
+
+:where(input, select, textarea):disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Interaction states shared by every control (see the tokens above). Each component sets its own
+   hover colours, inside @media (hover: hover), so a tap on a touch screen doesn't leave one stuck;
+   these rules cover what's the same everywhere. :where() keeps them overridable. */
+:where(button, input, select, textarea, a) {
+  transition:
+    background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease,
+    color var(--duration-fast) ease,
+    box-shadow var(--duration-fast) ease,
+    filter var(--duration-fast) ease;
+}
+
+/* Keyboard focus only: :focus-visible isn't set by a mouse click, so clicking leaves no ring.
+   Fields show their focus with a border and glow instead (above). */
+:where(button, a, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+:where(button:not(:disabled)):active {
+  filter: var(--pressed);
+}
+
+/* Not in the design, which has no disabled buttons. No pointer events, so no hover either. */
+:where(button:disabled) {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
 }
 
 /* Blazor's validation classes. Not in the design (the prototype has no
@@ -170,14 +237,10 @@ select option {
   cursor: pointer;
 }
 
-.button-secondary:hover:not(:disabled) {
-  background: var(--button-hover);
-}
-
-/* Not in the design, which has no disabled buttons. Needed for Hide while nothing is live. */
-.button-secondary:disabled {
-  opacity: 0.5;
-  cursor: default;
+@media (hover: hover) {
+  .button-secondary:hover {
+    background: var(--button-hover);
+  }
 }
 
 /* Hide the native number spinners; the Stepper draws its own buttons. */

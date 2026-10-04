@@ -30,6 +30,13 @@
     color: var(--acc);
   }
 
+@media (hover: hover) {
+  .tab:not(.active):hover {
+    background: var(--button-hover);
+    color: var(--text);
+  }
+}
+
 /* Only the narrow (single-column) dashboard layout uses tabs. */
 @media (width >= 760px) {
   .tab-bar {

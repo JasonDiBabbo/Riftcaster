@@ -65,8 +65,10 @@
   cursor: pointer;
 }
 
-.result:hover {
-  background: var(--button-hover);
+@media (hover: hover) {
+  .result:hover {
+    background: var(--button-hover);
+  }
 }
 
 .result.live {

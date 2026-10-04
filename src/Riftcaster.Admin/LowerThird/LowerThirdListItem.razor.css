@@ -80,10 +80,6 @@
   cursor: pointer;
 }
 
-.ghost:hover {
-  background: var(--button);
-  color: var(--text);
-}
 
 .toggle {
   /* A fixed width, not min-width: SHOW is wider than HIDE, and a width that
@@ -105,4 +101,20 @@
 .live .toggle {
   background: var(--live);
   color: #fff;
+}
+
+@media (hover: hover) {
+  /* The design's hover for these, --button rather than the lighter --button-hover. */
+  .ghost:hover {
+    background: var(--button);
+    color: var(--text);
+  }
+
+  .toggle:hover {
+    background: var(--button-strong-hover);
+  }
+
+  .live .toggle:hover {
+    background: var(--live-hover);
+  }
 }

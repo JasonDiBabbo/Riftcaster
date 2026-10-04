@@ -182,6 +182,8 @@ internal static class OperatorSignIn
                 input[type=text] { height: 44px; padding: 0 12px; border: 1px solid #2c3036; border-radius: 6px; background: #0f1113; color: #f3f1ec; font: 600 18px / 1 ui-monospace, Consolas, monospace; letter-spacing: 0.08em; }
                 input[type=text]:focus { border-color: oklch(0.78 0.12 165); outline: none; }
                 button { height: 44px; border: none; border-radius: 6px; background: oklch(0.78 0.12 165); color: #0d0f12; font: 700 14px / 1 'DM Sans', sans-serif; cursor: pointer; }
+                @media (hover: hover) { button:hover { background: oklch(0.84 0.12 165); } }
+                button:active { filter: brightness(0.88); }
                 button:focus-visible { outline: 2px solid oklch(0.78 0.12 165); outline-offset: 2px; }
               </style>
             </head>

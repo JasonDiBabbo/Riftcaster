@@ -53,6 +53,13 @@
   cursor: pointer;
 }
 
+@media (hover: hover) {
+  .swap:hover:not(:focus) {
+    border-color: var(--edge-hover);
+    color: var(--text);
+  }
+}
+
 .side {
   color: var(--text-muted);
   font: 500 var(--fs-label) / 1 var(--font);
