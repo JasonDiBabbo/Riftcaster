@@ -34,7 +34,7 @@ body {
 .player-battlefield-name {
   font-family: 'Cinzel Variable', Georgia, serif;
   font-size: var(--player-battlefield-name-font-size);
-  font-weight: 900;
+  font-weight: 700;
   color: white;
   text-align: center;
   text-transform: uppercase;
