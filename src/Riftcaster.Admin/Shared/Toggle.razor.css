@@ -15,9 +15,10 @@
   cursor: pointer;
 }
 
-.toggle:focus-visible {
-  border-color: var(--acc);
-  outline: none;
+@media (hover: hover) {
+  .toggle:hover {
+    border-color: var(--edge-hover);
+  }
 }
 
 .track {
@@ -47,11 +48,4 @@
 /* 34px track − 2×2px padding − 16px knob = 14px of travel */
 .toggle.on .knob {
   transform: translateX(14px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .track,
-  .knob {
-    transition: none;
-  }
 }

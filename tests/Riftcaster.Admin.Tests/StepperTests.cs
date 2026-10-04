@@ -79,6 +79,26 @@ public class StepperTests : BunitContext
         Assert.Equal("2", stepper.Find("input").GetAttribute("value")); // Shows the current value again
     }
 
+    [Theory]
+    [InlineData(4, null)]
+    [InlineData(8, "true")] // At the maximum
+    public void Increase_LooksDisabledAtTheMaximum(int value, string? disabled)
+    {
+        var stepper = RenderStepper(value, max: 8);
+
+        Assert.Equal(disabled, stepper.Find("button[aria-label='Increase Points']").GetAttribute("aria-disabled"));
+    }
+
+    [Theory]
+    [InlineData(0, "true")] // At the minimum
+    [InlineData(1, null)]
+    public void Decrease_LooksDisabledAtTheMinimum(int value, string? disabled)
+    {
+        var stepper = RenderStepper(value, max: 8);
+
+        Assert.Equal(disabled, stepper.Find("button[aria-label='Decrease Points']").GetAttribute("aria-disabled"));
+    }
+
     private IRenderedComponent<Stepper> RenderStepper(int value, int max = int.MaxValue, int step = 1) =>
         Render<Stepper>(parameters => parameters
             .Add(stepper => stepper.Value, value)

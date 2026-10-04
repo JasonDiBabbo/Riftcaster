@@ -8,9 +8,17 @@
   background: var(--input);
 }
 
-/* The mint focus border belongs on the whole box, since the input inside has none. */
-.stepper:focus-within {
+/* The mint focus border and glow belong on the whole box, since the input inside has none. Only
+   for the input: a focused − or + button has its own ring. */
+.stepper:has(.value:focus) {
   border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--focus-glow);
+}
+
+@media (hover: hover) {
+  .stepper:hover:not(:has(.value:focus)) {
+    border-color: var(--edge-hover);
+  }
 }
 
 /* The design allows 26-32px. A parent can narrow them with --step-width (e.g. three steppers side by side). */
@@ -26,9 +34,26 @@
   cursor: pointer;
 }
 
-.step:hover {
-  background: var(--button-hover);
-  color: var(--text);
+@media (hover: hover) {
+  .step:hover:not([aria-disabled='true']) {
+    background: var(--button-hover);
+    color: var(--text);
+  }
+}
+
+/* At the minimum or maximum: faded like a disabled button, but still focusable (see Stepper.razor). */
+.step[aria-disabled='true'] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.step[aria-disabled='true']:active {
+  filter: none;
+}
+
+/* Inside the button: the box's overflow: hidden would cut off a ring outside it. */
+.step:focus-visible {
+  outline-offset: -2px;
 }
 
 /* Overrides the global input styles: this input is part of the stepper's box, not a box of its own. */
@@ -41,4 +66,8 @@
   background: transparent;
   text-align: center;
   font: 600 var(--fs-stepper) / 1 var(--font);
+}
+
+.value:focus {
+  box-shadow: none; /* The box glows instead */
 }

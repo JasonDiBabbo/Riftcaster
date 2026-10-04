@@ -26,9 +26,10 @@
 
 /* Fills the panel, so the display can take the spare height when the Timer slot grows. */
 .content {
+  --row-gap: 14px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--row-gap);
   min-height: 100%;
   padding: 16px;
 }
@@ -106,20 +107,11 @@
   color: var(--text-bright);
 }
 
-/* Not in the design: Start can't run once time is up with overtime off. */
-.start:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
+/* Start is disabled (the shared disabled style, in admin.css) once time is up with overtime off. */
 .reset {
   border: 1px solid var(--edge);
   background: transparent;
   color: var(--text);
-}
-
-.reset:hover {
-  background: var(--button-hover);
 }
 
 .adjust {
@@ -139,9 +131,17 @@
   cursor: pointer;
 }
 
-.adjust button:hover {
-  background: var(--button);
-  color: var(--text);
+
+/* The Set remaining form, with its error under it (the shared .validation-message). */
+.set-field {
+  display: grid;
+}
+
+/* Spaced like a row of its own: as far below the box as the rows above are from each other. The
+   shared style's small top margin would crowd it against the box, and a paragraph's own bottom
+   margin would add to the panel's padding below it. */
+.set-field .validation-message {
+  margin: var(--row-gap) 0 0;
 }
 
 .set {
@@ -166,8 +166,27 @@
   cursor: pointer;
 }
 
-.set button:hover {
-  background: var(--button-strong);
+@media (hover: hover) {
+  .start:hover {
+    background: var(--acc-hover);
+  }
+
+  .start.running:hover {
+    background: var(--button-strong-hover);
+  }
+
+  .reset:hover {
+    background: var(--button-hover);
+  }
+
+  .adjust button:hover {
+    background: var(--button);
+    color: var(--text);
+  }
+
+  .set button:hover {
+    background: var(--button-strong);
+  }
 }
 
 /* Phone: a slightly smaller time. */

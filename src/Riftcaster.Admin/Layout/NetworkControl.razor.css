@@ -20,19 +20,21 @@
   cursor: pointer;
 }
 
-.pill:hover {
-  background: var(--button-hover);
-}
-
-.pill:focus-visible {
-  outline: 2px solid var(--acc);
-  outline-offset: 2px;
-}
-
 .pill.on {
   border-color: var(--acc-line);
   background: var(--acc-wash);
   color: var(--segment-text);
+}
+
+@media (hover: hover) {
+  .pill:hover {
+    background: var(--button-hover);
+  }
+
+  .pill.on:hover {
+    border-color: var(--acc);
+    background: var(--acc-wash);
+  }
 }
 
 .dot {
@@ -164,19 +166,20 @@
   color: var(--text-secondary);
 }
 
-.ghost:hover {
-  background: var(--button-hover);
+@media (hover: hover) {
+  .ghost:hover {
+    background: var(--button-hover);
+  }
+
+  .primary:hover {
+    background: var(--acc-hover);
+  }
 }
 
 .primary {
   border: none;
   background: var(--acc);
   color: var(--acc-ink);
-}
-
-.primary:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 
 .actions {

@@ -114,11 +114,6 @@ export const minimums = [
     why: 'Not tested yet: only shown in 2v2.',
   },
   {
-    match: 'src/Riftcaster.Admin/Timer/TimerPanel.razor',
-    min: 55,
-    why: 'Not tested yet: controls over TimerService, which is tested, and a redraw loop.',
-  },
-  {
     match: 'src/Riftcaster.Admin/',
     min: 80,
     why: 'Components and helpers with bUnit or unit tests. A new component should come with them.',
