@@ -1,0 +1,28 @@
+﻿@* The dialog shown while the admin's connection to the server is down, replacing the unstyled one
+   Blazor injects by default (issue #39). Blazor finds it by its id, adds a class per state
+   (components-reconnect-show, -retrying, -failed, -paused, -resume-failed, -rejected) and raises
+   components-reconnect-state-changed on it; ReconnectModal.razor.js opens, closes and words it.
+
+   Rendered statically from App, not interactively: it has to be in the page when the connection
+   isn't there to render it. *@
+<script type="module" src="@Assets["_content/Riftcaster.Admin/Layout/ReconnectModal.razor.js"]"></script>
+
+<dialog id="components-reconnect-modal" class="reconnect" aria-labelledby="reconnect-title" aria-describedby="reconnect-status">
+    <div class="heading">
+        <span class="dot" aria-hidden="true"></span>
+        <h2 id="reconnect-title" class="title">Connection to the server lost</h2>
+    </div>
+
+    @* Set by the script, once per state, so screen readers announce each state once. *@
+    <p id="reconnect-status" class="status" role="alert">Reconnecting to the server…</p>
+    @* Not part of the alert: it counts down every second. *@
+    <p id="reconnect-countdown" class="countdown"></p>
+
+    <p class="note">The overlays keep showing what they last had, and reconnect by themselves.</p>
+
+    <div class="actions">
+        <button type="button" id="reconnect-retry" class="primary">Try again</button>
+        <button type="button" id="reconnect-resume" class="primary">Resume</button>
+        <button type="button" id="reconnect-reload" class="button-secondary">Reload page</button>
+    </div>
+</dialog>
