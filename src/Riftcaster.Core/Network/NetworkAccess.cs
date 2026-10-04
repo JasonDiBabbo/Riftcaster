@@ -77,6 +77,14 @@ public sealed class NetworkAccess
         [.. ListenUrls.SelectMany(url => FindNetworkAddresses().Select(address => $"{url.Scheme}://{address}:{url.Port}"))];
 
     /// <summary>
+    /// Whether a connection comes from this computer: a loopback address, including IPv4 loopback
+    /// as seen on a dual-mode IPv6 socket. In-memory test requests have no address, and count as local.
+    /// </summary>
+    /// <param name="address">The connection's remote address.</param>
+    public static bool IsLocal(IPAddress? address) =>
+        address is null || IPAddress.IsLoopback(address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address);
+
+    /// <summary>
     /// Reads the <c>--network</c> startup option: "on" or "off", ignoring case. Anything else,
     /// including no option, is off.
     /// </summary>
