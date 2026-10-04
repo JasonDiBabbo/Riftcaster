@@ -6,11 +6,16 @@
  * everything would let well-tested files hide untested ones. `match` is a path from the repository
  * root, either one file or a folder ending in "/". Specific files come before their folder.
  *
- * Every source file must match a rule, so a new file gets a deliberate minimum, and every rule must
- * match a file, so the list can't go stale. Minimums sit a little below today's numbers (rounded
- * down to a multiple of 5, and the lower of Debug and Release, which count lines differently), so a
- * real drop fails but measuring noise doesn't. Raise them as tests are added; never lower one
- * without saying why in `why`.
+ * Each project has a folder rule, which every file in it must meet, so a new file needs no entry
+ * here: it's held to its project's minimum automatically. The file entries are only exceptions,
+ * files that are justifiably lower or not tested yet, and the list should shrink: when a file's
+ * tests bring it up to its project's minimum, delete its entry.
+ *
+ * The check fails when a file matches no rule (only possible for a new project, which then needs a
+ * folder rule) and when a rule matches no file (an exception for a file that was deleted or
+ * renamed). Exceptions sit a little below the file's coverage when they were added (rounded down
+ * to a multiple of 5, and the lower of Debug and Release, which count lines differently), so a real
+ * drop fails but measuring noise doesn't. Never lower one without saying why in `why`.
  *
  * @type {{ match: string, min: number, why: string }[]}
  */

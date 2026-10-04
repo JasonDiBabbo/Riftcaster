@@ -86,7 +86,13 @@ bUnit renders components in memory, without a browser, so it checks the HTML a c
 
 ### Coverage
 
-Every C# source file has a minimum line coverage, in [`tools/coverage/minimums.mjs`](tools/coverage/minimums.mjs), each with the reason for its number. Files are checked one by one, so well-tested files can't hide untested ones. CI fails if a file drops below its minimum, if a new file has no minimum yet, or if a minimum no longer matches a file. To check locally:
+Every C# source file must keep a minimum line coverage, set in [`tools/coverage/minimums.mjs`](tools/coverage/minimums.mjs). Files are checked one by one, so well-tested files can't hide untested ones.
+
+- **Each project has one minimum** (Core and Server 90%, Contracts 100%, Admin 80%), which every file in it must meet. New files need no entry: they're held to their project's minimum automatically.
+- **A few files have their own, lower minimum,** each with the reason: code that's hard to test, or panels not tested yet. These are exceptions, to delete once a file's tests bring it up to its project's minimum.
+- **CI fails** if a file drops below its minimum, if a new project has no minimum, or if an exception names a file that no longer exists.
+
+To check locally:
 
 ```bash
 dotnet test --collect:"XPlat Code Coverage" --results-directory TestResults
