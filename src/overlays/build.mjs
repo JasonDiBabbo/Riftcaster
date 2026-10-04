@@ -59,6 +59,10 @@ const buildOptions = {
   format: 'esm',
   target: 'es2022',
   platform: 'browser',
+  // Fonts that the CSS refers to (the bundled npm fonts, see src/shared/fonts) are copied into
+  // dist/fonts/, shared by every component, and the CSS is pointed at them.
+  loader: { '.woff2': 'file' },
+  assetNames: 'fonts/[name]-[hash]',
   sourcemap: true, // readable stack traces in OBS's browser dev tools
   logLevel: 'info',
 };

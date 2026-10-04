@@ -1,6 +1,6 @@
 /* Ported from the first version of this application (app/components/scoreboard/scoreboard.css), with its
    default colours and sizes; that version could restyle it from the admin, this one can't. */
-@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+@import '../../shared/fonts/cinzel.css';
 
 :root {
   --scoreboard-primary: #010a15;
@@ -126,7 +126,7 @@ body {
   justify-content: center;
   font-weight: 900;
   font-size: var(--scoreboard-font-size-1);
-  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
   background: var(--scoreboard-primary);
   border: 1px solid var(--scoreboard-accent);
   color: white;
@@ -145,7 +145,7 @@ body {
   font-weight: 900;
   box-shadow: none;
   transform: scale(1);
-  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
 }
 
 .score-circle.center.active {

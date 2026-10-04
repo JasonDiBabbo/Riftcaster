@@ -2,9 +2,10 @@
    visual (one visual per message type; see lowerThird.ts). esbuild inlines the
    local @imports into the built lowerThird.css. */
 
-/* 600 for the Information (and upcoming Socials) visuals, 800 italic for the keyword. */
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,400;0,600;1,800&display=swap');
-@import url(https://db.onlinewebfonts.com/c/504346cd02dbd32fe60aa53157c0443a?family=Beaufort+for+LOL+Medium);
+/* Roboto Condensed: 600 for the Information and Socials visuals, 800 italic for the keyword.
+   Cinzel for the keyword's description. Both bundled, not loaded from the internet (#17). */
+@import '../../shared/fonts/robotoCondensed.css';
+@import '../../shared/fonts/cinzel.css';
 @import './keyword.css';
 @import './information.css';
 @import './socials.css';
