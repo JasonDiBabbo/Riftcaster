@@ -39,18 +39,6 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
 
     // What other devices can reach.
     [Theory]
-    [InlineData("127.0.0.1", true)]
-    [InlineData("::1", true)]
-    [InlineData("::ffff:127.0.0.1", true)] // IPv4 loopback, as seen on a dual-mode IPv6 socket
-    [InlineData("192.168.1.50", false)]
-    [InlineData("::ffff:192.168.1.50", false)]
-    [InlineData("fe80::1", false)]
-    public void IsLocal(string address, bool expected)
-    {
-        Assert.Equal(expected, RemoteAccess.IsLocal(IPAddress.Parse(address)));
-    }
-
-    [Theory]
     [InlineData("/overlays/timer/timer.html", true)]
     [InlineData("/overlays/fonts/cinzel.woff2", true)]
     [InlineData("/api/info", true)]

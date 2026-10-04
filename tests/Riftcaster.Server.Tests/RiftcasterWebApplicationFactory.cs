@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,6 +8,7 @@ using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
+using Riftcaster.Core.Network;
 using Riftcaster.Core.Players;
 
 namespace Riftcaster.Server.Tests;
@@ -39,6 +41,12 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IFeaturedCardStore>();
             services.AddSingleton<IFeaturedCardStore, InMemoryFeaturedCardStore>();
+
+            services.RemoveAll<IAccessCodeStore>();
+            services.AddSingleton<IAccessCodeStore, InMemoryAccessCodeStore>();
+
+            // Keys that live only as long as the test server, never in the user's own key store.
+            services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
         });
     }
 }

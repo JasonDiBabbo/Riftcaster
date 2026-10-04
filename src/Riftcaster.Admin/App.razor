@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@using Riftcaster.Core.Network
+@inject AccessCode AccessCode
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8" />
@@ -9,8 +12,24 @@
         <HeadOutlet @rendermode="InteractiveServer" />
     </head>
     <body>
-        <Routes @rendermode="InteractiveServer" />
+        <Routes @rendermode="InteractiveServer" IsLocal="_isLocal" CodeVersion="@_codeVersion" />
         <ReconnectModal />
         <script src="_framework/blazor.web.js"></script>
     </body>
 </html>
+
+@code {
+    // Rendered on the server for the page request, so this is the real connection (see OperatorSession).
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = null!;
+
+    private bool _isLocal;
+
+    private string? _codeVersion;
+
+    protected override void OnInitialized()
+    {
+        _isLocal = NetworkAccess.IsLocal(HttpContext.Connection.RemoteIpAddress);
+        _codeVersion = AccessCode.Version;
+    }
+}

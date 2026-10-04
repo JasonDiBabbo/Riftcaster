@@ -95,7 +95,19 @@ By default only the computer running the server can reach it. To use the overlay
 2. The admin's panel (and the server's console) shows this computer's network address, such as `http://192.168.1.20:5062`. In OBS on the other computer, use it in place of `http://localhost:5062`, for example `http://192.168.1.20:5062/overlays/timer/timer.html`.
 3. The first time, **Windows Firewall** asks whether to allow the server on the network. Allow it on **private networks**. If the venue's network is set to Public in Windows, either change it to Private (Settings > Network & internet > the network's properties) or allow the server on public networks too.
 
-Network access is off again every time the server starts. Other devices can only open the overlays; the admin, which controls the broadcast, stays on the computer running the server. Switching network access on or off briefly reconnects the admin and every overlay.
+Network access is off again every time the server starts. Switching it on or off briefly reconnects the admin and every overlay.
+
+## The admin on other devices (access code)
+
+Other devices can always open the overlays while network access is on. The admin, which controls the broadcast, needs an **access code**: without one, it's on the computer running the server only.
+
+1. On the computer running the server, open the network panel (the pill in the admin header), and under **Access code** type a code or press **Generate**, then **Set**. **Show** reveals it again later, to read out to someone.
+2. Turn on network access. Operators open the admin address the panel shows, such as `http://192.168.1.20:5062/`, on their phone or laptop, and enter the code once. Case, spaces and dashes don't matter.
+3. Their device stays signed in until the code changes. **Change** or **Remove** the code (for example after an event) to sign every device out at once, including admin pages they have open.
+
+Only the computer running the server can switch network access or change the code; signed-in devices can use everything else, and sign out from the network panel. Wrong codes are limited to a few attempts a minute per device. The code is saved encrypted in `data/accessCode.json`.
+
+The connection is plain HTTP, so the code stops casual tampering by others on the network, but not someone capturing its traffic. Changing the code after each event limits that.
 
 ## Working on overlays
 

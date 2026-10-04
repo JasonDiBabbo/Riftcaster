@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.DataProtection;
 using Riftcaster.Admin;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
@@ -32,6 +33,17 @@ public partial class Program
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
 
         var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Storage:DataDirectory"] ?? "data");
+
+        // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
+        // so they still work if the app's folder moves.
+        builder.Services.AddDataProtection().SetApplicationName("Riftcaster");
+
+        builder.Services.AddSingleton<IAccessCodeStore>(services => new ProtectedAccessCodeStore(
+            Path.Combine(dataDirectory, "accessCode.json"),
+            services.GetRequiredService<IDataProtectionProvider>(),
+            services.GetRequiredService<ILogger<ProtectedAccessCodeStore>>()));
+        builder.Services.AddSingleton<AccessCode>();
+        builder.Services.AddOperatorSignIn();
 
         builder.Services.AddSingleton<ILowerThirdStore>(services => new JsonFileLowerThirdStore(
             Path.Combine(dataDirectory, "lowerThird.json"),
@@ -86,14 +98,18 @@ public partial class Program
         var app = builder.Build();
 
         // Say where other devices can reach the server: at startup, and whenever the switch changes.
-        app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network));
-        network.Changed += () => LogNetworkAccess(app.Logger, network);
+        var accessCode = app.Services.GetRequiredService<AccessCode>();
+        app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
+        network.Changed += () => LogNetworkAccess(app.Logger, network, accessCode);
 
+        app.UseAuthentication(); // Reads the sign-in cookie, which the remote access limits check
         app.UseRemoteAccessLimits();
+        app.UseRateLimiter(); // Sign-in attempts
         app.UseOverlays();
         app.UseAntiforgery();
         app.UseWebSockets();
         app.MapGet("/api/info", (ServerIdentity identity) => identity);
+        app.MapOperatorSignIn();
         app.MapFeaturedCard();
         app.MapLowerThird();
         app.MapMatch();
@@ -104,7 +120,7 @@ public partial class Program
         app.Run();
     }
 
-    private static void LogNetworkAccess(ILogger logger, NetworkAccess network)
+    private static void LogNetworkAccess(ILogger logger, NetworkAccess network, AccessCode accessCode)
     {
         if (!network.Enabled)
         {
@@ -120,7 +136,10 @@ public partial class Program
         }
 
         logger.LogInformation(
-            "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). The admin stays on this computer.",
-            string.Join(" or ", urls));
+            "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). {Admin}",
+            string.Join(" or ", urls),
+            accessCode.IsSet
+                ? "Approved operators can sign in to the admin there with the access code."
+                : "The admin stays on this computer until an access code is set.");
     }
 }
