@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <Target Name="BuildOverlays" AfterTargets="Build" Condition="'$(ShouldBuildOverlays)' == 'true'"
-          DependsOnTargets="EnsureNode;RestoreOverlayPackages"
+          DependsOnTargets="EnsureNode;RestoreOverlayPackages;AuditOverlayPackages"
           Inputs="@(OverlaysInput)" Outputs="$(OverlaysBuildStamp)">
     <Message Importance="high" Text="Building overlays (typecheck + test + lint + format check + bundle)..." />
     <Exec Command="npm run typecheck" WorkingDirectory="$(OverlaysDir)" />
@@ -56,12 +56,59 @@
     <Touch Files="$(OverlaysBuildStamp)" AlwaysCreate="true" />
   </Target>
 
-  <!-- npm ci rewrites node_modules/.package-lock.json, so this reruns only when package-lock.json
-       changes (or node_modules is missing, e.g. a fresh clone). -->
+  <!-- Reruns only when package-lock.json is newer than the last restore (switching branches counts,
+       even with the same content), or node_modules is missing, e.g. a fresh clone.
+
+       Locally this uses npm install, not npm ci. npm ci always deletes node_modules first, and
+       Visual Studio keeps the overlays' own tsc.exe running as its TypeScript language server, so
+       Windows refuses the delete and npm ci stops halfway, leaving node_modules broken. npm install
+       only touches packages whose versions changed, so with an unchanged lockfile it's a no-op.
+       A real TypeScript update still has to replace tsc.exe: if that fails, close Visual Studio
+       and build again.
+
+       CI (GitHub Actions sets CI=true) keeps npm ci: a clean install that also fails if the
+       lockfile is out of step with package.json. -->
+  <PropertyGroup>
+    <OverlaysRestoreStamp>$(OverlaysDir)node_modules\.restore-stamp</OverlaysRestoreStamp>
+  </PropertyGroup>
   <Target Name="RestoreOverlayPackages" Condition="'$(ShouldBuildOverlays)' == 'true'"
-          Inputs="$(OverlaysDir)package-lock.json" Outputs="$(OverlaysDir)node_modules\.package-lock.json">
+          Inputs="$(OverlaysDir)package-lock.json" Outputs="$(OverlaysRestoreStamp)">
     <Message Importance="high" Text="Installing overlay npm packages..." />
-    <Exec Command="npm ci" WorkingDirectory="$(OverlaysDir)" />
+    <Exec Condition="'$(CI)' == 'true'" Command="npm ci" WorkingDirectory="$(OverlaysDir)" />
+    <Exec Condition="'$(CI)' != 'true'" Command="npm install --no-audit --no-fund" WorkingDirectory="$(OverlaysDir)" />
+    <!-- Our own stamp: npm install leaves its files alone when nothing changed, so they can't mark
+         the restore as done. Inside node_modules, so deleting node_modules restores again. -->
+    <Touch Files="$(OverlaysRestoreStamp)" AlwaysCreate="true" />
+  </Target>
+
+  <!-- npm audit, failing on high or critical advisories: an error in CI, a warning locally (it shows
+       in Visual Studio's Error List). Run `npm audit` in src/overlays for the details any time.
+
+       It asks the npm registry, so locally it runs at most once a day, and again whenever the
+       lockfile changes. Only a clean audit is recorded, so a warning comes back on every build
+       until it's fixed (or, offline, until the registry can be reached again). CI keeps nothing
+       between runs, so it always audits. -->
+  <PropertyGroup>
+    <OverlaysAuditStamp>$(OverlaysDir)node_modules\.audit-stamp</OverlaysAuditStamp>
+  </PropertyGroup>
+  <Target Name="AuditOverlayPackages" DependsOnTargets="RestoreOverlayPackages" Condition="'$(ShouldBuildOverlays)' == 'true'">
+    <PropertyGroup>
+      <OverlaysAuditDue>true</OverlaysAuditDue>
+      <OverlaysAuditDue Condition="'$(CI)' != 'true' and Exists('$(OverlaysAuditStamp)')
+          and $([System.IO.File]::GetLastWriteTime('$(OverlaysAuditStamp)').AddDays(1).Ticks) &gt; $([System.DateTime]::Now.Ticks)
+          and $([System.IO.File]::GetLastWriteTime('$(OverlaysAuditStamp)').Ticks) &gt;= $([System.IO.File]::GetLastWriteTime('$(OverlaysDir)package-lock.json').Ticks)">false</OverlaysAuditDue>
+    </PropertyGroup>
+
+    <Exec Condition="'$(OverlaysAuditDue)' == 'true'" Command="npm audit --audit-level=high --color=false"
+          WorkingDirectory="$(OverlaysDir)" IgnoreExitCode="true" StandardOutputImportance="high">
+      <Output TaskParameter="ExitCode" PropertyName="OverlaysAuditExitCode" />
+    </Exec>
+
+    <Error Condition="'$(OverlaysAuditDue)' == 'true' and '$(OverlaysAuditExitCode)' != '0' and '$(CI)' == 'true'"
+           Text="npm audit found high or critical advisories in the overlay packages (see above). Fix them with `npm audit fix` or an update in src/overlays." />
+    <Warning Condition="'$(OverlaysAuditDue)' == 'true' and '$(OverlaysAuditExitCode)' != '0' and '$(CI)' != 'true'"
+             Text="npm audit found high or critical advisories in the overlay packages, or couldn't reach the npm registry. Run `npm audit` in src/overlays for details. This warning repeats on every build until the audit passes." />
+    <Touch Condition="'$(OverlaysAuditDue)' == 'true' and '$(OverlaysAuditExitCode)' == '0'" Files="$(OverlaysAuditStamp)" AlwaysCreate="true" />
   </Target>
 
   <!-- Points Git at the repository's committed hooks in .githooks/ (see pre-commit there), so every
