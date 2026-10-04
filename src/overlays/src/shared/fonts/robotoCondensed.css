@@ -1,0 +1,5 @@
+/* Roboto Condensed (font-family: 'Roboto Condensed Variable'), upright and italic, for the lower
+   third. Openly licensed (SIL OFL) and bundled from npm (@fontsource-variable), so it needs no
+   internet: the build copies the font files into dist/fonts/. Every weight, 100 to 900. */
+@import '@fontsource-variable/roboto-condensed';
+@import '@fontsource-variable/roboto-condensed/wght-italic.css';

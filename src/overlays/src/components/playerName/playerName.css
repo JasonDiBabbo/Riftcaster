@@ -1,6 +1,6 @@
 /* Ported from the first version of this application (app/components/playerName/playerName.css), with its
    default colours and sizes; that version could restyle it from the admin, this one can't. */
-@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+@import '../../shared/fonts/cinzel.css';
 
 :root {
   --player-name-font-size: 22px;
@@ -47,9 +47,9 @@ body {
 }
 
 .player-name {
-  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
   font-size: var(--player-name-font-size);
-  font-weight: 900;
+  font-weight: 700;
   color: white;
   text-align: center;
   overflow-wrap: normal;

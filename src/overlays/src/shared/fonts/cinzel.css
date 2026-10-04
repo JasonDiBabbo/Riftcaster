@@ -1,0 +1,6 @@
+/* Cinzel (font-family: 'Cinzel Variable'), the overlays' display font: an openly licensed
+   (SIL OFL) stand-in for the first version's Beaufort for LOL, which is licensed to Riot and
+   was loaded from an unauthorised mirror (issue #17). Bundled from npm (@fontsource-variable),
+   so the overlays need no internet: the build copies the font files into dist/fonts/.
+   One variable font covers every weight, 400 to 900. */
+@import '@fontsource-variable/cinzel';

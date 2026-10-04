@@ -120,7 +120,7 @@
 
 .kw__text {
   font-family:
-    'Roboto Condensed',
+    'Roboto Condensed Variable',
     Arial Narrow,
     Arial,
     sans-serif;
@@ -180,7 +180,8 @@
 }
 
 .desc__text {
-  font-family: 'Beaufort for LOL Medium', Georgia, 'Times New Roman', serif;
+  font-family: 'Cinzel Variable', Georgia, 'Times New Roman', serif;
+  font-weight: 700; /* As the first version's Beaufort for LOL Medium */
   font-size: 17px;
   line-height: 1.3;
   color: var(--lower-third-desc-text);

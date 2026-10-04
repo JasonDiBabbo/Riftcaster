@@ -1,6 +1,6 @@
 /* Ported from the first version of this application (app/components/playerLegendAndChampion/playerLegendAndChampion.css), with its
    default colours and sizes; that version could restyle it from the admin, this one can't. */
-@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+@import '../../shared/fonts/cinzel.css';
 
 :root {
   --player-legend-and-champion-font-size: 12px;
@@ -34,9 +34,9 @@ body {
 .legend-name,
 .champion-name {
   width: 100%;
-  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
   font-size: var(--player-legend-and-champion-font-size);
-  font-weight: 900;
+  font-weight: 700;
   color: white;
   text-align: center;
   text-transform: uppercase;

@@ -1,6 +1,6 @@
 /* Ported from the first version of this application (app/components/timer/timer.css), with its
    default colours and sizes; that version could restyle the timer from the admin, this one can't. */
-@import url(https://db.onlinewebfonts.com/c/3e89e4a101e3e7fb8588cab43ddbdc34?family=Beaufort+for+LOL+Heavy);
+@import '../../shared/fonts/cinzel.css';
 
 :root {
   --timer-font-size: 34px;
@@ -34,7 +34,7 @@ body {
 }
 
 .timer {
-  font-family: 'Beaufort for LOL Heavy', sans-serif;
+  font-family: 'Cinzel Variable', Georgia, serif;
   font-size: var(--timer-font-size);
   font-weight: 900;
   /* Equal-width digits, so the time doesn't shift sideways as it counts. */
