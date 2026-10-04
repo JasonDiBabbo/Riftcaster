@@ -10,6 +10,7 @@ using Riftcaster.Core.Network;
 using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
 using Riftcaster.Core.Timer;
+using Riftcaster.Server.Api;
 
 namespace Riftcaster.Server;
 
@@ -39,6 +40,7 @@ public partial class Program
         builder.Configuration.Sources.Add(new NetworkEndpointsSource(network));
 
         builder.AddOverlays();
+        builder.AddRestApi();
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
 
@@ -112,18 +114,22 @@ public partial class Program
         app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
         network.Changed += () => LogNetworkAccess(app.Logger, network, accessCode);
 
+        app.UseCrossSiteRequestLimits(); // Before anything acts on an API request
         app.UseAuthentication(); // Reads the sign-in cookie, which the remote access limits check
         app.UseRemoteAccessLimits();
         app.UseRateLimiter(); // Sign-in attempts
         app.UseOverlays();
         app.UseAntiforgery();
         app.UseWebSockets();
-        app.MapGet("/api/info", (ServerIdentity identity) => identity);
+        app.MapGet("/api/info", (ServerIdentity identity) => identity)
+            .WithTags("Server").WithSummary("Get the server's name, version and start time");
         app.MapOperatorSignIn();
         app.MapFeaturedCard();
         app.MapLowerThird();
         app.MapMatch();
+        app.MapPlayers();
         app.MapTimer();
+        app.MapRestApiDocs();
         app.MapStaticAssets();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
