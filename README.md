@@ -87,6 +87,16 @@ The first build points Git at the repository's hooks in `.githooks/` (by setting
 
 After rebuilding an overlay, click **Refresh cache of current page** in the source's properties to load the new version.
 
+## OBS on another computer (network access)
+
+By default only the computer running the server can reach it. To use the overlays from OBS on another computer on the same network:
+
+1. Turn on network access: click the **Local only** pill in the admin header and switch on **Let other devices connect**, or start the server with `--network on` (for example `dotnet run --project src/Riftcaster.Server -- --network on`).
+2. The admin's panel (and the server's console) shows this computer's network address, such as `http://192.168.1.20:5062`. In OBS on the other computer, use it in place of `http://localhost:5062`, for example `http://192.168.1.20:5062/overlays/timer/timer.html`.
+3. The first time, **Windows Firewall** asks whether to allow the server on the network. Allow it on **private networks**. If the venue's network is set to Public in Windows, either change it to Private (Settings > Network & internet > the network's properties) or allow the server on public networks too.
+
+Network access is off again every time the server starts. Other devices can only open the overlays; the admin, which controls the broadcast, stays on the computer running the server. Switching network access on or off briefly reconnects the admin and every overlay.
+
 ## Working on overlays
 
 Each folder in `src/overlays/src/components/<name>/` is one overlay page:
