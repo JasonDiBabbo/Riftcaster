@@ -154,6 +154,8 @@ By default only the computer running the server can reach it. To use the overlay
 
 Network access is off again every time the server starts. Switching it on or off briefly reconnects the admin and every overlay.
 
+The server only answers requests addressed to this computer: `localhost`, an IP address, or the computer's own name (`{computer-name}` or `{computer-name}.local`). Requests addressed to any other name get a 400. That stops a website from reaching the server through DNS rebinding, a trick where the site points its own domain at this computer. To reach the server by another name, such as one from your router or a reverse proxy, add it to `HostNames` in `appsettings.json`, separated by semicolons: `"HostNames": "riftcaster.lan;obs.example.com"`.
+
 ## The admin on other devices (access code)
 
 Other devices can always open the overlays while network access is on. The admin, which controls the broadcast, needs an **access code**: without one, it's on the computer running the server only.
@@ -186,7 +188,7 @@ Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 
 
 - **From the computer running the server,** no code is needed.
 - **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the admin can also use the docs page.
-- **Other websites can't use it.** A page open in a browser on this computer could otherwise send requests to `localhost`, so changes that come from another website's page are refused. Stream Deck, Companion and scripts aren't affected, and nor are the server's own pages.
+- **Other websites can't use it.** A page open in a browser on this computer could otherwise send requests to `localhost`, so changes that come from another website's page are refused, as are requests addressed to names that aren't this computer's (see "OBS on another computer"). Stream Deck, Companion and scripts aren't affected, and nor are the server's own pages.
 
 ## Working on overlays
 

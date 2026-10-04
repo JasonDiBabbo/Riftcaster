@@ -114,6 +114,7 @@ public partial class Program
         app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
         network.Changed += () => LogNetworkAccess(app.Logger, network, accessCode);
 
+        app.UseHostCheck(); // First: requests addressed to other names (DNS rebinding) get nothing
         app.UseCrossSiteRequestLimits(); // Before anything acts on an API request
         app.UseAuthentication(); // Reads the sign-in cookie, which the remote access limits check
         app.UseRemoteAccessLimits();
