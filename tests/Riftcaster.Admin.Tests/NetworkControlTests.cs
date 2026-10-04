@@ -64,6 +64,29 @@ public class NetworkControlTests : BunitContext
     }
 
     [Fact]
+    public void NetworkOn_SaysHowToGetThroughAFirewall()
+    {
+        _network.SetEnabled(true);
+
+        var control = RenderOpen(isLocal: true);
+
+        Assert.Contains("allow the server through this computer's firewall: it may be listed as dotnet, or allow port 5062.",
+            control.Find("#network-panel").TextContent);
+        Assert.DoesNotContain("Windows", control.Find("#network-panel").TextContent);
+    }
+
+    [Fact]
+    public void NetworkOn_SeveralAddresses_NamesEachPort()
+    {
+        var network = new NetworkAccess(true, [new Uri("http://localhost:5062"), new Uri("https://localhost:7216"), new Uri("http://127.0.0.1:5062")]);
+        Services.AddSingleton(network); // Replaces the class's own, before the first render
+
+        var control = RenderOpen(isLocal: true);
+
+        Assert.Contains("or allow ports 5062 and 7216.", control.Find("#network-panel").TextContent);
+    }
+
+    [Fact]
     public void ThisComputer_CodeIsHiddenUntilShown()
     {
         _accessCode.Set("K7QM-4XPA");

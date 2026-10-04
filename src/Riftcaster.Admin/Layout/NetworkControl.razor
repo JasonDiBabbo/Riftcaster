@@ -50,7 +50,9 @@
                     {
                         <p class="text warn">This computer has no network address. Check it's connected to the network.</p>
                     }
-                    <p class="text muted">If this computer's firewall asks, allow Riftcaster on private networks.</p>
+                    @* For any platform: not every firewall asks (Linux's usually block quietly), and those that
+                       do name the program running the server, dotnet, rather than Riftcaster. *@
+                    <p class="text muted">If other devices can't connect, allow the server through this computer's firewall: it may be listed as <strong>dotnet</strong>, or allow @PortsText.</p>
                 }
                 else
                 {
@@ -127,6 +129,16 @@
 
     [CascadingParameter]
     public OperatorSession Session { get; set; } = null!;
+
+    // "port 5062", or "ports 5062 and 7216" when the server listens on more than one.
+    private string PortsText
+    {
+        get
+        {
+            var ports = Network.ListenUrls.Select(url => url.Port).Distinct().ToList();
+            return ports.Count == 1 ? $"port {ports[0]}" : $"ports {string.Join(" and ", ports)}";
+        }
+    }
 
     protected override void OnInitialized()
     {
