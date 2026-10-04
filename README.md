@@ -5,7 +5,7 @@ Live, data-driven stream overlays for Riftbound, controlled from a browser-based
 Riftcaster runs as a single server process on the same machine as OBS. It serves three things:
 
 - **Overlay pages.** Each overlay element is its own page, added to OBS as a Browser Source, so OBS's own scene editor handles layout and positioning.
-- **The admin panel.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet); for now the server only listens on `localhost`.
+- **The admin panel.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
 - **An API** that the overlays use to get their data.
 
 ## Tech stack
@@ -23,13 +23,15 @@ Riftcaster runs as a single server process on the same machine as OBS. It serves
 src/
 ├── Riftcaster.Server/      ASP.NET Core host: API, admin, overlay files, and the overlays build
 ├── Riftcaster.Admin/       Blazor components for the admin panel (hosted by Server)
+├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
 └── overlays/               npm project: one folder per overlay under src/components/
                             (overlays.esproj only lists it in Visual Studio; it builds nothing)
-tests/
-└── Riftcaster.Server.Tests/  xUnit tests against an in-memory server
+tests/                      One test project per project above (see "Tests")
 tools/
-└── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
+├── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
+├── coverage/               CI's per-file coverage check (see "Coverage")
+└── publish/                CI's check of a published build (see "Running a published build")
 Riftcaster.slnx             Solution file
 Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Visual Studio")
 ```
@@ -65,6 +67,34 @@ Once it's running:
 
 To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
 
+## Running a published build
+
+To run Riftcaster on a computer without the source code, such as the one running OBS, publish it:
+
+```bash
+dotnet publish src/Riftcaster.Server --configuration Release --output publish
+```
+
+It builds first, so the publish always has the current code. Don't add `--no-build` (as CI does, straight after its own Release build): it would publish whatever Release build is already in `bin/`, however old.
+
+The `publish` folder then holds everything the server needs, overlays included. Copy it to the other computer, which needs the [ASP.NET Core Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) (not the whole SDK), and start the server from it:
+
+```bash
+dotnet Riftcaster.Server.dll
+```
+
+It runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`. There's no `.exe` yet: an unsigned one is blocked by Smart App Control, so that waits for code signing ([#1](https://github.com/JasonDiBabbo/Riftcaster_VNext/issues/1)).
+
+- **Everything lives in the folder,** wherever the server is started from: its settings, its overlays (`overlays/`) and its saved state (`data/`, created on first use). Your own `data` folder is never published, so a published build starts with no players, lower thirds or access code.
+- **The access code's encryption keys** are kept in the Windows user's profile, not the folder, so moving the folder to another computer or Windows user means setting the code again. The server says so in its console, and carries on without one.
+- **If the overlays are missing,** the admin header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
+
+CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin and every overlay page, with their scripts and stylesheets. To check a publish yourself:
+
+```bash
+node tools/publish/check-publish.mjs publish
+```
+
 ## Tests
 
 ```bash
@@ -82,7 +112,7 @@ Four test suites:
 
 bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
 
-[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request, then checks code coverage.
+[CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request, then checks code coverage and a published build.
 
 ### Coverage
 

@@ -16,6 +16,14 @@
                       ReferenceOutputAssembly="false" Private="false" />
   </ItemGroup>
 
+  <!-- The saved state (data/, see Storage:DataDirectory) is this computer's own: the access code,
+       players and so on. Without this, the Web SDK would copy its .json files into every build
+       and publish, handing them to anyone given the folder. -->
+  <ItemGroup>
+    <Content Remove="data\**" />
+    <None Remove="data\**" />
+  </ItemGroup>
+
   <!-- The tests check internal pieces directly, such as which paths other devices may reach. -->
   <ItemGroup>
     <InternalsVisibleTo Include="Riftcaster.Server.Tests" />
@@ -59,6 +67,20 @@
     <!-- build.mjs recreates dist/, which removes the stamp until this step succeeds. -->
     <Exec Command="npm run build" WorkingDirectory="$(OverlaysDir)" />
     <Touch Files="$(OverlaysBuildStamp)" AlwaysCreate="true" />
+  </Target>
+
+  <!-- Publishing: the built overlays go in an overlays folder next to the server, where
+       appsettings.json's Overlays:Path finds them. Added here, at publish time, because dist/ only
+       exists once BuildOverlays has run. A publish without them (-p:SkipOverlays=true on a clean
+       clone, say) fails: the result would serve no overlays. -->
+  <Target Name="PublishOverlays" AfterTargets="ComputeResolvedFilesToPublishList">
+    <Error Condition="!Exists('$(OverlaysBuildStamp)')"
+           Text="The overlays aren't built ($(OverlaysDir)dist), so the publish would serve none. Publish without -p:SkipOverlays=true, or build once with Node.js installed first." />
+    <ItemGroup>
+      <OverlayDistFiles Include="$(OverlaysDir)dist\**\*" Exclude="$(OverlaysBuildStamp)" />
+      <ResolvedFileToPublish Include="@(OverlayDistFiles)" RelativePath="overlays\%(RecursiveDir)%(Filename)%(Extension)"
+                             CopyToPublishDirectory="PreserveNewest" ExcludeFromSingleFile="true" />
+    </ItemGroup>
   </Target>
 
   <!-- Reruns only when package-lock.json is newer than the last restore (switching branches counts,

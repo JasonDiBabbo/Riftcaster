@@ -17,7 +17,16 @@ public partial class Program
 {
     private static void Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        // A published build reads and writes everything (appsettings.json, the overlays, data/) in
+        // its own folder, wherever it's started from: a shortcut or a terminal elsewhere would
+        // otherwise make the current folder the content root, and the server would find none of it.
+        // Development keeps the default, the current folder, which Visual Studio and dotnet run set
+        // to the project folder.
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = args,
+            ContentRootPath = IsDevelopment(args) ? null : AppContext.BaseDirectory,
+        });
 
         // Network access: off unless started with --network on (see NetworkAccess).
         if (!NetworkAccess.TryParseOption(builder.Configuration["network"], out var networkOn))
@@ -29,6 +38,7 @@ public partial class Program
         builder.Services.AddSingleton(network);
         builder.Configuration.Sources.Add(new NetworkEndpointsSource(network));
 
+        builder.AddOverlays();
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
 
@@ -118,6 +128,22 @@ public partial class Program
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
         app.Run();
+    }
+
+    /// <summary>
+    /// Whether the app will run in the Development environment, worked out before the builder is
+    /// created, the same way it is: from --environment, else ASPNETCORE_ENVIRONMENT, else
+    /// DOTNET_ENVIRONMENT. Without any of them, it's Production.
+    /// </summary>
+    private static bool IsDevelopment(string[] args)
+    {
+        var environment = new ConfigurationBuilder()
+            .AddEnvironmentVariables("DOTNET_")
+            .AddEnvironmentVariables("ASPNETCORE_")
+            .AddCommandLine(args)
+            .Build()[HostDefaults.EnvironmentKey];
+
+        return string.Equals(environment, Environments.Development, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void LogNetworkAccess(ILogger logger, NetworkAccess network, AccessCode accessCode)
