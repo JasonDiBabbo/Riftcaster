@@ -208,6 +208,8 @@ DocProject/Help/html
 
 # Click-Once directory
 publish/
+# but not the published-build check (the publish output itself, publish/, stays ignored)
+!/tools/publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml
