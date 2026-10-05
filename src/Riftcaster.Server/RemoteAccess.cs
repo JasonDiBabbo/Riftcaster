@@ -33,7 +33,7 @@ internal static class RemoteAccess
             var isApi = RestApi.IsApiPath(context.Request.Path);
             if (!accessCode.IsSet)
             {
-                const string OnlyHere = "The Riftcaster admin is only available on the computer running the server. To use it from this device, set an access code in the admin there.";
+                const string OnlyHere = "The Riftcaster admin dashboard is only available on the computer running the server. To use it from this device, set an access code in the admin dashboard there.";
                 if (isApi)
                 {
                     await Problem(context, StatusCodes.Status403Forbidden, "No access code is set", OnlyHere);
@@ -76,7 +76,7 @@ internal static class RemoteAccess
         {
             context.Response.Headers.WWWAuthenticate = "Bearer";
             await Problem(context, StatusCodes.Status401Unauthorized, "The access code is needed",
-                "From other devices, send the access code set in the admin, as Authorization: Bearer <code>.");
+                "From other devices, send the access code set in the admin dashboard, as Authorization: Bearer <code>.");
             return;
         }
 

@@ -157,7 +157,7 @@ public partial class Program
     {
         if (!network.Enabled)
         {
-            logger.LogInformation("Network access is off: only this computer can reach the server. Turn it on from the admin, or start with --network on.");
+            logger.LogInformation("Network access is off: only this computer can reach the server. Turn it on from the admin dashboard, or start with --network on.");
             return;
         }
 
@@ -172,7 +172,7 @@ public partial class Program
             "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). {Admin}",
             string.Join(" or ", urls),
             accessCode.IsSet
-                ? "Approved operators can sign in to the admin there with the access code."
-                : "The admin stays on this computer until an access code is set.");
+                ? "Approved operators can sign in to the admin dashboard there with the access code."
+                : "The admin dashboard stays on this computer until an access code is set.");
     }
 }

@@ -148,7 +148,7 @@ internal static class OperatorSignIn
     {
         var accessCode = context.RequestServices.GetRequiredService<AccessCode>();
         var body = !accessCode.IsSet
-            ? """<p>Remote access isn't set up. To use the admin from this device, set an access code in the admin on the computer running the server.</p>"""
+            ? """<p>Remote access isn't set up. To use the admin dashboard from this device, first set an access code on the computer running the server.</p>"""
             : form is null
                 ? ""
                 : $"""
@@ -167,7 +167,7 @@ internal static class OperatorSignIn
             <head>
               <meta charset="utf-8" />
               <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <title>Sign in · Riftcaster Admin</title>
+              <title>Sign in · Riftcaster Dashboard</title>
               <style>
                 @font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('/_content/Riftcaster.Admin/fonts/dm-sans-latin-opsz-normal.woff2') format('woff2'); }
                 * { box-sizing: border-box; }
@@ -190,7 +190,7 @@ internal static class OperatorSignIn
             <body>
               <main>
                 <h1>RIFTCASTER</h1>
-                <p>Enter the access code to use the admin on this device. Whoever runs the server can give it to you.</p>
+                <p>Enter the access code to use the admin dashboard on this device. Whoever runs the server can give it to you.</p>
                 {{(message is null ? "" : $"""<p class="error" role="alert">{WebUtility.HtmlEncode(message)}</p>""")}}
                 {{body}}
               </main>
