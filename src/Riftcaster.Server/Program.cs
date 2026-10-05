@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
 using Riftcaster.Admin;
 using Riftcaster.Contracts;
@@ -42,9 +43,14 @@ public partial class Program
         builder.AddOverlays();
         builder.AddRestApi();
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-        builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
+        builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", AppVersion(), DateTimeOffset.Now));
 
-        var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Storage:DataDirectory"] ?? "data");
+        // Saved state: the user's app-data folder in a published build, the project's data folder in
+        // Development (see DataFolder).
+        var dataDirectory = DataFolder.Resolve(
+            builder.Configuration[DataFolder.Setting],
+            builder.Environment,
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
         // so they still work if the app's folder moves.
@@ -112,6 +118,7 @@ public partial class Program
         // Say where other devices can reach the server: at startup, and whenever the switch changes.
         var accessCode = app.Services.GetRequiredService<AccessCode>();
         app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
+        app.Logger.LogInformation("Saved data is kept in {Folder}.", dataDirectory);
         network.Changed += () => LogNetworkAccess(app.Logger, network, accessCode);
 
         app.UseHostCheck(); // First: requests addressed to other names (DNS rebinding) get nothing
@@ -135,6 +142,16 @@ public partial class Program
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
         app.Run();
+    }
+
+    /// <summary>
+    /// The version this build was given: 0.1.0 locally, or a release's tag (see Directory.Build.props).
+    /// The SDK adds the commit to the informational version ("0.2.0+1a2b3c…"); only the version is kept.
+    /// </summary>
+    private static string AppVersion()
+    {
+        var version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+        return version.Split('+')[0];
     }
 
     /// <summary>

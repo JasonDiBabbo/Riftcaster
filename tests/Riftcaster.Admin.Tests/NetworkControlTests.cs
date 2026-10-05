@@ -70,7 +70,7 @@ public class NetworkControlTests : BunitContext
 
         var control = RenderOpen(isLocal: true);
 
-        Assert.Contains("allow the server through this computer's firewall: it may be listed as dotnet, or allow port 5062.",
+        Assert.Contains("allow the server through this computer's firewall: it may be listed as Riftcaster.Server or dotnet, or allow port 5062.",
             control.Find("#network-panel").TextContent);
         Assert.DoesNotContain("Windows", control.Find("#network-panel").TextContent);
     }
