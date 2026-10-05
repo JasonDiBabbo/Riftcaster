@@ -36,7 +36,7 @@ public static class TimerEndpoints
         timer.MapPost("/adjust", (TimerAdjustment adjustment, TimerService service) =>
                 Act(service, () => service.Adjust(adjustment.Seconds!.Value)))
             .WithSummary("Add or take away time")
-            .WithDescription("Changes the timer's length, like the admin's −1m and +1m buttons. The time run is unchanged, and the length stays between 0 and 999:59.");
+            .WithDescription("Changes the timer's length, like the admin dashboard's −1m and +1m buttons. The time run is unchanged, and the length stays between 0 and 999:59.");
 
         timer.MapPut("/remaining", (TimerRemaining remaining, TimerService service) =>
                 Act(service, () => service.SetRemaining(remaining.Seconds!.Value)))

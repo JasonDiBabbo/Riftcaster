@@ -58,7 +58,7 @@ internal static class RestApi
                 Title = "Riftcaster API",
                 Version = identity.Version,
                 Description = """
-                    Control the overlays from outside the admin: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the admin does is here, except network access and the access code, which only the admin on the computer running the server can change.
+                    Control the overlays from outside the admin dashboard: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the dashboard does is here, except network access and the access code, which can only be changed on the computer running the server.
 
                     **Calling it:** from the computer running the server, no sign-in is needed. From another device, network access must be on, and each request needs the access code, as `Authorization: Bearer <code>`.
 
@@ -72,7 +72,7 @@ internal static class RestApi
             {
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
-                Description = "The access code set in the admin. Only needed from other devices.",
+                Description = "The access code set in the admin dashboard. Only needed from other devices.",
             };
 
             return Task.CompletedTask;

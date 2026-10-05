@@ -1,11 +1,11 @@
 # Riftcaster
 
-Live, data-driven stream overlays for Riftbound, controlled from a browser-based admin panel.
+Live, data-driven stream overlays for Riftbound, controlled from a browser-based admin dashboard.
 
 Riftcaster runs as a single server process on the same machine as OBS. It serves three things:
 
 - **Overlay pages.** Each overlay element is its own page, added to OBS as a Browser Source, so OBS's own scene editor handles layout and positioning.
-- **The admin panel.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
+- **The admin dashboard.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
 - **An API:** live streams the overlays read their data from, and a REST API for controlling the show from Stream Deck, Bitfocus Companion or scripts (see "The REST API").
 
 ## Tech stack
@@ -13,7 +13,7 @@ Riftcaster runs as a single server process on the same machine as OBS. It serves
 | Layer | Technology |
 | --- | --- |
 | Server | ASP.NET Core (.NET 10), C# |
-| Admin panel | Blazor, Interactive Server render mode (C#/Razor) |
+| Admin dashboard | Blazor, Interactive Server render mode (C#/Razor) |
 | Overlays | Plain HTML, CSS, and TypeScript, bundled with esbuild |
 | Shared types | C# records in `Riftcaster.Contracts`, turned into TypeScript interfaces by [TypeGen](https://github.com/jburzynski/TypeGen) on every build |
 
@@ -21,8 +21,8 @@ Riftcaster runs as a single server process on the same machine as OBS. It serves
 
 ```
 src/
-├── Riftcaster.Server/      ASP.NET Core host: API, admin, overlay files, and the overlays build
-├── Riftcaster.Admin/       Blazor components for the admin panel (hosted by Server)
+├── Riftcaster.Server/      ASP.NET Core host: API, admin dashboard, overlay files, and the overlays build
+├── Riftcaster.Admin/       Blazor components for the admin dashboard (hosted by Server)
 ├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
 └── overlays/               npm project: one folder per overlay under src/components/
@@ -61,7 +61,7 @@ Once it's running:
 
 | URL | What |
 | --- | --- |
-| http://localhost:5062/ | Admin panel |
+| http://localhost:5062/ | Admin dashboard |
 | http://localhost:5062/api/info | Server identity (JSON) |
 | http://localhost:5062/api/docs | REST API docs, where you can try each endpoint |
 | http://localhost:5062/overlays/serverIdentity/serverIdentity.html | Example overlay |
@@ -88,9 +88,9 @@ It runs as Production, on http://localhost:5062 (change it with `--urls`, for ex
 
 - **Everything lives in the folder,** wherever the server is started from: its settings, its overlays (`overlays/`) and its saved state (`data/`, created on first use). Your own `data` folder is never published, so a published build starts with no players, lower thirds or access code.
 - **The access code's encryption keys** are kept in the Windows user's profile, not the folder, so moving the folder to another computer or Windows user means setting the code again. The server says so in its console, and carries on without one.
-- **If the overlays are missing,** the admin header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
+- **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 
-CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin and every overlay page, with their scripts and stylesheets. To check a publish yourself:
+CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin dashboard and every overlay page, with their scripts and stylesheets. To check a publish yourself:
 
 ```bash
 node tools/publish/check-publish.mjs publish
@@ -108,7 +108,7 @@ Four test suites:
 | --- | --- |
 | `tests/Riftcaster.Core.Tests` | The services and their rules (players, match, timer, cards, access code and so on), with in-memory stores |
 | `tests/Riftcaster.Server.Tests` | The real server, started in memory with `WebApplicationFactory` and exercised over HTTP and WebSockets |
-| `tests/Riftcaster.Admin.Tests` | The admin's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
+| `tests/Riftcaster.Admin.Tests` | The admin dashboard's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
 | `src/overlays` (Vitest) | The overlays' logic, run by the build's `npm test` step |
 
 bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
@@ -148,21 +148,21 @@ After rebuilding an overlay, click **Refresh cache of current page** in the sour
 
 By default only the computer running the server can reach it. To use the overlays from OBS on another computer on the same network:
 
-1. Turn on network access: click the **Local only** pill in the admin header and switch on **Let other devices connect**, or start the server with `--network on` (for example `dotnet run --project src/Riftcaster.Server -- --network on`).
-2. The admin's panel (and the server's console) shows this computer's network address, such as `http://192.168.1.20:5062`. In OBS on the other computer, use it in place of `http://localhost:5062`, for example `http://192.168.1.20:5062/overlays/timer/timer.html`.
+1. Turn on network access: click the **Local only** pill in the admin dashboard's header and switch on **Let other devices connect**, or start the server with `--network on` (for example `dotnet run --project src/Riftcaster.Server -- --network on`).
+2. The network panel (and the server's console) shows this computer's network address, such as `http://192.168.1.20:5062`. In OBS on the other computer, use it in place of `http://localhost:5062`, for example `http://192.168.1.20:5062/overlays/timer/timer.html`.
 3. The first time, **Windows Firewall** asks whether to allow the server on the network. Allow it on **private networks**. If the venue's network is set to Public in Windows, either change it to Private (Settings > Network & internet > the network's properties) or allow the server on public networks too.
 
-Network access is off again every time the server starts. Switching it on or off briefly reconnects the admin and every overlay.
+Network access is off again every time the server starts. Switching it on or off briefly reconnects the admin dashboard and every overlay.
 
 The server only answers requests addressed to this computer: `localhost`, an IP address, or the computer's own name (`{computer-name}` or `{computer-name}.local`). Requests addressed to any other name get a 400. That stops a website from reaching the server through DNS rebinding, a trick where the site points its own domain at this computer. To reach the server by another name, such as one from your router or a reverse proxy, add it to `HostNames` in `appsettings.json`, separated by semicolons: `"HostNames": "riftcaster.lan;obs.example.com"`.
 
-## The admin on other devices (access code)
+## The admin dashboard on other devices (access code)
 
-Other devices can always open the overlays while network access is on. The admin, which controls the broadcast, needs an **access code**: without one, it's on the computer running the server only.
+Other devices can always open the overlays while network access is on. The admin dashboard, which controls the broadcast, needs an **access code**: without one, it's on the computer running the server only.
 
-1. On the computer running the server, open the network panel (the pill in the admin header), and under **Access code** type a code or press **Generate**, then **Set**. **Show** reveals it again later, to read out to someone.
-2. Turn on network access. Operators open the admin address the panel shows, such as `http://192.168.1.20:5062/`, on their phone or laptop, and enter the code once. Case, spaces and dashes don't matter.
-3. Their device stays signed in until the code changes. **Change** or **Remove** the code (for example after an event) to sign every device out at once, including admin pages they have open.
+1. On the computer running the server, open the network panel (the pill in the admin dashboard's header), and under **Access code** type a code or press **Generate**, then **Set**. **Show** reveals it again later, to read out to someone.
+2. Turn on network access. Operators open the admin dashboard address the panel shows, such as `http://192.168.1.20:5062/`, on their phone or laptop, and enter the code once. Case, spaces and dashes don't matter.
+3. Their device stays signed in until the code changes. **Change** or **Remove** the code (for example after an event) to sign every device out at once, including admin dashboard pages they have open.
 
 Only the computer running the server can switch network access or change the code; signed-in devices can use everything else, and sign out from the network panel. Wrong codes are limited to a few attempts a minute per device. The code is saved encrypted in `data/accessCode.json`.
 
@@ -170,7 +170,7 @@ The connection is plain HTTP, so the code stops casual tampering by others on th
 
 ## The REST API
 
-Everything the admin does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the admin, so the admin and the overlays update together.
+Everything the admin dashboard does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the admin dashboard, so it and the overlays update together.
 
 **[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
 
@@ -184,10 +184,10 @@ Everything the admin does, except network access and the access code, can also b
 | Hide the lower third | `POST /api/lower-third/hide` |
 | Feature a card | `PUT /api/featured-card` with `{ "cardId": "..." }` (ids are in `GET /api/cards?search=jinx`) |
 
-Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the admin. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
+Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the admin dashboard. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
 
 - **From the computer running the server,** no code is needed.
-- **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the admin can also use the docs page.
+- **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the admin dashboard can also use the docs page.
 - **Other websites can't use it.** A page open in a browser on this computer could otherwise send requests to `localhost`, so changes that come from another website's page are refused, as are requests addressed to names that aren't this computer's (see "OBS on another computer"). Stream Deck, Companion and scripts aren't affected, and nor are the server's own pages.
 
 ## Working on overlays

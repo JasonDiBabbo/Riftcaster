@@ -41,7 +41,7 @@
                                 <li><span class="url-label">Overlays</span> <code>@url/overlays/…</code></li>
                                 @if (AccessCode.IsSet)
                                 {
-                                    <li><span class="url-label">Admin</span> <code>@url/</code></li>
+                                    <li><span class="url-label">Dashboard</span> <code>@url/</code></li>
                                 }
                             }
                         </ul>
@@ -56,15 +56,15 @@
                 }
                 else
                 {
-                    <p class="text muted">Only this computer can reach the overlays and the admin. Off every time the server starts.</p>
+                    <p class="text muted">Only this computer can reach the overlays and the admin dashboard. Off every time the server starts.</p>
                 }
 
-                <p class="text muted">Switching briefly reconnects the admin and every overlay.</p>
+                <p class="text muted">Switching briefly reconnects the admin dashboard and every overlay.</p>
 
                 <h3 class="subtitle">Access code</h3>
                 @if (AccessCode.IsSet)
                 {
-                    <p class="text muted">Approved operators sign in with it to use the admin on their own devices while network access is on. Changing or removing it signs them all out.</p>
+                    <p class="text muted">Approved operators sign in with it to use the admin dashboard on their own devices while network access is on. Changing or removing it signs them all out.</p>
                     <div class="code-row">
                         <code class="code">@(_showCode ? AccessCode.Code : "••••••••")</code>
                         <button type="button" class="ghost" @onclick="() => _showCode = !_showCode">@(_showCode ? "Hide" : "Show")</button>
@@ -72,7 +72,7 @@
                 }
                 else
                 {
-                    <p class="text muted">No access code: the admin is on this computer only. Set one to let approved operators sign in from their own devices.</p>
+                    <p class="text muted">No access code: the admin dashboard is on this computer only. Set one to let approved operators sign in from their own devices.</p>
                 }
 
                 <div class="code-form">
