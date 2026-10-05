@@ -36,6 +36,9 @@ public partial class Program
         {
             Args = args,
             ContentRootPath = IsDevelopment(args) ? null : AppContext.BaseDirectory,
+            // The server's own name, not the running program's: started by the Windows launcher, that's
+            // Riftcaster, and the server would look for Riftcaster.staticwebassets.endpoints.json.
+            ApplicationName = typeof(Program).Assembly.GetName().Name,
         });
 
         // Network access: off unless started with --network on (see NetworkAccess).

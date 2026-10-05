@@ -6,6 +6,13 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- dotnet run starts it in the server's folder, as the server's own dotnet run does, so in
+     Development it finds appsettings.Development.json, the overlays and data/ there. -->
+    <RunWorkingDirectory>$(MSBuildThisFileDirectory)..\Riftcaster.Server</RunWorkingDirectory>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Riftcaster.Server\Riftcaster.Server.csproj" />
+  </ItemGroup>
+  
 </Project>
