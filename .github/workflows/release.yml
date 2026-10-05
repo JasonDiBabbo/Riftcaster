@@ -78,8 +78,8 @@ jobs:
         if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ steps.zip.outputs.zip }}
           path: ${{ steps.zip.outputs.zip }}
+          archive: false # Our zip as it is: GitHub would otherwise zip it again
 
       # A version with a suffix, such as v0.2.0-beta.1, is marked as a pre-release.
       - name: Create the GitHub Release
