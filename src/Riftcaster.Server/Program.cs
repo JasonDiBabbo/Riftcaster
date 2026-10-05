@@ -17,7 +17,15 @@ namespace Riftcaster.Server;
 
 public partial class Program
 {
-    private static void Main(string[] args)
+    private static void Main(string[] args) => CreateApp(args).Run();
+
+    /// <summary>
+    /// Creates the server, with all its services, middleware and endpoints, ready to run. The console
+    /// server (Main) runs it; the Windows launcher (Riftcaster.Windows, #68) starts it behind a tray icon.
+    /// </summary>
+    /// <param name="args">Command line arguments.</param>
+    /// <returns>The created web application.</returns>
+    public static WebApplication CreateApp(string[] args)
     {
         // A published build reads and writes everything (appsettings.json, the overlays, data/) in
         // its own folder, wherever it's started from: a shortcut or a terminal elsewhere would
@@ -141,7 +149,7 @@ public partial class Program
         app.MapStaticAssets();
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
-        app.Run();
+        return app;
     }
 
     /// <summary>
