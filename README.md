@@ -84,7 +84,7 @@ The `publish` folder then holds everything the server needs, overlays included. 
 dotnet Riftcaster.Server.dll
 ```
 
-It runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`. There's no `.exe` yet: an unsigned one is blocked by Smart App Control, so that waits for code signing ([#1](https://github.com/JasonDiBabbo/Riftcaster_VNext/issues/1)).
+It runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`. There's no `.exe` yet: an unsigned one is blocked by Smart App Control, so that waits for code signing ([#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1)).
 
 - **Everything lives in the folder,** wherever the server is started from: its settings, its overlays (`overlays/`) and its saved state (`data/`, created on first use). Your own `data` folder is never published, so a published build starts with no players, lower thirds or access code.
 - **The access code's encryption keys** are kept in the Windows user's profile, not the folder, so moving the folder to another computer or Windows user means setting the code again. The server says so in its console, and carries on without one.
@@ -239,7 +239,7 @@ Two conventions to know:
 
 ## Windows development notes
 
-Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. Code signing for distributed builds is tracked in [#1](https://github.com/JasonDiBabbo/Riftcaster_VNext/issues/1).
+Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. Code signing for distributed builds is tracked in [#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1).
 
 ## License
 
