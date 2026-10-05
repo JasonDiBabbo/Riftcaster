@@ -31,7 +31,7 @@ tests/                      One test project per project above (see "Tests")
 tools/
 ├── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
 ├── coverage/               CI's per-file coverage check (see "Coverage")
-└── publish/                CI's check of a published build (see "Running a published build")
+└── publish/                CI's check of a published build (see "Publishing it yourself")
 Riftcaster.slnx             Solution file
 Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Visual Studio")
 ```
@@ -68,9 +68,21 @@ Once it's running:
 
 To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
 
-## Running a published build
+## Downloading a release
 
-To run Riftcaster on a computer without the source code, such as the one running OBS, publish it:
+Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has a Windows zip, such as `Riftcaster-0.2.0-win-x64.zip`. It's self-contained: .NET comes inside it, so nothing else needs installing.
+
+1. Extract the zip to a folder of its own, such as `C:\Riftcaster`. Run it from there, not from inside the zip.
+2. Start `Riftcaster.Server.exe`. The console it opens is the server: keep it open during the show.
+3. Open http://localhost:5062/ for the admin dashboard.
+
+Releases aren't signed yet ([#61](https://github.com/JasonDiBabbo/Riftcaster/issues/61)), so on first run Windows may show **Windows protected your PC**: click **More info**, then **Run anyway**. On a computer with **Smart App Control** on, Windows blocks it outright until releases are signed.
+
+To update, extract the new zip over the old folder, or into a new one. Saved state isn't in the folder (see below), so nothing is lost.
+
+## Publishing it yourself
+
+To build the same thing from the source code:
 
 ```bash
 dotnet publish src/Riftcaster.Server --configuration Release --output publish
@@ -78,16 +90,19 @@ dotnet publish src/Riftcaster.Server --configuration Release --output publish
 
 It builds first, so the publish always has the current code. Don't add `--no-build` (as CI does, straight after its own Release build): it would publish whatever Release build is already in `bin/`, however old.
 
-The `publish` folder then holds everything the server needs, overlays included. Copy it to the other computer, which needs the [ASP.NET Core Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) (not the whole SDK), and start the server from it:
+That makes a framework-dependent build: the computer running it needs the [ASP.NET Core Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) (not the whole SDK), and you start it with `dotnet Riftcaster.Server.dll`. For a self-contained one with its own `.exe`, as releases are:
 
 ```bash
-dotnet Riftcaster.Server.dll
+dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true --output publish
 ```
 
-It runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`. There's no `.exe` yet: an unsigned one is blocked by Smart App Control, so that waits for code signing ([#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1)).
+`UseAppHost=true` is needed because development builds don't make an `.exe` (see "Windows development notes").
 
-- **Everything lives in the folder,** wherever the server is started from: its settings, its overlays (`overlays/`) and its saved state (`data/`, created on first use). Your own `data` folder is never published, so a published build starts with no players, lower thirds or access code.
-- **The access code's encryption keys** are kept in the Windows user's profile, not the folder, so moving the folder to another computer or Windows user means setting the code again. The server says so in its console, and carries on without one.
+A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
+
+- **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
+- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the code needs setting again. The server says so in its console, and carries on without one.
 - **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 
 CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin dashboard and every overlay page, with their scripts and stylesheets. To check a publish yourself:
@@ -95,6 +110,20 @@ CI publishes on every run, then checks the result with [`tools/publish/check-pub
 ```bash
 node tools/publish/check-publish.mjs publish
 ```
+
+## Making a release
+
+Releases are built by [the release workflow](.github/workflows/release.yml). Tag the commit with its version and push the tag:
+
+```bash
+git tag v0.2.0
+```
+
+```bash
+git push origin v0.2.0
+```
+
+The workflow builds and tests everything, publishes the self-contained Windows build with that version (which `/api/info` reports), checks it, and creates a GitHub Release with the zip and notes listing the merged pull requests. A tag with a suffix, such as `v0.3.0-beta.1`, makes a pre-release. To try the pipeline without releasing, run the workflow by hand (**Actions**, **Release**, **Run workflow**): it builds the zip and attaches it to the run instead.
 
 ## Tests
 
@@ -239,7 +268,7 @@ Two conventions to know:
 
 ## Windows development notes
 
-Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. Code signing for distributed builds is tracked in [#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1).
+Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. For the same reason, development builds make no `.exe` (`UseAppHost` is off in `Directory.Build.props`) and run through the Microsoft-signed `dotnet`; releases switch it on. Code signing for releases is tracked in [#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1).
 
 ## License
 

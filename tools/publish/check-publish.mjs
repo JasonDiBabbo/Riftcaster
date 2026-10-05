@@ -11,7 +11,11 @@
  *
  * Its saved state goes to a temporary folder, so checking leaves the publish folder as it was.
  *
- * Usage: node tools/publish/check-publish.mjs <publish folder>
+ * A self-contained build (a release, issue #60) is started through its own Riftcaster.Server.exe,
+ * as someone who downloaded it would, and must carry its own .NET runtime. Any other publish is
+ * started with `dotnet Riftcaster.Server.dll`. With --version, the server must report that version.
+ *
+ * Usage: node tools/publish/check-publish.mjs <publish folder> [--version <version>]
  */
 import { spawn } from 'child_process';
 import fs from 'fs';
@@ -21,9 +25,13 @@ import path from 'path';
 
 const publishDir = process.argv[2] ? path.resolve(process.argv[2]) : undefined;
 const serverDll = publishDir && path.join(publishDir, 'Riftcaster.Server.dll');
+const versionArg = process.argv.indexOf('--version');
+const expectedVersion = versionArg > 0 ? process.argv[versionArg + 1] : undefined;
 
 if (!publishDir || !serverDll || !fs.existsSync(serverDll)) {
-  console.error('Usage: node tools/publish/check-publish.mjs <publish folder>');
+  console.error(
+    'Usage: node tools/publish/check-publish.mjs <publish folder> [--version <version>]'
+  );
   console.error(
     'Publish first: dotnet publish src/Riftcaster.Server --configuration Release --output <publish folder>'
   );
@@ -55,6 +63,24 @@ if (overlayPages.length === 0) {
   failures.push('The publish folder has no overlay pages (overlays/<name>/<name>.html).');
 }
 
+// A self-contained build has the app's own launcher, and its runtime settings list the frameworks it
+// carries; a framework-dependent one needs .NET installed.
+const serverExe = path.join(
+  publishDir,
+  process.platform === 'win32' ? 'Riftcaster.Server.exe' : 'Riftcaster.Server'
+);
+const selfContained = fs.existsSync(serverExe);
+if (selfContained) {
+  const runtimeConfig = JSON.parse(
+    fs.readFileSync(path.join(publishDir, 'Riftcaster.Server.runtimeconfig.json'), 'utf8')
+  );
+  if (!runtimeConfig.runtimeOptions?.includedFrameworks) {
+    failures.push(
+      'The publish folder has Riftcaster.Server.exe but no runtime of its own: it needs .NET installed.'
+    );
+  }
+}
+
 const port = await freePort();
 const baseUrl = `http://localhost:${port}`;
 const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'riftcaster-publish-check-'));
@@ -64,11 +90,14 @@ const env = { ...process.env };
 delete env.ASPNETCORE_ENVIRONMENT; // Production, as a published build runs by default
 delete env.DOTNET_ENVIRONMENT;
 
-const server = spawn(
-  'dotnet',
-  [serverDll, '--urls', baseUrl, '--Storage:DataDirectory', path.join(workDir, 'data')],
-  { cwd: workDir, env, stdio: ['ignore', 'pipe', 'pipe'] }
-);
+const serverArgs = ['--urls', baseUrl, '--Storage:DataDirectory', path.join(workDir, 'data')];
+const server = selfContained
+  ? spawn(serverExe, serverArgs, { cwd: workDir, env, stdio: ['ignore', 'pipe', 'pipe'] })
+  : spawn('dotnet', [serverDll, ...serverArgs], {
+      cwd: workDir,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
 
 let log = '';
 server.stdout.on('data', (chunk) => (log += chunk));
@@ -76,6 +105,13 @@ server.stderr.on('data', (chunk) => (log += chunk));
 
 try {
   await waitForServer();
+
+  if (expectedVersion) {
+    const info = await (await fetch(new URL('/api/info', baseUrl))).json();
+    if (info.version !== expectedVersion) {
+      failures.push(`The server reports version ${info.version}, not ${expectedVersion}.`);
+    }
+  }
 
   for (const page of ['/', ...overlayPages, '/api/docs/']) {
     await checkPage(page);
@@ -111,7 +147,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `The published server serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
+  `The published server${selfContained ? ' (self-contained, started as Riftcaster.Server.exe)' : ''} serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
 );
 
 /**

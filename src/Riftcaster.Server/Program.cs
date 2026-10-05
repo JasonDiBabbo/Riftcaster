@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
 using Riftcaster.Admin;
 using Riftcaster.Contracts;
@@ -42,7 +43,7 @@ public partial class Program
         builder.AddOverlays();
         builder.AddRestApi();
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-        builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
+        builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", AppVersion(), DateTimeOffset.Now));
 
         // Saved state: the user's app-data folder in a published build, the project's data folder in
         // Development (see DataFolder).
@@ -141,6 +142,16 @@ public partial class Program
         app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
         app.Run();
+    }
+
+    /// <summary>
+    /// The version this build was given: 0.1.0 locally, or a release's tag (see Directory.Build.props).
+    /// The SDK adds the commit to the informational version ("0.2.0+1a2b3c…"); only the version is kept.
+    /// </summary>
+    private static string AppVersion()
+    {
+        var version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+        return version.Split('+')[0];
     }
 
     /// <summary>

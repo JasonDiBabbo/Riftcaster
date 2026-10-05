@@ -1,0 +1,92 @@
+# Builds a downloadable Windows release (issue #60): a self-contained zip that runs without .NET
+# installed. Pushing a version tag, such as v0.2.0, attaches it to a new GitHub Release; running the
+# workflow by hand (Actions > Release > Run workflow) only builds it, as an artifact to try.
+#
+# Unsigned for now: Windows shows a SmartScreen warning on first run, and Smart App Control blocks
+# it. Signing is #61.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+# One release at a time; a newer tag waits rather than cancelling one half-published.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: windows-latest
+    permissions:
+      contents: write # Creating the release and uploading the zip
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: src/overlays/package-lock.json
+
+      # v0.2.0 releases 0.2.0. A manual run, with no tag, builds the version in Directory.Build.props.
+      - name: Version
+        id: version
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME -replace '^v', '' } else { '' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+
+      # As CI does: never release a build whose tests fail.
+      - name: Build
+        run: dotnet build --configuration Release
+
+      - name: Test
+        run: dotnet test --configuration Release --no-build
+
+      # Self-contained: the .NET runtime goes in the folder, with a real Riftcaster.Server.exe to start
+      # it. UseAppHost is off for development (Directory.Build.props, because Smart App Control blocks
+      # an unsigned .exe built on each rebuild), so it's switched on here.
+      - name: Publish
+        shell: pwsh
+        run: |
+          $versionArgs = if ('${{ steps.version.outputs.version }}') { @('-p:Version=${{ steps.version.outputs.version }}') } else { @() }
+          dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true @versionArgs --output publish
+
+      - name: Check the published server
+        shell: pwsh
+        run: |
+          $versionArgs = if ('${{ steps.version.outputs.version }}') { @('--version', '${{ steps.version.outputs.version }}') } else { @() }
+          node tools/publish/check-publish.mjs publish @versionArgs
+
+      - name: Zip
+        id: zip
+        shell: pwsh
+        run: |
+          $version = '${{ steps.version.outputs.version }}'
+          if (-not $version) { $version = (Get-Date -Format 'yyyyMMdd') + '-' + $env:GITHUB_SHA.Substring(0, 7) }
+          $zip = "Riftcaster-$version-win-x64.zip"
+          Compress-Archive -Path publish/* -DestinationPath $zip
+          "zip=$zip" >> $env:GITHUB_OUTPUT
+
+      - name: Upload the zip (manual runs)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.zip.outputs.zip }}
+          path: ${{ steps.zip.outputs.zip }}
+
+      # A version with a suffix, such as v0.2.0-beta.1, is marked as a pre-release.
+      - name: Create the GitHub Release
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $prerelease = if ('${{ github.ref_name }}' -match '-') { @('--prerelease') } else { @() }
+          gh release create '${{ github.ref_name }}' '${{ steps.zip.outputs.zip }}' --title 'Riftcaster ${{ steps.version.outputs.version }}' --generate-notes @prerelease

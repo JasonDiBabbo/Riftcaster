@@ -4,6 +4,9 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseAppHost>false</UseAppHost>
+        <!-- The version local builds report (/api/info, the API docs). Releases set it from their tag,
+             e.g. v0.2.0 builds 0.2.0 (see .github/workflows/release.yml). -->
+        <Version>0.1.0</Version>
         <!-- Report the warning-level .editorconfig code-style rules in every build, not only in the IDE. -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
