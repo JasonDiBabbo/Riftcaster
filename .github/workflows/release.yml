@@ -52,16 +52,18 @@ jobs:
       # Self-contained: the .NET runtime goes in the folder, with a real Riftcaster.Server.exe to start
       # it. UseAppHost is off for development (Directory.Build.props, because Smart App Control blocks
       # an unsigned .exe built on each rebuild), so it's switched on here.
+      # @(...) keeps the arguments a list: PowerShell unwraps a one-item array returned from an if
+      # into a plain string, and splatting a string (@versionArgs) passes it one character at a time.
       - name: Publish
         shell: pwsh
         run: |
-          $versionArgs = if ('${{ steps.version.outputs.version }}') { @('-p:Version=${{ steps.version.outputs.version }}') } else { @() }
+          $versionArgs = @(if ('${{ steps.version.outputs.version }}') { '-p:Version=${{ steps.version.outputs.version }}' })
           dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true @versionArgs --output publish
 
       - name: Check the published server
         shell: pwsh
         run: |
-          $versionArgs = if ('${{ steps.version.outputs.version }}') { @('--version', '${{ steps.version.outputs.version }}') } else { @() }
+          $versionArgs = @(if ('${{ steps.version.outputs.version }}') { '--version'; '${{ steps.version.outputs.version }}' })
           node tools/publish/check-publish.mjs publish @versionArgs
 
       - name: Zip
@@ -88,5 +90,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $prerelease = if ('${{ github.ref_name }}' -match '-') { @('--prerelease') } else { @() }
+          $prerelease = @(if ('${{ github.ref_name }}' -match '-') { '--prerelease' })
           gh release create '${{ github.ref_name }}' '${{ steps.zip.outputs.zip }}' --title 'Riftcaster ${{ steps.version.outputs.version }}' --generate-notes @prerelease
