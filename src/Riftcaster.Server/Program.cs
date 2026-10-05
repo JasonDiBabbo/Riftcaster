@@ -44,7 +44,12 @@ public partial class Program
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", "0.1.0", DateTimeOffset.Now));
 
-        var dataDirectory = Path.Combine(builder.Environment.ContentRootPath, builder.Configuration["Storage:DataDirectory"] ?? "data");
+        // Saved state: the user's app-data folder in a published build, the project's data folder in
+        // Development (see DataFolder).
+        var dataDirectory = DataFolder.Resolve(
+            builder.Configuration[DataFolder.Setting],
+            builder.Environment,
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
         // so they still work if the app's folder moves.
@@ -112,6 +117,7 @@ public partial class Program
         // Say where other devices can reach the server: at startup, and whenever the switch changes.
         var accessCode = app.Services.GetRequiredService<AccessCode>();
         app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
+        app.Logger.LogInformation("Saved data is kept in {Folder}.", dataDirectory);
         network.Changed += () => LogNetworkAccess(app.Logger, network, accessCode);
 
         app.UseHostCheck(); // First: requests addressed to other names (DNS rebinding) get nothing
