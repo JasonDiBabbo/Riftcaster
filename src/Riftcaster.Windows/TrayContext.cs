@@ -21,7 +21,7 @@ internal sealed class TrayContext : ApplicationContext
         _dashboard = dashboardAddress;
 
         var menu = new ContextMenuStrip();
-        menu.Items.Add("Open dashboard", null, (_, _) => OpenDashboard());
+        menu.Items.Add("Open dashboard", null, (_, _) => OpenDashboard(_dashboard));
         menu.Items.Add("Quit", null, (_, _) => ExitThread());
 
         _icon = new NotifyIcon
@@ -32,7 +32,7 @@ internal sealed class TrayContext : ApplicationContext
             ContextMenuStrip = menu,
         };
 
-        _icon.DoubleClick += (_, _) => OpenDashboard();
+        _icon.DoubleClick += (_, _) => OpenDashboard(_dashboard);
     }
 
     protected override void Dispose(bool disposing)
@@ -47,6 +47,10 @@ internal sealed class TrayContext : ApplicationContext
         base.Dispose(disposing);
     }
 
+    /// <summary>
+    /// Opens the admin dashboard in the default browser.
+    /// </summary>
+    /// <param name="dashboard">The dashboard's address.</param>
     // UseShellExecute: Windows opens the address in the default browser, as the Run box would.
-    private void OpenDashboard() => Process.Start(new ProcessStartInfo(_dashboard.ToString()) { UseShellExecute = true });
+    public static void OpenDashboard(Uri dashboard) => Process.Start(new ProcessStartInfo(dashboard.ToString()) { UseShellExecute = true });
 }
