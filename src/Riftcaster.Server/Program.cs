@@ -63,6 +63,8 @@ public partial class Program
             builder.Environment,
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
+        builder.Logging.AddLogFiles(dataDirectory);
+
         // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
         // so they still work if the app's folder moves.
         builder.Services.AddDataProtection().SetApplicationName("Riftcaster");

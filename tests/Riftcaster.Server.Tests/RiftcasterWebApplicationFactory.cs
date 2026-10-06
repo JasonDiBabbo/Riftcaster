@@ -20,8 +20,22 @@ namespace Riftcaster.Server.Tests;
 /// </summary>
 public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
 {
+    // Its own data folder, for its log files (see LogFiles): not the project's, among the real ones.
+    private readonly string _dataDirectory = Directory.CreateTempSubdirectory("riftcaster-tests-").FullName;
+
+    /// <summary>
+    /// Disposes the server and its log file, then deletes the temporary data folder.
+    /// </summary>
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync(); // Stops the server, closing its log file
+        Directory.Delete(_dataDirectory, recursive: true);
+        GC.SuppressFinalize(this);
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseSetting(DataFolder.Setting, _dataDirectory);
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<ILowerThirdStore>();

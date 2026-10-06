@@ -102,6 +102,7 @@ A published build runs as Production, on http://localhost:5062 (change it with `
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
 - **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the code needs setting again. The server says so in its console, and carries on without one.
 - **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 
