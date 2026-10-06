@@ -9,7 +9,14 @@
     <!-- dotnet run starts it in the server's folder, as the server's own dotnet run does, so in
      Development it finds appsettings.Development.json, the overlays and data/ there. -->
     <RunWorkingDirectory>$(MSBuildThisFileDirectory)..\Riftcaster.Server</RunWorkingDirectory>
+    <!-- The logo, made by tools/logo/build-icons.mjs. In File Explorer and the taskbar. -->
+    <ApplicationIcon>Riftcaster.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- The same icon for the tray, read at the size Windows wants there. -->
+    <EmbeddedResource Include="Riftcaster.ico" LogicalName="Riftcaster.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Server\Riftcaster.Server.csproj" />

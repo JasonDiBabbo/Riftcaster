@@ -12,6 +12,9 @@ internal sealed class TrayContext : ApplicationContext
 
     private readonly NotifyIcon _icon;
 
+    // The logo at the tray's size for this screen's scaling: 16 px at 100%, 24 at 150%, and so on.
+    private readonly Icon _logo = LoadLogo(SystemInformation.SmallIconSize);
+
     /// <summary>
     /// Shows the icon.
     /// </summary>
@@ -29,7 +32,7 @@ internal sealed class TrayContext : ApplicationContext
 
         _icon = new NotifyIcon
         {
-            Icon = SystemIcons.Application, // A placeholder icon until a custom one is made.
+            Icon = _logo,
             Text = "Riftcaster",
             Visible = true,
             ContextMenuStrip = menu,
@@ -45,6 +48,7 @@ internal sealed class TrayContext : ApplicationContext
             // Otherwise the icon can stay by the clock after quitting, until the mouse passes over it.
             _icon.ContextMenuStrip?.Dispose();
             _icon.Dispose();
+            _logo.Dispose();
         }
 
         base.Dispose(disposing);
@@ -55,6 +59,12 @@ internal sealed class TrayContext : ApplicationContext
     /// </summary>
     /// <param name="dashboard">The dashboard's address.</param>
     public static void OpenDashboard(Uri dashboard) => Open(dashboard.ToString());
+
+    private static Icon LoadLogo(Size size)
+    {
+        using var stream = typeof(TrayContext).Assembly.GetManifestResourceStream("Riftcaster.ico")!;
+        return new Icon(stream, size);
+    }
 
     // UseShellExecute: Windows opens it as the Run box would, an address in the default browser
     // and a folder in File Explorer.
