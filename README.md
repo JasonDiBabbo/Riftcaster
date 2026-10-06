@@ -21,6 +21,7 @@ Riftcaster runs as a single server process and serves three things:
 | Server | ASP.NET Core (.NET 10), C# |
 | Admin dashboard | Blazor, Interactive Server render mode (C#/Razor) |
 | Overlays | Plain HTML, CSS, and TypeScript, bundled with esbuild |
+| Windows launcher | Windows Forms: `Riftcaster.exe` runs the server with a tray icon instead of a console window |
 | Shared types | C# records in `Riftcaster.Contracts`, turned into TypeScript interfaces by [TypeGen](https://github.com/jburzynski/TypeGen) on every build |
 
 ## Repository layout
@@ -31,9 +32,10 @@ src/
 ├── Riftcaster.Admin/       Blazor components for the admin dashboard (hosted by Server)
 ├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
+├── Riftcaster.Windows/     Windows launcher: builds Riftcaster.exe, which runs the server with a tray icon
 └── overlays/               npm project: one folder per overlay under src/components/
                             (overlays.esproj only lists it in Visual Studio; it builds nothing)
-tests/                      One test project per project above (see "Tests")
+tests/                      Tests for Core, Server and Admin (see "Tests")
 tools/
 ├── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
 ├── coverage/               CI's per-file coverage check (see "Coverage")
@@ -47,6 +49,7 @@ Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Vis
 
 - **.NET SDK 10.0.401 or later** (pinned in `global.json`)
 - **Node.js 22.18 or later**, used to build the overlays
+- **Windows, macOS or Linux.** Everything builds on all three. The tray launcher (`Riftcaster.Windows`) is compiled everywhere but only runs on Windows; elsewhere, run the server directly with `dotnet run --project src/Riftcaster.Server`. Launchers for other platforms are under consideration for future work.
 
 ## Build and run
 

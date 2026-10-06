@@ -6,6 +6,10 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
+    <!-- Lets macOS and Linux compile it too, so dotnet build and dotnet test work on every machine.
+     The exe only runs on Windows. A launcher for another platform will need per-platform builds
+     instead (#69). -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <!-- dotnet run starts it in the server's folder, as the server's own dotnet run does, so in
      Development it finds appsettings.Development.json, the overlays and data/ there. -->
     <RunWorkingDirectory>$(MSBuildThisFileDirectory)..\Riftcaster.Server</RunWorkingDirectory>
