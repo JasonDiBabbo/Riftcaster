@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- The mark on a dark tile (the admin's background), so it shows on light and dark taskbars and tabs. -->
+  <defs>
+    <mask id="tear" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <path d="M18 14L46 5L48 59L16 50Z" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M33 0L28 24L37 37L31 64" fill="none" stroke="#000" stroke-width="3.5"/>
+    </mask>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#0e0f11"/>
+  <rect width="64" height="64" fill="#62d0a4" mask="url(#tear)" transform="translate(32 32) scale(0.8) translate(-32 -32)"/>
+</svg>

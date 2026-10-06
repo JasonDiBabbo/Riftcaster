@@ -31,6 +31,7 @@ tests/                      One test project per project above (see "Tests")
 tools/
 ├── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
 ├── coverage/               CI's per-file coverage check (see "Coverage")
+├── logo/                   Makes the logo's .ico and .png files from its SVG
 └── publish/                CI's check of a published build (see "Publishing it yourself")
 Riftcaster.slnx             Solution file
 Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Visual Studio")
