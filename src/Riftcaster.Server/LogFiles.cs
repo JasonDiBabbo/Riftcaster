@@ -23,9 +23,12 @@ internal static class LogFiles
     /// <param name="dataDirectory">The saved-data folder (see <see cref="DataFolder"/>).</param>
     public static ILoggingBuilder AddLogFiles(this ILoggingBuilder logging, string dataDirectory)
     {
+        var folder = Path.Combine(dataDirectory, FolderName);
+        logging.Services.AddSingleton(new LogFolder(folder));
+
         var logger = new LoggerConfiguration()
             .MinimumLevel.Verbose() // Everything it's given: the Logging settings have already filtered it.
-            .WriteTo.File(Path.Combine(dataDirectory, FolderName, "riftcaster-.log"),
+            .WriteTo.File(Path.Combine(folder, "riftcaster-.log"),
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 7,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
