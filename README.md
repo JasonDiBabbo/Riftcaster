@@ -1,8 +1,14 @@
+<img src=".github/assets/banner.svg" width="100%" alt="Riftcaster: livestream overlays for the Riftbound TCG">
+
 # Riftcaster
 
-Live, data-driven stream overlays for Riftbound, controlled from a browser-based admin dashboard.
+Riftcaster provides live, data-driven overlays for streaming Riftbound. You control them from an admin dashboard in your browser, or from a Stream Deck, Bitfocus Companion or your own scripts through its REST API.
 
-Riftcaster runs as a single server process on the same machine as OBS. It serves three things:
+Up your game on your next Riftbound livestream or recorded content with Riftcaster!
+
+## How it works
+
+Riftcaster runs as a single server process and serves three things:
 
 - **Overlay pages.** Each overlay element is its own page, added to OBS as a Browser Source, so OBS's own scene editor handles layout and positioning.
 - **The admin dashboard.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
