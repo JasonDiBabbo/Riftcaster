@@ -8,6 +8,7 @@
     <Project Path="src/Riftcaster.Contracts/Riftcaster.Contracts.csproj" />
     <Project Path="src/Riftcaster.Core/Riftcaster.Core.csproj" />
     <Project Path="src/Riftcaster.Server/Riftcaster.Server.csproj" />
+    <Project Path="src/Riftcaster.Windows/Riftcaster.Windows.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Riftcaster.Admin.Tests/Riftcaster.Admin.Tests.csproj" />

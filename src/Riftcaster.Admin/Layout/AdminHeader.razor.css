@@ -16,6 +16,17 @@
   gap: 10px;
 }
 
+/* The logo's card, in the theme's accent: the SVG only gives the shape, so a light theme's accent
+   would recolour it with no other file. */
+.mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: -1px -7px -1px -5px; /* Trims the space around the card in its SVG, keeping the header's height */
+  background: var(--acc);
+  mask: url('logo/mark.svg') center / contain no-repeat;
+}
+
 .wordmark {
   color: var(--acc);
   font: 700 var(--fs-wordmark) / 1 var(--font);

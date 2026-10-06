@@ -1,8 +1,14 @@
+<img src=".github/assets/banner.svg" width="100%" alt="Riftcaster: livestream overlays for the Riftbound TCG">
+
 # Riftcaster
 
-Live, data-driven stream overlays for Riftbound, controlled from a browser-based admin dashboard.
+Riftcaster provides live, data-driven overlays for streaming Riftbound. You control them from an admin dashboard in your browser, or from a Stream Deck, Bitfocus Companion or your own scripts through its REST API.
 
-Riftcaster runs as a single server process on the same machine as OBS. It serves three things:
+Up your game on your next Riftbound livestream or recorded content with Riftcaster!
+
+## How it works
+
+Riftcaster runs as a single server process and serves three things:
 
 - **Overlay pages.** Each overlay element is its own page, added to OBS as a Browser Source, so OBS's own scene editor handles layout and positioning.
 - **The admin dashboard.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
@@ -15,6 +21,7 @@ Riftcaster runs as a single server process on the same machine as OBS. It serves
 | Server | ASP.NET Core (.NET 10), C# |
 | Admin dashboard | Blazor, Interactive Server render mode (C#/Razor) |
 | Overlays | Plain HTML, CSS, and TypeScript, bundled with esbuild |
+| Windows launcher | Windows Forms: `Riftcaster.exe` runs the server with a tray icon instead of a console window |
 | Shared types | C# records in `Riftcaster.Contracts`, turned into TypeScript interfaces by [TypeGen](https://github.com/jburzynski/TypeGen) on every build |
 
 ## Repository layout
@@ -25,12 +32,14 @@ src/
 ├── Riftcaster.Admin/       Blazor components for the admin dashboard (hosted by Server)
 ├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
+├── Riftcaster.Windows/     Windows launcher: builds Riftcaster.exe, which runs the server with a tray icon
 └── overlays/               npm project: one folder per overlay under src/components/
                             (overlays.esproj only lists it in Visual Studio; it builds nothing)
-tests/                      One test project per project above (see "Tests")
+tests/                      Tests for Core, Server and Admin (see "Tests")
 tools/
 ├── Riftcaster.Codegen/     Build-time tool: Contracts → src/overlays/src/generated/*.ts
 ├── coverage/               CI's per-file coverage check (see "Coverage")
+├── logo/                   Makes the logo's .ico and .png files from its SVG
 └── publish/                CI's check of a published build (see "Publishing it yourself")
 Riftcaster.slnx             Solution file
 Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Visual Studio")
@@ -40,6 +49,7 @@ Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Vis
 
 - **.NET SDK 10.0.401 or later** (pinned in `global.json`)
 - **Node.js 22.18 or later**, used to build the overlays
+- **Windows, macOS or Linux.** Everything builds on all three. The tray launcher (`Riftcaster.Windows`) is compiled everywhere but only runs on Windows; elsewhere, run the server directly with `dotnet run --project src/Riftcaster.Server`. Launchers for other platforms are under consideration for future work.
 
 ## Build and run
 
@@ -102,6 +112,7 @@ A published build runs as Production, on http://localhost:5062 (change it with `
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
 - **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the code needs setting again. The server says so in its console, and carries on without one.
 - **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 

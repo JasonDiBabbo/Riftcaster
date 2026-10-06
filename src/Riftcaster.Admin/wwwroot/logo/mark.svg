@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Riftcaster's mark: a trading card, turned in 3D and torn by a rift, in the admin's mint. The
+       dashboard header uses only its shape, filled with the theme's accent. -->
+  <defs>
+    <mask id="tear" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
+      <path d="M18 14L46 5L48 59L16 50Z" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M33 0L28 24L37 37L31 64" fill="none" stroke="#000" stroke-width="3.5"/>
+    </mask>
+  </defs>
+  <rect width="64" height="64" fill="#62d0a4" mask="url(#tear)"/>
+</svg>
