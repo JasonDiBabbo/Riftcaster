@@ -86,7 +86,7 @@ Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has a
 2. Start `Riftcaster.Server.exe`. The console it opens is the server: keep it open during the show.
 3. Open http://localhost:5062/ for the admin dashboard.
 
-Releases aren't signed yet ([#61](https://github.com/JasonDiBabbo/Riftcaster/issues/61)), so on first run Windows may show **Windows protected your PC**: click **More info**, then **Run anyway**. On a computer with **Smart App Control** on, Windows blocks it outright until releases are signed.
+Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Control** lets them run. While a new release is still building its reputation, Windows may show **Windows protected your PC** on first run: click **More info**, then **Run anyway**. 0.1.0 isn't signed, so Smart App Control blocks it.
 
 To update, extract the new zip over the old folder, or into a new one. Saved state isn't in the folder (see below), so nothing is lost.
 
@@ -279,7 +279,7 @@ Two conventions to know:
 
 ## Windows development notes
 
-Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. For the same reason, development builds make no `.exe` (`UseAppHost` is off in `Directory.Build.props`) and run through the Microsoft-signed `dotnet`; releases switch it on. Code signing for releases is tracked in [#1](https://github.com/JasonDiBabbo/Riftcaster/issues/1).
+Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. For the same reason, development builds make no `.exe` (`UseAppHost` is off in `Directory.Build.props`) and run through the Microsoft-signed `dotnet`; releases switch it on, and sign their own files.
 
 ## License
 

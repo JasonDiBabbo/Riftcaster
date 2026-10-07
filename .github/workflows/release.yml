@@ -2,8 +2,10 @@
 # installed. Pushing a version tag, such as v0.2.0, attaches it to a new GitHub Release; running the
 # workflow by hand (Actions > Release > Run workflow) only builds it, as an artifact to try.
 #
-# Unsigned for now: Windows shows a SmartScreen warning on first run, and Smart App Control blocks
-# it. Signing is #61.
+# A tag's build is signed with Azure Artifact Signing (#61), so Windows names the publisher and Smart
+# App Control lets it run. Signing runs in the release environment, which only v* tags may use; it
+# holds the IDs azure/login needs and Azure trusts its OIDC token, so no secret is stored. A manual
+# run stays unsigned.
 name: Release
 
 on:
@@ -19,8 +21,12 @@ concurrency:
 jobs:
   release:
     runs-on: windows-latest
+    # Only a tag's run enters the release environment: its rules turn away anything else, so a manual
+    # run would fail before its first step.
+    environment: ${{ github.ref_type == 'tag' && 'release' || '' }}
     permissions:
       contents: write # Creating the release and uploading the zip
+      id-token: write # The OIDC token azure/login trades for access to the signing account
     steps:
       - uses: actions/checkout@v7
 
@@ -60,6 +66,47 @@ jobs:
           $versionArgs = @(if ('${{ steps.version.outputs.version }}') { '-p:Version=${{ steps.version.outputs.version }}' })
           dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true @versionArgs --output publish
 
+      - name: Sign in to Azure
+        if: github.ref_type == 'tag'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Only Riftcaster's own files: the rest of the folder is the .NET runtime and libraries, which
+      # their publishers already signed, and each signature counts against the account's monthly quota.
+      - name: Sign
+        if: github.ref_type == 'tag'
+        uses: azure/artifact-signing-action@v2
+        with:
+          endpoint: https://wus2.codesigning.azure.net/
+          signing-account-name: riftcastersigning
+          certificate-profile-name: riftcasterpublic
+          files-folder: ${{ github.workspace }}\publish
+          files-folder-filter: Riftcaster*.dll,Riftcaster*.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      # Without a timestamp a signature dies with its three-day certificate, so check each file is
+      # signed, trusted and timestamped before anything is published.
+      - name: Check the signatures
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem publish -File | Where-Object { $_.Name -like 'Riftcaster*' -and $_.Extension -in '.dll', '.exe' }
+          if (-not $files) { throw 'No Riftcaster files to check in publish.' }
+          $failed = $false
+          foreach ($file in $files) {
+            $signature = Get-AuthenticodeSignature $file.FullName
+            $timestamped = $null -ne $signature.TimeStamperCertificate
+            "$($file.Name): $($signature.Status), signed by $($signature.SignerCertificate.Subject), timestamped: $timestamped"
+            if ($signature.Status -ne 'Valid' -or -not $timestamped) { $failed = $true }
+          }
+          if ($failed) { throw 'A Riftcaster file is unsigned, untrusted or has no timestamp.' }
+
+      # After signing, so the files checked are the ones published.
       - name: Check the published server
         shell: pwsh
         run: |
