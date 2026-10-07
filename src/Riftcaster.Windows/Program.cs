@@ -12,8 +12,11 @@ static class Program
     /// <summary>
     ///  The main entry point for the application.
     /// </summary>
+    /// <returns>
+    /// 1 if Riftcaster couldn't start; 0 otherwise, including when it was already running.
+    /// </returns>
     [STAThread]
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
         ApplicationConfiguration.Initialize(); // Before any window, the error message included
 
@@ -25,7 +28,7 @@ static class Program
         catch (Exception exception)
         {
             ShowStartupError(exception, logFolder: null); // Too early for a log file
-            return;
+            return 1;
         }
 
         using (server)
@@ -42,7 +45,7 @@ static class Program
             if (!firstCopy)
             {
                 TrayContext.OpenDashboard(dashboard);
-                return;
+                return 0;
             }
 
             try
@@ -52,7 +55,7 @@ static class Program
             catch (Exception exception)
             {
                 ShowStartupError(exception, logFolder); // The server has logged it, with the details
-                return;
+                return 1;
             }
 
             using var tray = new TrayContext(dashboard, logFolder);
@@ -60,6 +63,8 @@ static class Program
 
             server.StopAsync().GetAwaiter().GetResult();
         }
+
+        return 0;
     }
 
     /// <summary>

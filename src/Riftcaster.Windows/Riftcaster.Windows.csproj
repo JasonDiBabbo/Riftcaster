@@ -25,5 +25,14 @@
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Server\Riftcaster.Server.csproj" />
   </ItemGroup>
-  
+
+  <!-- Publishing: the server's own publish goes in the same folder. Only it has the dashboard's and
+       overlays' files (wwwroot, overlays and its static web assets manifest), since a referenced
+       project contributes just its assemblies. It also adds Riftcaster.Server.exe, the console
+       server, which the release workflow's publish check starts. Same settings as this publish:
+       the command line's properties (configuration, runtime, version, folder) pass on to it. -->
+  <Target Name="PublishServer" AfterTargets="Publish">
+    <MSBuild Projects="..\Riftcaster.Server\Riftcaster.Server.csproj" Targets="Publish" Properties="PublishDir=$([MSBuild]::NormalizeDirectory('$(MSBuildProjectDirectory)', '$(PublishDir)'))" />
+  </Target>
+
 </Project>

@@ -15,6 +15,10 @@
  * as someone who downloaded it would, and must carry its own .NET runtime. Any other publish is
  * started with `dotnet Riftcaster.Server.dll`. With --version, the server must report that version.
  *
+ * A Windows release also has the tray launcher, Riftcaster.exe (#68), which people start. It runs
+ * the same server, so the checks run again with the server started by it. The launcher allows one
+ * copy at a time, so close any Riftcaster already running on this computer first.
+ *
  * Usage: node tools/publish/check-publish.mjs <publish folder> [--version <version>]
  */
 import { spawn } from 'child_process';
@@ -81,60 +85,46 @@ if (selfContained) {
   }
 }
 
-const port = await freePort();
-const baseUrl = `http://localhost:${port}`;
-const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'riftcaster-publish-check-'));
-
-/** @type {NodeJS.ProcessEnv} */
-const env = { ...process.env };
-delete env.ASPNETCORE_ENVIRONMENT; // Production, as a published build runs by default
-delete env.DOTNET_ENVIRONMENT;
-
-const serverArgs = ['--urls', baseUrl, '--Storage:DataDirectory', path.join(workDir, 'data')];
-const server = selfContained
-  ? spawn(serverExe, serverArgs, { cwd: workDir, env, stdio: ['ignore', 'pipe', 'pipe'] })
-  : spawn('dotnet', [serverDll, ...serverArgs], {
-      cwd: workDir,
-      env,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-
-let log = '';
-server.stdout.on('data', (chunk) => (log += chunk));
-server.stderr.on('data', (chunk) => (log += chunk));
-
-try {
-  await waitForServer();
-
-  if (expectedVersion) {
-    const info = await (await fetch(new URL('/api/info', baseUrl))).json();
-    if (info.version !== expectedVersion) {
-      failures.push(`The server reports version ${info.version}, not ${expectedVersion}.`);
-    }
+// A Windows release also has the tray launcher (#68), Riftcaster.exe, which is what people start, so
+// it's started too. It runs the same server, with WinForms' runtime (Windows Desktop) as well.
+const launcherExe = path.join(publishDir, 'Riftcaster.exe');
+const launcher = process.platform === 'win32' && fs.existsSync(launcherExe);
+if (launcher) {
+  const runtimeConfig = JSON.parse(
+    fs.readFileSync(path.join(publishDir, 'Riftcaster.runtimeconfig.json'), 'utf8')
+  );
+  const frameworks = (runtimeConfig.runtimeOptions?.includedFrameworks ?? []).map(
+    (/** @type {{ name: string }} */ framework) => framework.name
+  );
+  if (!frameworks.includes('Microsoft.WindowsDesktop.App')) {
+    failures.push(
+      'Riftcaster.exe has no Windows Desktop runtime of its own: it needs .NET installed.'
+    );
   }
+}
 
-  for (const page of ['/', ...overlayPages, '/api/docs/']) {
-    await checkPage(page);
-  }
+/** @type {{ name: string, command: string, args: string[] }[]} */
+const entryPoints = [
+  selfContained
+    ? { name: 'Riftcaster.Server.exe', command: serverExe, args: [] }
+    : {
+        name: 'dotnet Riftcaster.Server.dll',
+        command: 'dotnet',
+        args: [serverDll],
+      },
+];
+if (launcher) {
+  entryPoints.push({
+    name: 'the tray launcher, Riftcaster.exe',
+    command: launcherExe,
+    args: [],
+  });
+}
 
-  const document = await fetch(new URL('/openapi/v1.json', baseUrl));
-  if (!document.ok || !document.headers.get('content-type')?.startsWith('application/json')) {
-    failures.push(`/openapi/v1.json: ${document.status}`);
-  }
-
-  if (/no overlays will be served/i.test(log)) {
-    failures.push('The server logged that it serves no overlays.');
-  }
-} catch (error) {
-  failures.push(error instanceof Error ? error.message : String(error));
-} finally {
-  // Windows won't delete the temporary folder while the server is still running in it.
-  if (server.exitCode === null) {
-    const exited = new Promise((resolve) => server.once('exit', resolve));
-    server.kill();
-    await exited;
-  }
-  fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+/** @type {string[]} */
+const logs = [];
+for (const entryPoint of entryPoints) {
+  await checkStartedBy(entryPoint);
 }
 
 if (failures.length > 0) {
@@ -142,19 +132,101 @@ if (failures.length > 0) {
   for (const failure of failures) {
     console.error(`  ${failure}`);
   }
-  console.error(`\nServer output:\n${log}`);
+  console.error(`\n${logs.join('\n')}`);
   process.exit(1);
 }
 
 console.log(
-  `The published server${selfContained ? ' (self-contained, started as Riftcaster.Server.exe)' : ''} serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
+  `The published server, started by ${entryPoints.map((entryPoint) => entryPoint.name).join(' and by ')}, serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
 );
 
 /**
+ * Starts the server through one of the publish folder's entry points, checks what it serves, and
+ * stops it. Problems go in failures, with the entry point's name.
+ * @param {{ name: string, command: string, args: string[] }} entryPoint
+ */
+async function checkStartedBy(entryPoint) {
+  const port = await freePort();
+  const baseUrl = `http://localhost:${port}`;
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'riftcaster-publish-check-'));
+  const dataDir = path.join(workDir, 'data');
+
+  /** @type {NodeJS.ProcessEnv} */
+  const env = { ...process.env };
+  delete env.ASPNETCORE_ENVIRONMENT; // Production, as a published build runs by default
+  delete env.DOTNET_ENVIRONMENT;
+
+  const server = spawn(
+    entryPoint.command,
+    [...entryPoint.args, '--urls', baseUrl, '--Storage:DataDirectory', dataDir],
+    { cwd: workDir, env, stdio: ['ignore', 'pipe', 'pipe'] }
+  );
+
+  // The console's output; the launcher has no console, so its log files are read as well.
+  let output = '';
+  server.stdout.on('data', (chunk) => (output += chunk));
+  server.stderr.on('data', (chunk) => (output += chunk));
+
+  const failuresBefore = failures.length;
+  try {
+    await waitForServer(server, baseUrl);
+
+    if (expectedVersion) {
+      const info = await (await fetch(new URL('/api/info', baseUrl))).json();
+      if (info.version !== expectedVersion) {
+        failures.push(`The server reports version ${info.version}, not ${expectedVersion}.`);
+      }
+    }
+
+    for (const page of ['/', ...overlayPages, '/api/docs/']) {
+      await checkPage(baseUrl, page);
+    }
+
+    const document = await fetch(new URL('/openapi/v1.json', baseUrl));
+    if (!document.ok || !document.headers.get('content-type')?.startsWith('application/json')) {
+      failures.push(`/openapi/v1.json: ${document.status}`);
+    }
+  } catch (error) {
+    failures.push(error instanceof Error ? error.message : String(error));
+    if (entryPoint.command === launcherExe && server.exitCode === 0) {
+      failures.push('Is Riftcaster already running? The launcher opens its dashboard instead.');
+    }
+  } finally {
+    // Windows won't delete the temporary folder while the server is still running in it.
+    if (server.exitCode === null) {
+      const exited = new Promise((resolve) => server.once('exit', resolve));
+      server.kill();
+      await exited;
+    }
+
+    const logFolder = path.join(dataDir, 'logs');
+    const logFiles = fs.existsSync(logFolder) ? fs.readdirSync(logFolder) : [];
+    const log =
+      output + logFiles.map((file) => fs.readFileSync(path.join(logFolder, file), 'utf8')).join('');
+    if (/no overlays will be served/i.test(log)) {
+      failures.push('The server logged that it serves no overlays.');
+    }
+
+    for (let i = failuresBefore; i < failures.length; i++) {
+      failures[i] = `${entryPoint.name}: ${failures[i]}`;
+    }
+    logs.push(`Output of ${entryPoint.name}:\n${log}`);
+
+    fs.rmSync(workDir, {
+      recursive: true,
+      force: true,
+      maxRetries: 5,
+      retryDelay: 200,
+    });
+  }
+}
+
+/**
  * Fetches an HTML page, then the stylesheets and scripts it links to.
+ * @param {string} baseUrl
  * @param {string} pagePath
  */
-async function checkPage(pagePath) {
+async function checkPage(baseUrl, pagePath) {
   const response = await fetch(new URL(pagePath, baseUrl));
   if (!response.ok || !response.headers.get('content-type')?.startsWith('text/html')) {
     failures.push(
@@ -176,8 +248,12 @@ async function checkPage(pagePath) {
   }
 }
 
-/** Waits up to 30 seconds for the server to answer, or for it to exit. */
-async function waitForServer() {
+/**
+ * Waits up to 30 seconds for the server to answer, or for it to exit.
+ * @param {import('child_process').ChildProcess} server
+ * @param {string} baseUrl
+ */
+async function waitForServer(server, baseUrl) {
   const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (server.exitCode !== null) {
