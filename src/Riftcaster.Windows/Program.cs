@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Riftcaster.Core.Network;
 using Riftcaster.Server;
+using Velopack;
 
 namespace Riftcaster.Windows;
 
@@ -18,6 +21,10 @@ static class Program
     [STAThread]
     static int Main(string[] args)
     {
+        // First of all: installing, updating and uninstalling (#62) run this exe with arguments of
+        // their own, which this handles, then exits, before a server or tray is started.
+        VelopackApp.Build().Run();
+
         ApplicationConfiguration.Initialize(); // Before any window, the error message included
 
         WebApplication server;
@@ -58,10 +65,15 @@ static class Program
                 return 1;
             }
 
-            using var tray = new TrayContext(dashboard, logFolder);
+            using var updates = new Updates(
+                server.Services.GetRequiredService<IConfiguration>()[Updates.Setting],
+                server.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Updates>());
+            using var tray = new TrayContext(dashboard, logFolder, updates);
+            updates.Start();
             Application.Run(tray);
 
             server.StopAsync().GetAwaiter().GetResult();
+            updates.InstallOnExit(restart: tray.RestartRequested);
         }
 
         return 0;
