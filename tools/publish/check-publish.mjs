@@ -117,7 +117,8 @@ if (launcher) {
   entryPoints.push({
     name: 'the tray launcher, Riftcaster.exe',
     command: launcherExe,
-    args: [],
+    // Otherwise every check opens the dashboard in a browser.
+    args: ['--Launcher:OpenDashboard=false'],
   });
 }
 
@@ -212,12 +213,13 @@ async function checkStartedBy(entryPoint) {
     }
     logs.push(`Output of ${entryPoint.name}:\n${log}`);
 
-    fs.rmSync(workDir, {
-      recursive: true,
-      force: true,
-      maxRetries: 5,
-      retryDelay: 200,
-    });
+    // Best effort: a process the server started, such as a browser opened on its dashboard, can
+    // keep the folder in use, and that mustn't hide what the check found.
+    try {
+      fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    } catch {
+      console.warn(`Couldn't delete the temporary folder ${workDir}; delete it by hand.`);
+    }
   }
 }
 

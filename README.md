@@ -87,11 +87,11 @@ Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has t
 - **`Riftcaster-win-Setup.exe`** installs Riftcaster for your Windows user, without administrator rights, and adds it to the Start menu. This is the one to use.
 - **`Riftcaster-win-Portable.zip`** runs from whatever folder you extract it to. Start `Riftcaster.exe` in it.
 
-Riftcaster runs in the tray, by the clock, not in a window. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open the admin dashboard (http://localhost:5062/). Quitting stops the server, and the overlays with it.
+Riftcaster runs in the tray, by the clock, not in a window. Starting it opens the admin dashboard (http://localhost:5062/) in your browser; to start without, add `--Launcher:OpenDashboard=false`. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open the dashboard again. Quitting stops the server, and the overlays with it.
 
 Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Control** lets them run. While a new release is still building its reputation, Windows may show **Windows protected your PC** on first run: click **More info**, then **Run anyway**. 0.1.0 isn't signed, so Smart App Control blocks it.
 
-**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
+**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another dashboard tab. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
 
 **Uninstalling.** Remove Riftcaster in **Settings**, **Apps**, **Installed apps**. Saved state isn't in the app's folder (see below), so it stays; delete `%APPDATA%\Riftcaster` as well to remove everything.
 

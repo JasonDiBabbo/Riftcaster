@@ -13,6 +13,12 @@ namespace Riftcaster.Windows;
 static class Program
 {
     /// <summary>
+    /// The setting that opens the dashboard on starting, true unless set: started from the Start
+    /// menu or after installing, Riftcaster shows its dashboard rather than only an icon by the clock.
+    /// </summary>
+    public const string OpenDashboardSetting = "Launcher:OpenDashboard";
+
+    /// <summary>
     ///  The main entry point for the application.
     /// </summary>
     /// <returns>
@@ -65,15 +71,25 @@ static class Program
                 return 1;
             }
 
+            var configuration = server.Services.GetRequiredService<IConfiguration>();
             using var updates = new Updates(
-                server.Services.GetRequiredService<IConfiguration>()[Updates.Setting],
+                configuration[Updates.Setting],
                 server.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Updates>());
             using var tray = new TrayContext(dashboard, logFolder, updates);
             updates.Start();
+
+            if (configuration.GetValue(OpenDashboardSetting, defaultValue: true))
+            {
+                TrayContext.OpenDashboard(dashboard);
+            }
+
             Application.Run(tray);
 
             server.StopAsync().GetAwaiter().GetResult();
-            updates.InstallOnExit(restart: tray.RestartRequested);
+
+            // Restarted with the same arguments, such as --urls, but without another dashboard tab:
+            // the one from before the update is usually still open.
+            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenDashboardSetting}=false"]);
         }
 
         return 0;

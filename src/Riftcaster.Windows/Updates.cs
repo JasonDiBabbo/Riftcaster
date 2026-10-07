@@ -119,7 +119,8 @@ internal sealed class Updates : IDisposable
     /// after the server has stopped: the updater waits for this process to end.
     /// </summary>
     /// <param name="restart">Start Riftcaster again afterwards, showing the update's progress.</param>
-    public void InstallOnExit(bool restart)
+    /// <param name="restartArgs">The arguments to start it again with.</param>
+    public void InstallOnExit(bool restart, string[] restartArgs)
     {
         if (_manager is null || Ready is null)
         {
@@ -127,7 +128,7 @@ internal sealed class Updates : IDisposable
         }
 
         _logger.LogInformation("Installing Riftcaster {Version} as it exits.", Ready.Version);
-        _manager.WaitExitThenApplyUpdates(Ready, silent: !restart, restart);
+        _manager.WaitExitThenApplyUpdates(Ready, silent: !restart, restart, restartArgs);
     }
 
     public void Dispose() => _timer.Dispose();
