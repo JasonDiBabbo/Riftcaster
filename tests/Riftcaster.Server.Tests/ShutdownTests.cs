@@ -31,7 +31,10 @@ public class ShutdownTests(RiftcasterWebApplicationFactory factory) : IClassFixt
         await server.DisposeAsync();
         stopping.Stop();
 
-        Assert.InRange(stopping.Elapsed, Program.ShutdownTimeout, Program.ShutdownTimeout + TimeSpan.FromSeconds(5));
+        // The timer that ends the wait and this stopwatch don't tick in step. The wait can measure a
+        // little under the timeout: 2.99999 seconds once on CI. Allowing half a second under the
+        // timeout still shows that stopping waited for it, and didn't wait the default 30 seconds.
+        Assert.InRange(stopping.Elapsed, Program.ShutdownTimeout - TimeSpan.FromSeconds(0.5), Program.ShutdownTimeout + TimeSpan.FromSeconds(5));
     }
 
     private sealed class NeverStopsByItself : IHostedService
