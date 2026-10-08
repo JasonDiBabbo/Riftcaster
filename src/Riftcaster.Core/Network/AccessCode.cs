@@ -35,13 +35,22 @@ public sealed class AccessCode
     private StoredAccessCode? _current;
 
     /// <summary>
-    /// Creates the service with the saved code, if any.
+    /// Creates the service with the saved code, if any. A saved code this computer can't read, such
+    /// as one a portable copy brought from another computer, is replaced with a new generated one:
+    /// other devices can still be let in, with the new code shown in the admin.
     /// </summary>
     /// <param name="store">Where the code is kept between restarts.</param>
     public AccessCode(IAccessCodeStore store)
     {
         _store = store;
-        _current = store.Load();
+
+        var saved = store.Load();
+        _current = saved.Code;
+        if (saved.Unreadable)
+        {
+            _current = new StoredAccessCode(Generate(), NewVersion());
+            _store.Save(_current);
+        }
     }
 
     /// <summary>

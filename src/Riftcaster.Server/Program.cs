@@ -17,6 +17,15 @@ namespace Riftcaster.Server;
 
 public partial class Program
 {
+    /// <summary>
+    /// How long stopping waits for what's still open, such as an admin dashboard's connection,
+    /// before closing it. The default, 30 seconds, kept Quit, Ctrl+C and Restart to update waiting
+    /// that long whenever a dashboard was open: it reconnects as the server starts stopping, and
+    /// its connection never ends by itself. Nothing needs longer: overlay sockets close within 2
+    /// seconds, and saved state is written as it changes.
+    /// </summary>
+    internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
+
     private static void Main(string[] args) => CreateApp(args).Run();
 
     /// <summary>
@@ -41,6 +50,8 @@ public partial class Program
             ApplicationName = typeof(Program).Assembly.GetName().Name,
         });
 
+        builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = ShutdownTimeout);
+
         // Network access: off unless started with --network on (see NetworkAccess).
         if (!NetworkAccess.TryParseOption(builder.Configuration["network"], out var networkOn))
         {
@@ -56,8 +67,8 @@ public partial class Program
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", AppVersion(), DateTimeOffset.Now));
 
-        // Saved state: the user's app-data folder in a published build, the project's data folder in
-        // Development (see DataFolder).
+        // Saved state: the user's app-data folder in a published build, a data folder of its own in a
+        // portable copy, the project's data folder in Development (see DataFolder).
         var dataDirectory = DataFolder.Resolve(
             builder.Configuration[DataFolder.Setting],
             builder.Environment,

@@ -1,6 +1,12 @@
-# Builds a downloadable Windows release (issue #60): a self-contained zip that runs without .NET
-# installed. Pushing a version tag, such as v0.2.0, attaches it to a new GitHub Release; running the
-# workflow by hand (Actions > Release > Run workflow) only builds it, as an artifact to try.
+# Builds a downloadable Windows release (issues #60 and #62): Riftcaster-win-Setup.exe, which installs
+# Riftcaster for the current user and keeps it up to date, and Riftcaster-win-Portable.zip, which runs
+# from any folder and also updates itself. Both are self-contained, so they run without .NET
+# installed, and both start the tray launcher (#68). Velopack (vpk, pinned in dotnet-tools.json)
+# makes them, with the update packages installed copies download.
+#
+# Pushing a version tag, such as v0.2.0, publishes them as a new GitHub Release, where installed
+# copies find them. Running the workflow by hand (Actions > Release > Run workflow) only builds them,
+# as artifacts to try.
 #
 # A tag's build is signed with Azure Artifact Signing (#61), so Windows names the publisher and Smart
 # App Control lets it run. Signing runs in the release environment, which only v* tags may use; it
@@ -25,7 +31,7 @@ jobs:
     # run would fail before its first step.
     environment: ${{ github.ref_type == 'tag' && 'release' || '' }}
     permissions:
-      contents: write # Creating the release and uploading the zip
+      contents: write # Creating the release and uploading its files
       id-token: write # The OIDC token azure/login trades for access to the signing account
     steps:
       - uses: actions/checkout@v7
@@ -40,12 +46,17 @@ jobs:
           cache: npm
           cache-dependency-path: src/overlays/package-lock.json
 
-      # v0.2.0 releases 0.2.0. A manual run, with no tag, builds the version in Directory.Build.props.
+      - name: Install vpk
+        run: dotnet tool restore
+
+      # v0.2.0 releases 0.2.0. A manual run builds the version in Directory.Build.props, marked with
+      # the run's number, such as 0.1.0-run.12: Velopack needs a version, and this one can't be
+      # mistaken for a release.
       - name: Version
         id: version
         shell: pwsh
         run: |
-          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME -replace '^v', '' } else { '' }
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME -replace '^v', '' } else { "$(dotnet msbuild src/Riftcaster.Windows -getProperty:Version)-run.$env:GITHUB_RUN_NUMBER" }
           "version=$version" >> $env:GITHUB_OUTPUT
 
       # As CI does: never release a build whose tests fail.
@@ -55,16 +66,16 @@ jobs:
       - name: Test
         run: dotnet test --configuration Release --no-build
 
-      # Self-contained: the .NET runtime goes in the folder, with a real Riftcaster.Server.exe to start
-      # it. UseAppHost is off for development (Directory.Build.props, because Smart App Control blocks
-      # an unsigned .exe built on each rebuild), so it's switched on here.
-      # @(...) keeps the arguments a list: PowerShell unwraps a one-item array returned from an if
-      # into a plain string, and splatting a string (@versionArgs) passes it one character at a time.
+      # The tray launcher, which publishes the server into the same folder (see Riftcaster.Windows.csproj).
+      # Self-contained: the .NET runtime goes in the folder, with real .exe files to start it.
+      # UseAppHost is off for development (Directory.Build.props, because Smart App Control blocks an
+      # unsigned .exe built on each rebuild), so it's switched on here.
       - name: Publish
-        shell: pwsh
-        run: |
-          $versionArgs = @(if ('${{ steps.version.outputs.version }}') { '-p:Version=${{ steps.version.outputs.version }}' })
-          dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true @versionArgs --output publish
+        run: dotnet publish src/Riftcaster.Windows --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true -p:Version=${{ steps.version.outputs.version }} --output publish
+
+      # Starts the server through Riftcaster.Server.exe, then through the tray launcher.
+      - name: Check the published server
+        run: node tools/publish/check-publish.mjs publish --version ${{ steps.version.outputs.version }}
 
       - name: Sign in to Azure
         if: github.ref_type == 'tag'
@@ -74,63 +85,79 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Only Riftcaster's own files: the rest of the folder is the .NET runtime and libraries, which
-      # their publishers already signed, and each signature counts against the account's monthly quota.
-      - name: Sign
+      # The latest release's full package, so the new release can include a delta package: what changed
+      # since then, which is all an installed copy downloads. A pre-release builds on the latest
+      # release or pre-release. Nothing is downloaded before the first release that has one.
+      - name: Download the previous release
         if: github.ref_type == 'tag'
-        uses: azure/artifact-signing-action@v2
-        with:
-          endpoint: https://wus2.codesigning.azure.net/
-          signing-account-name: riftcastersigning
-          certificate-profile-name: riftcasterpublic
-          files-folder: ${{ github.workspace }}\publish
-          files-folder-filter: Riftcaster*.dll,Riftcaster*.exe
-          file-digest: SHA256
-          timestamp-rfc3161: http://timestamp.acs.microsoft.com
-          timestamp-digest: SHA256
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $pre = @(if ('${{ github.ref_name }}' -match '-') { '--pre' })
+          dotnet vpk download github --repoUrl https://github.com/${{ github.repository }} --token $env:GH_TOKEN --outputDir releases @pre
 
-      # Without a timestamp a signature dies with its three-day certificate, so check each file is
-      # signed, trusted and timestamped before anything is published.
+      # On a tag, vpk signs every file that isn't signed already, through the signing account: ours,
+      # the libraries that ship unsigned (Scalar, Serilog, Velopack), Velopack's updater and
+      # Setup.exe. The .NET runtime's files are signed by Microsoft, so they're left alone, and don't
+      # count against the account's monthly quota.
+      - name: Package
+        shell: pwsh
+        run: |
+          $signArgs = @()
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            $metadata = Join-Path $env:RUNNER_TEMP 'signing.json'
+            @{
+              Endpoint = 'https://wus2.codesigning.azure.net/'
+              CodeSigningAccountName = 'riftcastersigning'
+              CertificateProfileName = 'riftcasterpublic'
+            } | ConvertTo-Json | Set-Content $metadata
+            $signArgs = '--azureTrustedSignFile', $metadata
+          }
+          dotnet vpk pack --packId Riftcaster --packVersion ${{ steps.version.outputs.version }} --runtime win-x64 --packDir publish --mainExe Riftcaster.exe --packTitle Riftcaster --icon src/Riftcaster.Windows/Riftcaster.ico --shortcuts StartMenuRoot --outputDir releases @signArgs
+
+      # Without a timestamp a signature dies with its three-day certificate, so check that every .exe
+      # and .dll people get, in Setup.exe and the portable zip (which has the same files as the update
+      # package), is signed, trusted and timestamped before anything is published.
       - name: Check the signatures
         if: github.ref_type == 'tag'
         shell: pwsh
         run: |
-          $files = Get-ChildItem publish -File | Where-Object { $_.Name -like 'Riftcaster*' -and $_.Extension -in '.dll', '.exe' }
-          if (-not $files) { throw 'No Riftcaster files to check in publish.' }
+          $portable = Join-Path $env:RUNNER_TEMP 'portable'
+          Expand-Archive releases/Riftcaster-win-Portable.zip $portable
+          $files = @(Get-Item releases/Riftcaster-win-Setup.exe) + @(Get-ChildItem $portable -Recurse -File -Include *.exe, *.dll)
           $failed = $false
           foreach ($file in $files) {
             $signature = Get-AuthenticodeSignature $file.FullName
             $timestamped = $null -ne $signature.TimeStamperCertificate
-            "$($file.Name): $($signature.Status), signed by $($signature.SignerCertificate.Subject), timestamped: $timestamped"
-            if ($signature.Status -ne 'Valid' -or -not $timestamped) { $failed = $true }
+            if ($signature.Status -ne 'Valid' -or -not $timestamped) {
+              "$($file.Name): $($signature.Status), timestamped: $timestamped"
+              $failed = $true
+            } elseif ($signature.SignerCertificate.Subject -notmatch 'Microsoft') {
+              "$($file.Name): signed by $($signature.SignerCertificate.Subject)"
+            }
           }
-          if ($failed) { throw 'A Riftcaster file is unsigned, untrusted or has no timestamp.' }
+          "$($files.Count) files checked."
+          if ($failed) { throw 'A file is unsigned, untrusted or has no timestamp.' }
 
-      # After signing, so the files checked are the ones published.
-      - name: Check the published server
-        shell: pwsh
-        run: |
-          $versionArgs = @(if ('${{ steps.version.outputs.version }}') { '--version'; '${{ steps.version.outputs.version }}' })
-          node tools/publish/check-publish.mjs publish @versionArgs
-
-      - name: Zip
-        id: zip
-        shell: pwsh
-        run: |
-          $version = '${{ steps.version.outputs.version }}'
-          if (-not $version) { $version = (Get-Date -Format 'yyyyMMdd') + '-' + $env:GITHUB_SHA.Substring(0, 7) }
-          $zip = "Riftcaster-$version-win-x64.zip"
-          Compress-Archive -Path publish/* -DestinationPath $zip
-          "zip=$zip" >> $env:GITHUB_OUTPUT
-
-      - name: Upload the zip (manual runs)
+      - name: Upload Setup.exe (manual runs)
         if: github.ref_type != 'tag'
         uses: actions/upload-artifact@v7
         with:
-          path: ${{ steps.zip.outputs.zip }}
+          path: releases/Riftcaster-win-Setup.exe
+          archive: false # The file as it is: GitHub would otherwise zip it
+
+      - name: Upload the portable zip (manual runs)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          path: releases/Riftcaster-win-Portable.zip
           archive: false # Our zip as it is: GitHub would otherwise zip it again
 
-      # A version with a suffix, such as v0.2.0-beta.1, is marked as a pre-release.
+      # A draft first, with notes listing the merged pull requests. vpk then adds Setup.exe, the
+      # portable zip and the update packages, with releases.win.json, the list installed copies read,
+      # and publishes it, so no installed copy ever sees the release half-uploaded. A version with a
+      # suffix, such as v0.2.0-beta.1, is marked as a pre-release, which only pre-releases update to.
       - name: Create the GitHub Release
         if: github.ref_type == 'tag'
         shell: pwsh
@@ -138,4 +165,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $prerelease = @(if ('${{ github.ref_name }}' -match '-') { '--prerelease' })
-          gh release create '${{ github.ref_name }}' '${{ steps.zip.outputs.zip }}' --title 'Riftcaster ${{ steps.version.outputs.version }}' --generate-notes @prerelease
+          gh release create '${{ github.ref_name }}' --draft --verify-tag --title 'Riftcaster ${{ steps.version.outputs.version }}' --generate-notes @prerelease
+          dotnet vpk upload github --repoUrl https://github.com/${{ github.repository }} --token $env:GH_TOKEN --outputDir releases --tag '${{ github.ref_name }}' --releaseName 'Riftcaster ${{ steps.version.outputs.version }}' --merge --publish

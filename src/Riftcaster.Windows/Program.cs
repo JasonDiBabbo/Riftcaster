@@ -1,20 +1,36 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Connections;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Riftcaster.Core.Network;
 using Riftcaster.Server;
+using Velopack;
 
 namespace Riftcaster.Windows;
 
 static class Program
 {
     /// <summary>
+    /// The setting that opens the dashboard on starting, true unless set: started from the Start
+    /// menu or after installing, Riftcaster shows its dashboard rather than only an icon by the clock.
+    /// </summary>
+    public const string OpenDashboardSetting = "Launcher:OpenDashboard";
+
+    /// <summary>
     ///  The main entry point for the application.
     /// </summary>
+    /// <returns>
+    /// 1 if Riftcaster couldn't start; 0 otherwise, including when it was already running.
+    /// </returns>
     [STAThread]
-    static void Main(string[] args)
+    static int Main(string[] args)
     {
+        // First of all: installing, updating and uninstalling (#62) run this exe with arguments of
+        // their own, which this handles, then exits, before a server or tray is started.
+        VelopackApp.Build().Run();
+
         ApplicationConfiguration.Initialize(); // Before any window, the error message included
 
         WebApplication server;
@@ -25,7 +41,7 @@ static class Program
         catch (Exception exception)
         {
             ShowStartupError(exception, logFolder: null); // Too early for a log file
-            return;
+            return 1;
         }
 
         using (server)
@@ -42,7 +58,7 @@ static class Program
             if (!firstCopy)
             {
                 TrayContext.OpenDashboard(dashboard);
-                return;
+                return 0;
             }
 
             try
@@ -52,14 +68,31 @@ static class Program
             catch (Exception exception)
             {
                 ShowStartupError(exception, logFolder); // The server has logged it, with the details
-                return;
+                return 1;
             }
 
-            using var tray = new TrayContext(dashboard, logFolder);
+            var configuration = server.Services.GetRequiredService<IConfiguration>();
+            using var updates = new Updates(
+                configuration[Updates.Setting],
+                server.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Updates>());
+            using var tray = new TrayContext(dashboard, logFolder, updates);
+            updates.Start();
+
+            if (configuration.GetValue(OpenDashboardSetting, defaultValue: true))
+            {
+                TrayContext.OpenDashboard(dashboard);
+            }
+
             Application.Run(tray);
 
             server.StopAsync().GetAwaiter().GetResult();
+
+            // Restarted with the same arguments, such as --urls, but without another dashboard tab:
+            // the one from before the update is usually still open.
+            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenDashboardSetting}=false"]);
         }
+
+        return 0;
     }
 
     /// <summary>

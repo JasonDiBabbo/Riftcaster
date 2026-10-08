@@ -21,22 +21,22 @@ internal sealed class ProtectedAccessCodeStore(string path, IDataProtectionProvi
     private readonly IDataProtector _protector = dataProtection.CreateProtector("Riftcaster.AccessCode");
 
     /// <inheritdoc/>
-    public StoredAccessCode? Load()
+    public LoadedAccessCode Load()
     {
         if (_file.Read()?.Protected is not { } protectedCode)
         {
-            return null;
+            return default;
         }
 
         try
         {
-            return JsonSerializer.Deserialize<StoredAccessCode>(_protector.Unprotect(protectedCode), JsonSerializerOptions.Web);
+            return new(JsonSerializer.Deserialize<StoredAccessCode>(_protector.Unprotect(protectedCode), JsonSerializerOptions.Web));
         }
         catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
-            // E.g. the encryption keys were lost (another Windows account, or a reinstall).
-            logger.LogWarning(exception, "Couldn't read the saved access code; set a new one in the admin dashboard.");
-            return null;
+            // E.g. it was saved on another computer or Windows account, or the keys were lost.
+            logger.LogWarning(exception, "Couldn't read the saved access code. A new one will be generated to replace it. It can be viewed in the admin dashboard's network panel.");
+            return new(null, Unreadable: true);
         }
     }
 

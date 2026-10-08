@@ -22,6 +22,7 @@ Riftcaster runs as a single server process and serves three things:
 | Admin dashboard | Blazor, Interactive Server render mode (C#/Razor) |
 | Overlays | Plain HTML, CSS, and TypeScript, bundled with esbuild |
 | Windows launcher | Windows Forms: `Riftcaster.exe` runs the server with a tray icon instead of a console window |
+| Installer and updates | [Velopack](https://velopack.io): Setup.exe, and updates from GitHub Releases |
 | Shared types | C# records in `Riftcaster.Contracts`, turned into TypeScript interfaces by [TypeGen](https://github.com/jburzynski/TypeGen) on every build |
 
 ## Repository layout
@@ -32,7 +33,7 @@ src/
 ├── Riftcaster.Admin/       Blazor components for the admin dashboard (hosted by Server)
 ├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
-├── Riftcaster.Windows/     Windows launcher: builds Riftcaster.exe, which runs the server with a tray icon
+├── Riftcaster.Windows/     Windows launcher: builds Riftcaster.exe, which runs the server with a tray icon and installs updates
 └── overlays/               npm project: one folder per overlay under src/components/
                             (overlays.esproj only lists it in Visual Studio; it builds nothing)
 tests/                      Tests for Core, Server and Admin (see "Tests")
@@ -43,6 +44,7 @@ tools/
 └── publish/                CI's check of a published build (see "Publishing it yourself")
 Riftcaster.slnx             Solution file
 Riftcaster.slnLaunch        Visual Studio launch profile (see "Developing in Visual Studio")
+dotnet-tools.json           .NET tools: vpk, which packages releases (see "Making a release")
 ```
 
 ## Prerequisites
@@ -80,15 +82,20 @@ To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
 
 ## Downloading a release
 
-Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has a Windows zip, such as `Riftcaster-0.2.0-win-x64.zip`. It's self-contained: .NET comes inside it, so nothing else needs installing.
+Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has two Windows downloads. Both are self-contained: .NET comes inside, so nothing else needs installing.
 
-1. Extract the zip to a folder of its own, such as `C:\Riftcaster`. Run it from there, not from inside the zip.
-2. Start `Riftcaster.Server.exe`. The console it opens is the server: keep it open during the show.
-3. Open http://localhost:5062/ for the admin dashboard.
+- **`Riftcaster-win-Setup.exe`** installs Riftcaster for your Windows user, without administrator rights, and adds it to the Start menu. This is the one to use.
+- **`Riftcaster-win-Portable.zip`** runs from whatever folder you extract it to, such as a USB stick. Start `Riftcaster.exe` in it. It keeps its saved state in a `data` folder inside that folder, so the state goes wherever the folder goes and stays apart from an installed copy's. The folder must be one you can write to, for the saved state and for updates. To move to a new portable folder, copy `data` across. The access code is the exception: it can only be read on the computer and Windows user that set it, so on another PC a new one is generated.
+
+Riftcaster runs in the tray, by the clock, not in a window. Starting it opens the admin dashboard (http://localhost:5062/) in your browser; to start without, add `--Launcher:OpenDashboard=false`. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open the dashboard again. Quitting stops the server, and the overlays with it.
 
 Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Control** lets them run. While a new release is still building its reputation, Windows may show **Windows protected your PC** on first run: click **More info**, then **Run anyway**. 0.1.0 isn't signed, so Smart App Control blocks it.
 
-To update, extract the new zip over the old folder, or into a new one. Saved state isn't in the folder (see below), so nothing is lost.
+**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another dashboard tab. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
+
+**Uninstalling.** Remove Riftcaster in **Settings**, **Apps**, **Installed apps**. Saved state isn't in the app's folder (see below), so it stays; delete `%APPDATA%\Riftcaster` as well to remove everything.
+
+0.1.0 came as a plain zip, with no updates and a console window (`Riftcaster.Server.exe`). Install a later release with Setup.exe instead: it finds the same saved state. The portable zip starts fresh; to bring the saved state with you, copy the contents of `%APPDATA%\Riftcaster` into its `data` folder.
 
 ## Publishing it yourself
 
@@ -100,23 +107,23 @@ dotnet publish src/Riftcaster.Server --configuration Release --output publish
 
 It builds first, so the publish always has the current code. Don't add `--no-build` (as CI does, straight after its own Release build): it would publish whatever Release build is already in `bin/`, however old.
 
-That makes a framework-dependent build: the computer running it needs the [ASP.NET Core Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) (not the whole SDK), and you start it with `dotnet Riftcaster.Server.dll`. For a self-contained one with its own `.exe`, as releases are:
+That makes a framework-dependent build: the computer running it needs the [ASP.NET Core Runtime 10](https://dotnet.microsoft.com/download/dotnet/10.0) (not the whole SDK), and you start it with `dotnet Riftcaster.Server.dll`. For a self-contained Windows one, with the tray launcher, as releases are, publish the launcher. It publishes the server into the same folder:
 
 ```bash
-dotnet publish src/Riftcaster.Server --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true --output publish
+dotnet publish src/Riftcaster.Windows --configuration Release --runtime win-x64 --self-contained -p:UseAppHost=true --output publish
 ```
 
-`UseAppHost=true` is needed because development builds don't make an `.exe` (see "Windows development notes").
+Start `Riftcaster.exe` for the tray icon, or `Riftcaster.Server.exe` for the server in a console window. `UseAppHost=true` is needed because development builds don't make an `.exe` (see "Windows development notes").
 
 A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
-- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
 - **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
-- **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the code needs setting again. The server says so in its console, and carries on without one.
+- **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the saved code can't be read. Riftcaster then generates a new one in its place and logs that it did: **Show** it in the network panel to give to operators, or set your own.
 - **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 
-CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin dashboard and every overlay page, with their scripts and stylesheets. To check a publish yourself:
+CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the admin dashboard and every overlay page, with their scripts and stylesheets. In a release's folder, it does that again with the server started by the tray launcher. To check a publish yourself:
 
 ```bash
 node tools/publish/check-publish.mjs publish
@@ -134,7 +141,17 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-The workflow builds and tests everything, publishes the self-contained Windows build with that version (which `/api/info` reports), checks it, and creates a GitHub Release with the zip and notes listing the merged pull requests. A tag with a suffix, such as `v0.3.0-beta.1`, makes a pre-release. To try the pipeline without releasing, run the workflow by hand (**Actions**, **Release**, **Run workflow**): it builds the zip and attaches it to the run instead.
+The workflow builds and tests everything, publishes the self-contained Windows build with that version (which `/api/info` reports), and checks it. Then [Velopack](https://velopack.io)'s `vpk` (pinned in `dotnet-tools.json`) packages it, signing every file that isn't signed already: Setup.exe, the portable zip, and the update packages installed copies download, including a delta package with only what changed since the last release. It creates a GitHub Release with them and notes listing the merged pull requests, and installed copies find it there. A tag with a suffix, such as `v0.3.0-beta.1`, makes a pre-release. To try the pipeline without releasing, run the workflow by hand (**Actions**, **Release**, **Run workflow**): it builds an unsigned Setup.exe and portable zip, versioned like `0.1.0-run.12`, and attaches them to the run instead.
+
+### Trying an update before releasing it
+
+Installed copies read releases from the `Updates:Source` setting: the GitHub repository unless it's set, but also a folder, which lets you try an update locally. With `vpk` installed (`dotnet tool restore`), publish one version as above (adding `-p:Version=0.9.0`), then package it into a folder:
+
+```bash
+dotnet vpk pack --packId Riftcaster --packVersion 0.9.0 --runtime win-x64 --packDir publish --mainExe Riftcaster.exe --packTitle Riftcaster --icon src/Riftcaster.Windows/Riftcaster.ico --shortcuts StartMenuRoot --outputDir releases
+```
+
+Install it with `releases/Riftcaster-win-Setup.exe`, then publish and package a newer version into the same `releases` folder. Start the installed copy with `--Updates:Source <full path of releases>`, and within a few seconds the tray offers the newer one. Uninstall it afterwards in **Settings**. `--Updates:Source=` (empty) turns updates off.
 
 ## Tests
 
@@ -279,7 +296,7 @@ Two conventions to know:
 
 ## Windows development notes
 
-Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. For the same reason, development builds make no `.exe` (`UseAppHost` is off in `Directory.Build.props`) and run through the Microsoft-signed `dotnet`; releases switch it on, and sign their own files.
+Smart App Control blocks unsigned executables and DLLs, and a fresh build produces exactly those, so it can break development builds at random. Development here assumes it's turned off. For the same reason, development builds make no `.exe` (`UseAppHost` is off in `Directory.Build.props`) and run through the Microsoft-signed `dotnet`; releases switch it on, and sign every file that isn't signed already.
 
 ## License
 

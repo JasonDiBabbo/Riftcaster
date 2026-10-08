@@ -23,9 +23,9 @@ public sealed class ProtectedAccessCodeStoreTests : IDisposable
     }
 
     [Fact]
-    public void Load_MissingFile_ReturnsNull()
+    public void Load_MissingFile_FindsNoCode()
     {
-        Assert.Null(CreateStore(_keys).Load());
+        Assert.Equal(new LoadedAccessCode(null, Unreadable: false), CreateStore(_keys).Load());
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public sealed class ProtectedAccessCodeStoreTests : IDisposable
         var code = new StoredAccessCode("K7QM-4XPA", "v1");
         CreateStore(_keys).Save(code);
 
-        Assert.Equal(code, CreateStore(_keys).Load());
+        Assert.Equal(new LoadedAccessCode(code), CreateStore(_keys).Load());
     }
 
     [Fact]
@@ -53,16 +53,16 @@ public sealed class ProtectedAccessCodeStoreTests : IDisposable
 
         store.Save(null);
 
-        Assert.Null(CreateStore(_keys).Load());
+        Assert.Equal(new LoadedAccessCode(null, Unreadable: false), CreateStore(_keys).Load());
     }
 
     [Fact]
-    public void Load_WithOtherKeys_ReturnsNull()
+    public void Load_WithOtherKeys_IsUnreadable()
     {
-        // E.g. another Windows account, or the keys were lost: start without a code, don't crash.
+        // E.g. another computer or Windows account, or the keys were lost: say so, don't crash.
         CreateStore(_keys).Save(new StoredAccessCode("K7QM-4XPA", "v1"));
 
-        Assert.Null(CreateStore(new EphemeralDataProtectionProvider()).Load());
+        Assert.Equal(new LoadedAccessCode(null, Unreadable: true), CreateStore(new EphemeralDataProtectionProvider()).Load());
     }
 
     private ProtectedAccessCodeStore CreateStore(IDataProtectionProvider keys) =>

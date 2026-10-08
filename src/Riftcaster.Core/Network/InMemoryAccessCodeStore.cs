@@ -14,7 +14,7 @@ public sealed class InMemoryAccessCodeStore : IAccessCodeStore
     public StoredAccessCode? Code { get; private set; }
 
     /// <inheritdoc/>
-    public StoredAccessCode? Load() => Code;
+    public LoadedAccessCode Load() => new(Code);
 
     /// <inheritdoc/>
     public void Save(StoredAccessCode? code)
