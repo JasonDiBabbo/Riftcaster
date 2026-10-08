@@ -154,16 +154,22 @@ jobs:
           path: releases/Riftcaster-win-Portable.zip
           archive: false # Our zip as it is: GitHub would otherwise zip it again
 
-      # A draft first, with notes listing the merged pull requests. vpk then adds Setup.exe, the
-      # portable zip and the update packages, with releases.win.json, the list installed copies read,
-      # and publishes it, so no installed copy ever sees the release half-uploaded. A version with a
-      # suffix, such as v0.2.0-beta.1, is marked as a pre-release, which only pre-releases update to.
+      # vpk creates the release. It uploads Setup.exe, the portable zip and the update packages, with
+      # releases.win.json, the list installed copies read. Then it publishes the release, so no
+      # installed copy sees it half-uploaded. A version with a suffix, such as v0.2.0-beta.1, is
+      # marked as a pre-release, which only pre-releases update to.
+      #
+      # The notes, listing the merged pull requests, are added after it's published. This step used
+      # to create a draft with the notes first, for vpk to fill. But vpk didn't always find a draft
+      # made seconds earlier, and created a second release instead (v0.2.0-beta.2).
       - name: Create the GitHub Release
         if: github.ref_type == 'tag'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $prerelease = @(if ('${{ github.ref_name }}' -match '-') { '--prerelease' })
-          gh release create '${{ github.ref_name }}' --draft --verify-tag --title 'Riftcaster ${{ steps.version.outputs.version }}' --generate-notes @prerelease
-          dotnet vpk upload github --repoUrl https://github.com/${{ github.repository }} --token $env:GH_TOKEN --outputDir releases --tag '${{ github.ref_name }}' --releaseName 'Riftcaster ${{ steps.version.outputs.version }}' --merge --publish
+          $pre = @(if ('${{ github.ref_name }}' -match '-') { '--pre' })
+          dotnet vpk upload github --repoUrl https://github.com/${{ github.repository }} --token $env:GH_TOKEN --outputDir releases --tag '${{ github.ref_name }}' --releaseName 'Riftcaster ${{ steps.version.outputs.version }}' --publish @pre
+          $notes = Join-Path $env:RUNNER_TEMP 'notes.md'
+          gh api repos/${{ github.repository }}/releases/generate-notes -f tag_name='${{ github.ref_name }}' --jq .body > $notes
+          gh release edit '${{ github.ref_name }}' --notes-file $notes
