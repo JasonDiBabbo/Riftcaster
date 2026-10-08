@@ -141,7 +141,9 @@ git tag v0.2.0
 git push origin v0.2.0
 ```
 
-The workflow builds and tests everything, publishes the self-contained Windows build with that version (which `/api/info` reports), and checks it. Then [Velopack](https://velopack.io)'s `vpk` (pinned in `dotnet-tools.json`) packages it, signing every file that isn't signed already: Setup.exe, the portable zip, and the update packages installed copies download, including a delta package with only what changed since the last release. It creates a GitHub Release with them and notes listing the merged pull requests, and installed copies find it there. A tag with a suffix, such as `v0.3.0-beta.1`, makes a pre-release. To try the pipeline without releasing, run the workflow by hand (**Actions**, **Release**, **Run workflow**): it builds an unsigned Setup.exe and portable zip, versioned like `0.1.0-run.12`, and attaches them to the run instead.
+The workflow builds and tests everything, publishes the self-contained Windows build with that version (which `/api/info` reports), and checks it. Then [Velopack](https://velopack.io)'s `vpk` (pinned in `dotnet-tools.json`) packages it, signing every file that isn't signed already: Setup.exe, the portable zip, and the update packages installed copies download, including a delta package with only what changed since the last release. It creates a GitHub Release with them and notes listing the merged pull requests, and installed copies find it there. A tag with a suffix, such as `v0.3.0-beta.1`, makes a pre-release. To try the pipeline without releasing, run the workflow by hand (**Actions**, **Release**, **Run workflow**): it builds an unsigned Setup.exe and portable zip and attaches them to the run instead. Their version is the one in `Directory.Build.props`, followed by `-run.` and the run's number.
+
+The tag is the only version a release needs. `Directory.Build.props` holds the next version to be released, which local builds and manual runs report. After each release, set it to the version after that one.
 
 ### Trying an update before releasing it
 

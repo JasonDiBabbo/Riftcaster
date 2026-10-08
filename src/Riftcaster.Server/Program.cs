@@ -169,7 +169,7 @@ public partial class Program
     }
 
     /// <summary>
-    /// The version this build was given: 0.1.0 locally, or a release's tag (see Directory.Build.props).
+    /// The version this build was given: the one in Directory.Build.props locally, or a release's tag.
     /// The SDK adds the commit to the informational version ("0.2.0+1a2b3c…"); only the version is kept.
     /// </summary>
     private static string AppVersion()
