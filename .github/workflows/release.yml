@@ -49,9 +49,9 @@ jobs:
       - name: Install vpk
         run: dotnet tool restore
 
-      # v0.2.0 releases 0.2.0. A manual run builds the version in Directory.Build.props, marked with
-      # the run's number, such as 0.1.0-run.12: Velopack needs a version, and this one can't be
-      # mistaken for a release.
+      # v0.2.0 releases 0.2.0. A manual run builds the version in Directory.Build.props, followed by
+      # -run. and the run's number. Velopack needs a version, and this one can't be mistaken for a
+      # release.
       - name: Version
         id: version
         shell: pwsh

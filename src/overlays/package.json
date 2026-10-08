@@ -1,6 +1,5 @@
 {
   "name": "riftcaster-overlays",
-  "version": "0.1.0",
   "private": true,
   "description": "OBS Browser Source overlay pages for Riftcaster",
   "scripts": {
