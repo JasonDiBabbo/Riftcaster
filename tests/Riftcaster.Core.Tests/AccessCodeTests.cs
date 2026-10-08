@@ -46,6 +46,19 @@ public class AccessCodeTests
         Assert.Equal(("K7QM-4XPA", "v1"), (accessCode.Code, accessCode.Version));
     }
 
+    [Fact]
+    public void Constructor_UnreadableSavedCode_GeneratesAndSavesANewOne()
+    {
+        var store = new UnreadableStore();
+
+        var accessCode = new AccessCode(store);
+
+        Assert.True(accessCode.IsSet);
+        Assert.Matches("^[ACDEFGHJKMNPQRTUVWXY34679]{4}-[ACDEFGHJKMNPQRTUVWXY34679]{4}$", accessCode.Code); // As Generate makes them
+        Assert.NotNull(accessCode.Version);
+        Assert.Equal(new StoredAccessCode(accessCode.Code!, accessCode.Version), store.Saved);
+    }
+
     [Theory]
     [InlineData("12345")] // Too short
     [InlineData("12-34 5")] // Dashes and spaces don't count
@@ -126,5 +139,15 @@ public class AccessCodeTests
         Assert.All(codes, code => Assert.Matches("^[ACDEFGHJKMNPQRTUVWXY34679]{4}-[ACDEFGHJKMNPQRTUVWXY34679]{4}$", code));
         Assert.True(codes.Distinct().Count() > 190); // Random, not a fixed sequence
         Assert.All(codes, code => Assert.True(new AccessCode(new InMemoryAccessCodeStore()).Set(code))); // Always long enough
+    }
+
+    // A store whose saved code was saved somewhere else, so it can't be read.
+    private sealed class UnreadableStore : IAccessCodeStore
+    {
+        public StoredAccessCode? Saved { get; private set; }
+
+        public LoadedAccessCode Load() => new(null, Unreadable: true);
+
+        public void Save(StoredAccessCode? code) => Saved = code;
     }
 }
