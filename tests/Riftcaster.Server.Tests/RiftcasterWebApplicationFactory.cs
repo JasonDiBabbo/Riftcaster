@@ -29,7 +29,23 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
     public override async ValueTask DisposeAsync()
     {
         await base.DisposeAsync(); // Stops the server, closing its log file
-        Directory.Delete(_dataDirectory, recursive: true);
+
+        // Something outside the tests, such as antivirus scanning the new log file, can have it open
+        // for a moment after the server closes it, mostly while every test class starts at once. A
+        // file the server itself left open still fails, after a second.
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                Directory.Delete(_dataDirectory, recursive: true);
+                break;
+            }
+            catch (IOException) when (attempt < 10)
+            {
+                await Task.Delay(100);
+            }
+        }
+
         GC.SuppressFinalize(this);
     }
 

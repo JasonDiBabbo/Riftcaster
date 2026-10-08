@@ -17,6 +17,15 @@ namespace Riftcaster.Server;
 
 public partial class Program
 {
+    /// <summary>
+    /// How long stopping waits for what's still open, such as an admin dashboard's connection,
+    /// before closing it. The default, 30 seconds, kept Quit, Ctrl+C and Restart to update waiting
+    /// that long whenever a dashboard was open: it reconnects as the server starts stopping, and
+    /// its connection never ends by itself. Nothing needs longer: overlay sockets close within 2
+    /// seconds, and saved state is written as it changes.
+    /// </summary>
+    internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
+
     private static void Main(string[] args) => CreateApp(args).Run();
 
     /// <summary>
@@ -40,6 +49,8 @@ public partial class Program
             // Riftcaster, and the server would look for Riftcaster.staticwebassets.endpoints.json.
             ApplicationName = typeof(Program).Assembly.GetName().Name,
         });
+
+        builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = ShutdownTimeout);
 
         // Network access: off unless started with --network on (see NetworkAccess).
         if (!NetworkAccess.TryParseOption(builder.Configuration["network"], out var networkOn))
