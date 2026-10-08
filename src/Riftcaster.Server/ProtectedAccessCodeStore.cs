@@ -35,7 +35,7 @@ internal sealed class ProtectedAccessCodeStore(string path, IDataProtectionProvi
         catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
             // E.g. it was saved on another computer or Windows account, or the keys were lost.
-            logger.LogWarning(exception, "Couldn't read the saved access code, so a new one replaces it. Show it in the admin dashboard's network panel.");
+            logger.LogWarning(exception, "Couldn't read the saved access code. A new one will be generated to replace it. It can be viewed in the admin dashboard's network panel.");
             return new(null, Unreadable: true);
         }
     }
