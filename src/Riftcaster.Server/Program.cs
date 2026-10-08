@@ -67,8 +67,8 @@ public partial class Program
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", AppVersion(), DateTimeOffset.Now));
 
-        // Saved state: the user's app-data folder in a published build, the project's data folder in
-        // Development (see DataFolder).
+        // Saved state: the user's app-data folder in a published build, a data folder of its own in a
+        // portable copy, the project's data folder in Development (see DataFolder).
         var dataDirectory = DataFolder.Resolve(
             builder.Configuration[DataFolder.Setting],
             builder.Environment,

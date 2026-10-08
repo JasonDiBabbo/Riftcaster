@@ -9,6 +9,11 @@
 /// not in its own folder, so replacing the app with a new version, by hand or by an installer,
 /// never touches it. Not %LOCALAPPDATA%: installers such as Velopack put the app there and remove
 /// that folder when uninstalling. Development keeps the project's data folder, as before.
+/// <para>
+/// A portable copy (the release's portable zip, #62) keeps it in a data folder of its own instead,
+/// so its data goes wherever the folder goes, such as a USB stick, and never mixes with an installed
+/// copy's. It's beside the app's folder (current), not in it, since each update replaces current.
+/// </para>
 /// </remarks>
 internal static class DataFolder
 {
@@ -16,6 +21,11 @@ internal static class DataFolder
     /// The setting that chooses the folder, absolute or relative to the content root.
     /// </summary>
     public const string Setting = "Storage:DataDirectory";
+
+    /// <summary>
+    /// The file Velopack leaves in a portable copy's folder, beside the app's own (current).
+    /// </summary>
+    public const string PortableMarker = ".portable";
 
     /// <summary>
     /// The saved-state folder for this run.
@@ -34,7 +44,18 @@ internal static class DataFolder
             return Path.GetFullPath(Path.Combine(environment.ContentRootPath, configured));
         }
 
-        return environment.IsDevelopment() || string.IsNullOrEmpty(appData)
+        if (environment.IsDevelopment())
+        {
+            return Path.Combine(environment.ContentRootPath, "data");
+        }
+
+        var portableFolder = Path.GetDirectoryName(Path.TrimEndingDirectorySeparator(environment.ContentRootPath));
+        if (portableFolder is not null && File.Exists(Path.Combine(portableFolder, PortableMarker)))
+        {
+            return Path.Combine(portableFolder, "data");
+        }
+
+        return string.IsNullOrEmpty(appData)
             ? Path.Combine(environment.ContentRootPath, "data")
             : Path.Combine(appData, "Riftcaster");
     }

@@ -85,7 +85,7 @@ To build only the .NET side (without Node), pass `-p:SkipOverlays=true`.
 Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has two Windows downloads. Both are self-contained: .NET comes inside, so nothing else needs installing.
 
 - **`Riftcaster-win-Setup.exe`** installs Riftcaster for your Windows user, without administrator rights, and adds it to the Start menu. This is the one to use.
-- **`Riftcaster-win-Portable.zip`** runs from whatever folder you extract it to. Start `Riftcaster.exe` in it.
+- **`Riftcaster-win-Portable.zip`** runs from whatever folder you extract it to, such as a USB stick. Start `Riftcaster.exe` in it. It keeps its saved state in a `data` folder inside that folder, so the state goes wherever the folder goes and stays apart from an installed copy's. The folder must be one you can write to, for the saved state and for updates. To move to a new portable folder, copy `data` across.
 
 Riftcaster runs in the tray, by the clock, not in a window. Starting it opens the admin dashboard (http://localhost:5062/) in your browser; to start without, add `--Launcher:OpenDashboard=false`. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open the dashboard again. Quitting stops the server, and the overlays with it.
 
@@ -95,7 +95,7 @@ Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Co
 
 **Uninstalling.** Remove Riftcaster in **Settings**, **Apps**, **Installed apps**. Saved state isn't in the app's folder (see below), so it stays; delete `%APPDATA%\Riftcaster` as well to remove everything.
 
-0.1.0 came as a plain zip, with no updates and a console window (`Riftcaster.Server.exe`). Install a later release with Setup.exe instead: it finds the same saved state.
+0.1.0 came as a plain zip, with no updates and a console window (`Riftcaster.Server.exe`). Install a later release with Setup.exe instead: it finds the same saved state. The portable zip starts fresh; to bring the saved state with you, copy the contents of `%APPDATA%\Riftcaster` into its `data` folder.
 
 ## Publishing it yourself
 
@@ -118,7 +118,7 @@ Start `Riftcaster.exe` for the tray icon, or `Riftcaster.Server.exe` for the ser
 A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
-- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new computer or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
 - **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another computer or user the code needs setting again. The server says so in its console, and carries on without one.
 - **If the overlays are missing,** the admin dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
