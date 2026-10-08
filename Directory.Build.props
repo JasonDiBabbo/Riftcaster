@@ -5,10 +5,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <UseAppHost>false</UseAppHost>
         <!-- The version that local builds and manual release runs report (/api/info, the API docs).
-             It's the next version to be released. After each release, set it to the one after.
-             Releases don't use it: they take their version from their tag (see
-             .github/workflows/release.yml). -->
-        <Version>0.2.0</Version>
+             It's the next version to be released. After each release, set it to the next patch
+             version, such as 0.2.0 to 0.2.1. Raise it when a change calls for a bigger step, such
+             as a new feature for 0.3.0. Releases don't use it: they take their version from their
+             tag (see .github/workflows/release.yml). -->
+        <Version>0.2.1</Version>
         <!-- Report the warning-level .editorconfig code-style rules in every build, not only in the IDE. -->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
