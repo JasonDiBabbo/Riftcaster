@@ -148,7 +148,7 @@ internal static class OperatorSignIn
     {
         var accessCode = context.RequestServices.GetRequiredService<AccessCode>();
         var body = !accessCode.IsSet
-            ? """<p>Remote access isn't set up. To use the admin dashboard from this device, first set an access code on the computer running the server.</p>"""
+            ? """<p>Remote access isn't set up. To use the admin dashboard on this device, first set an access code on the server.</p>"""
             : form is null
                 ? ""
                 : $"""

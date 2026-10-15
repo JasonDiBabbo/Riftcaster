@@ -134,7 +134,7 @@
                 </div>
             </div>,
         { Fetching: false, LastFailure: { } failure } =>
-            @<p class="empty">Couldn’t fetch the card catalogue: @failure.Reason It will try again shortly.</p>,
+            @<p class="empty">Couldn't fetch the card catalogue: @failure.Reason The server will try again shortly.</p>,
         _ => @<p class="empty">Fetching the card catalogue. The first fetch can take a few minutes.</p>,
     };
 

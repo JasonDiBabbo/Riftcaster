@@ -12,9 +12,9 @@ const reloadButton = document.getElementById('reconnect-reload');
 const messages = {
   reconnecting: 'Reconnecting to the server…',
   retrying: 'Still trying to reconnect to the server…',
-  failed: 'Couldn’t reconnect. Check that the Riftcaster server is running, then try again.',
+  failed: "Couldn't reconnect. Check that the Riftcaster server is running, then try again.",
   paused: 'The server paused this session.',
-  resumeFailed: 'Couldn’t resume the session. Reload the page to carry on.',
+  resumeFailed: "Couldn't resume the session. Reload the page to continue.",
   rejected: 'The server has restarted. Reloading…',
 };
 

@@ -41,14 +41,14 @@ internal static class HostCheck
             if (reported.TryAdd(host.Host, true))
             {
                 app.Logger.LogWarning(
-                    "Refused requests addressed to '{Host}'. If that's a name for this computer, add it to the {Setting} setting.",
+                    "Refused requests addressed to '{Host}'. If that's a name for the server, add it to the {Setting} setting.",
                     host.Host, HostNamesSetting);
             }
 
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             context.Response.ContentType = "text/plain; charset=utf-8";
             await context.Response.WriteAsync(
-                $"Riftcaster only answers requests addressed to this computer: localhost, its IP address, or its name. To reach it by another name, add the name to the {HostNamesSetting} setting.");
+                $"Riftcaster only answers requests that use the server's own address. That means localhost, its IP address, or its name. To reach it by another name, add that name to the {HostNamesSetting} setting.");
         });
     }
 

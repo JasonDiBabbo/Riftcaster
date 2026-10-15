@@ -198,14 +198,14 @@ public partial class Program
     {
         if (!network.Enabled)
         {
-            logger.LogInformation("Network access is off: only this computer can reach the server. Turn it on from the admin dashboard, or start with --network on.");
+            logger.LogInformation("Network access is off. Only the server can reach Riftcaster. Turn it on from the admin dashboard, or start Riftcaster with --network on.");
             return;
         }
 
         var urls = network.NetworkUrls();
         if (urls.Count == 0)
         {
-            logger.LogWarning("Network access is on, but this computer has no network address. Check it's connected to the network.");
+            logger.LogWarning("Network access is on, but the server doesn't have a network address. Check that it's connected to the network.");
             return;
         }
 
@@ -214,6 +214,6 @@ public partial class Program
             string.Join(" or ", urls),
             accessCode.IsSet
                 ? "Approved operators can sign in to the admin dashboard there with the access code."
-                : "The admin dashboard stays on this computer until an access code is set.");
+                : "Until an access code is set, the admin dashboard can only be used on the server.");
     }
 }
