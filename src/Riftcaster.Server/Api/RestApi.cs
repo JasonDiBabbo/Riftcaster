@@ -58,9 +58,9 @@ internal static class RestApi
                 Title = "Riftcaster API",
                 Version = identity.Version,
                 Description = """
-                    Control the overlays from outside the admin dashboard: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the dashboard does is here, except network access and the access code, which can only be changed on the computer running the server.
+                    Control the overlays from outside the admin dashboard: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the dashboard does is here, except network access and the access code, which can only be changed on the server.
 
-                    **Calling it:** from the computer running the server, no sign-in is needed. From another device, network access must be on, and each request needs the access code, as `Authorization: Bearer <code>`.
+                    **Calling it:** from the server, no sign-in is needed. From another device, network access must be on, and each request needs the access code, as `Authorization: Bearer <code>`.
 
                     Changes return the new state, so a button can show it. Invalid requests get a 400 with the details, and unknown seats and ids a 404.
                     """,

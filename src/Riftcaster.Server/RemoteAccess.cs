@@ -33,7 +33,7 @@ internal static class RemoteAccess
             var isApi = RestApi.IsApiPath(context.Request.Path);
             if (!accessCode.IsSet)
             {
-                const string OnlyHere = "The Riftcaster admin dashboard is only available on the computer running the server. To use it from this device, set an access code in the admin dashboard there.";
+                const string OnlyHere = "The admin dashboard is only available on the server. To use it on this device, set an access code in the admin dashboard on the server.";
                 if (isApi)
                 {
                     await Problem(context, StatusCodes.Status403Forbidden, "No access code is set", OnlyHere);

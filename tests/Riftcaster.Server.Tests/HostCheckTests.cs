@@ -57,7 +57,7 @@ public class HostCheckTests(RiftcasterWebApplicationFactory factory) : IClassFix
         var response = await SendAsync(factory, path, "evil.example:5062");
 
         Assert.Equal(StatusCodes.Status400BadRequest, response.StatusCode);
-        Assert.StartsWith("Riftcaster only answers requests addressed to this computer", response.Body);
+        Assert.StartsWith("Riftcaster only answers requests that use the server's own address", response.Body);
     }
 
     [Theory]

@@ -33,13 +33,13 @@ public static class OverlayHostingExtensions
 
         if (files.Folder is null)
         {
-            app.Logger.LogError("The Overlays:Path setting is missing, so no overlays will be served: OBS will show nothing. Set it in appsettings.json.");
+            app.Logger.LogError("The Overlays:Path setting is missing. No overlays will be served. Your streaming software won't be able to show anything. Set it in appsettings.json.");
             return app;
         }
 
         if (!files.Found)
         {
-            app.Logger.LogError("The overlays folder '{Path}' doesn't exist, so no overlays will be served: OBS will show nothing. Build the server (or publish it) again to create it.", files.Folder);
+            app.Logger.LogError("The overlays folder '{Path}' doesn't exist. No overlays will be served. Your streaming software won't be able to show anything. Build the server (or publish it) again to create the folder.", files.Folder);
             return app;
         }
 

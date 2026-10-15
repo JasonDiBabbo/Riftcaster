@@ -107,12 +107,12 @@ static class Program
         // Most likely the console server (Riftcaster.Server), or another program, on the same port.
         if (exception.InnerException is AddressInUseException)
         {
-            message += "\n\nIs Riftcaster already running in a console window? Close it, or start this one with a different --urls.";
+            message += "\n\nIs Riftcaster already running in a console window? Close it, or start this one with a different --urls option.";
         }
 
         if (logFolder is not null)
         {
-            message += $"\n\nThe log has the details: {logFolder}";
+            message += $"\n\nCheck the log folder for more information: {logFolder}";
         }
 
         MessageBox.Show(message, "Riftcaster", MessageBoxButtons.OK, MessageBoxIcon.Error);

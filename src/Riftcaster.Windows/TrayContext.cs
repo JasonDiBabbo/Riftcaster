@@ -87,7 +87,7 @@ internal sealed class TrayContext : ApplicationContext
         _icon.ShowBalloonTip(
             10_000,
             $"Riftcaster {version} is ready to install",
-            "It will install the next time you quit Riftcaster. To install it now, right-click the Riftcaster icon and choose Restart to update.",
+            $"It will install the next time Riftcaster closes. To install it now, right-click the Riftcaster icon and choose \"Restart to update to {version}\".",
             ToolTipIcon.Info);
     }
 
