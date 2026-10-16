@@ -28,10 +28,10 @@ const square = icon.replace('rx="14" ', "");
 // At 24 px and under the card is drawn bigger and its tear wider, or the tear blurs into a grey line.
 const small = icon
   .replace('stroke-width="3.5"', 'stroke-width="5.5"')
-  .replace("scale(0.8)", "scale(0.88)");
+  .replace("scale(0.68)", "scale(0.75)");
 if (
   square === icon ||
-  small.includes("scale(0.8)") ||
+  small.includes("scale(0.68)") ||
   small.includes('stroke-width="3.5"')
 )
   throw new Error(

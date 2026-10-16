@@ -1,4 +1,4 @@
-<img src=".github/assets/banner.svg" width="100%" alt="Riftcaster: livestream overlays for the Riftbound TCG">
+<img src=".github/assets/banner.svg" width="100%" alt="Riftcaster: livestream overlays for Riftbound">
 
 # Riftcaster
 
