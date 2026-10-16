@@ -7,5 +7,5 @@
     </mask>
   </defs>
   <rect width="64" height="64" rx="14" fill="#0e0f11"/>
-  <rect width="64" height="64" fill="#62d0a4" mask="url(#tear)" transform="translate(32 32) scale(0.8) translate(-32 -32)"/>
+  <rect width="64" height="64" fill="#62d0a4" mask="url(#tear)" transform="translate(32 32) scale(0.68) translate(-32 -32)"/>
 </svg>
