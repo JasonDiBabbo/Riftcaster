@@ -11,13 +11,13 @@ using Riftcaster.Core.Overlays;
 
 namespace Riftcaster.Admin.Tests;
 
-public class AdminHeaderTests : BunitContext
+public class LiveStatusTests : BunitContext
 {
     private readonly OverlayConnections _connections = new();
 
     private readonly AccessCode _accessCode = new(new InMemoryAccessCodeStore());
 
-    public AdminHeaderTests()
+    public LiveStatusTests()
     {
         var catalog = new CardCatalog(new InMemoryCardStore(), new InMemoryCardSource(), TimeProvider.System, NullLogger<CardCatalog>.Instance);
         Services.AddSingleton(new FeaturedCardService(new InMemoryFeaturedCardStore(), catalog));
@@ -31,32 +31,32 @@ public class AdminHeaderTests : BunitContext
     [Fact]
     public void ConnectionPill_CountsTheOverlays()
     {
-        var header = RenderHeader(new OverlayFiles(@"C:\Riftcaster\overlays", true));
-        Assert.Equal("No overlays connected", header.Find(".connection").TextContent);
-        Assert.Contains("none", header.Find(".connection").ClassList); // A warning: OBS isn't connected yet
+        var status = RenderStatus(new OverlayFiles(@"C:\Riftcaster\overlays", true));
+        Assert.Equal("No overlays connected", status.Find(".connection").TextContent);
+        Assert.Contains("none", status.Find(".connection").ClassList); // A warning: OBS isn't connected yet
 
         using var first = _connections.Connect();
-        header.WaitForAssertion(() => Assert.Equal("1 overlay connected", header.Find(".connection").TextContent));
+        status.WaitForAssertion(() => Assert.Equal("1 overlay connected", status.Find(".connection").TextContent));
 
         using var second = _connections.Connect();
-        header.WaitForAssertion(() => Assert.Equal("2 overlays connected", header.Find(".connection").TextContent));
-        Assert.DoesNotContain("none", header.Find(".connection").ClassList);
+        status.WaitForAssertion(() => Assert.Equal("2 overlays connected", status.Find(".connection").TextContent));
+        Assert.DoesNotContain("none", status.Find(".connection").ClassList);
     }
 
     [Fact]
     public void NoOverlayFiles_ShowsAnErrorInPlaceOfTheCount()
     {
-        var header = RenderHeader(new OverlayFiles(@"C:\Riftcaster\overlays", false));
+        var status = RenderStatus(new OverlayFiles(@"C:\Riftcaster\overlays", false));
 
-        var pill = header.Find(".connection");
+        var pill = status.Find(".connection");
         Assert.Equal("Overlay files missing", pill.TextContent.Trim());
         Assert.Contains("missing", pill.ClassList);
         Assert.Equal("alert", pill.GetAttribute("role"));
     }
 
-    private IRenderedComponent<AdminHeader> RenderHeader(OverlayFiles files)
+    private IRenderedComponent<LiveStatus> RenderStatus(OverlayFiles files)
     {
         Services.AddSingleton(files);
-        return Render<AdminHeader>(parameters => parameters.AddCascadingValue(new OperatorSession(true, _accessCode.Version)));
+        return Render<LiveStatus>(parameters => parameters.AddCascadingValue(new OperatorSession(true, _accessCode.Version)));
     }
 }

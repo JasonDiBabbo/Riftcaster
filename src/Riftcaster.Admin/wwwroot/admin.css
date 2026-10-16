@@ -276,3 +276,17 @@ input[type='number'] {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Pages other than the dashboard share this frame until each has its own design: a padded,
+   scrolling area under the page header. */
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.placeholder {
+  margin: 0;
+  color: var(--text-muted);
+}

@@ -1,0 +1,95 @@
+/* Positioned: the network panel hangs from this bar's bottom edge (see NetworkControl.razor.css). */
+.bar {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+  /* The same height on every page: the menu button (phones) or the pills (the Live page) would
+     otherwise make some taller. Content only grows it when it has to wrap. */
+  min-height: 61px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--header-line);
+  background: var(--hd);
+}
+
+/* Phone only: the side navigation isn't on screen, so the menu button opens it. */
+.menu-button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -6px;
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-item);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.menu-button svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (hover: hover) {
+  .menu-button:hover {
+    background: var(--button-hover);
+  }
+}
+
+/* The logo's card, as in the navigation's header (the rail shows it on tablets and up). */
+.mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: -1px -7px -1px -5px;
+  background: var(--acc);
+  mask: url('logo/mark.svg') center / contain no-repeat;
+}
+
+.title {
+  margin: 0;
+  color: var(--text-bright);
+  font: 700 var(--fs-title) / 1 var(--font);
+}
+
+/* The pills stay at the right, even when the bar wraps them onto their own row, so the network
+   panel, which opens under the bar's right end, opens under them. */
+.status {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Phones: from the left, under the title. */
+@media (width < 760px) {
+  .status {
+    justify-content: flex-start;
+  }
+}
+
+@media (width >= 760px) {
+  .bar {
+    min-height: 52px; /* 30px pills, 10px above and below, and the border */
+    padding: 10px 16px;
+  }
+
+  .menu-button,
+  .mark,
+  .section {
+    display: none;
+  }
+}

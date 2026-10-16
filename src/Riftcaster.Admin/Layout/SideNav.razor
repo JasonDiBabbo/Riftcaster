@@ -1,0 +1,152 @@
+@implements IDisposable
+@inject NavigationManager Navigation
+
+@* The admin's side navigation. One element serves every screen size, and the stylesheet decides
+   which it is (see NavMenuState): an open rail on desktops, an icon rail on tablets that opens over
+   the page, and on phones a menu that fills the screen, opened from the page header's menu button. *@
+<div class="slot @(Nav.Collapsed ? "collapsed" : null)">
+    @if (Nav.MenuOpen)
+    {
+        @* Over the page, behind the open menu, on tablets: a tap outside the menu closes it. *@
+        <button type="button" class="scrim" aria-label="Close menu" tabindex="-1" @onclick="Nav.CloseMenu"></button>
+    }
+
+    <nav id="side-nav" class="rail @(Nav.MenuOpen ? "open" : null)" aria-label="Main" @onkeydown="CloseOnEscape">
+        <div class="brand">
+            @* Phones only: takes the place of the page header's menu button, which the open menu covers. *@
+            <button type="button" class="close" aria-label="Close menu" @onclick="Nav.CloseMenu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+            <span class="mark" aria-hidden="true"></span>
+            <span class="wordmark">RIFTCASTER</span>
+        </div>
+
+        <div class="find">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4-4" /></svg>
+            <input type="search" placeholder="Jump to…" aria-label="Jump to a page" @bind="_query" @bind:event="oninput" />
+        </div>
+
+        <div class="groups">
+            @foreach (var group in VisibleGroups())
+            {
+                <div class="group">
+                    <div class="group-title">@group.Title</div>
+                    @foreach (var item in group.Items)
+                    {
+                        var current = AdminNav.IsCurrent(item, _path);
+                        <a class="item @(current ? "active" : null)"
+                           href="@item.Href"
+                           title="@item.Title"
+                           aria-current="@(current ? "page" : null)"
+                           @onclick="Nav.CloseMenu">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="@item.Icon" /></svg>
+                            <span class="label">@item.Title</span>
+                        </a>
+                    }
+                </div>
+            }
+            @if (_query.Trim().Length > 0 && !VisibleGroups().Any())
+            {
+                <p class="none">No pages match.</p>
+            }
+        </div>
+
+        <div class="footer">
+            @* Desktops shrink the rail to icons and back. *@
+            <button type="button" class="item collapse-toggle"
+                    aria-label="@(Nav.Collapsed ? "Expand navigation" : "Collapse navigation")"
+                    title="@(Nav.Collapsed ? "Expand navigation" : "Collapse navigation")"
+                    aria-controls="side-nav"
+                    aria-expanded="@(Nav.Collapsed ? "false" : "true")"
+                    @onclick="Nav.ToggleCollapsed">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="@(Nav.Collapsed ? "M9 6l6 6-6 6" : "M15 6l-6 6 6 6")" /></svg>
+                <span class="label">@(Nav.Collapsed ? "Expand" : "Collapse")</span>
+            </button>
+            @* Tablets keep the rail as icons and open it over the page, with this button to open and close it. *@
+            <button type="button" class="item expand-toggle"
+                    aria-label="@(Nav.MenuOpen ? "Collapse navigation" : "Expand navigation")"
+                    title="@(Nav.MenuOpen ? "Collapse navigation" : "Expand navigation")"
+                    aria-controls="side-nav"
+                    aria-expanded="@(Nav.MenuOpen ? "true" : "false")"
+                    @onclick="ToggleMenu">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="@(Nav.MenuOpen ? "M15 6l-6 6 6 6" : "M9 6l6 6-6 6")" /></svg>
+                <span class="label">@(Nav.MenuOpen ? "Collapse" : "Expand")</span>
+            </button>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private string _query = "";
+
+    private string _path = "/";
+
+    [CascadingParameter]
+    private NavMenuState Nav { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+        _path = CurrentPath();
+        Navigation.LocationChanged += OnLocationChanged;
+        Nav.Changed += OnNavChanged;
+    }
+
+    private IEnumerable<NavGroup> VisibleGroups()
+    {
+        var query = _query.Trim();
+        foreach (var group in AdminNav.Groups)
+        {
+            var items = group.Items
+                .Where(item => query.Length == 0 || item.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (items.Count > 0)
+            {
+                yield return group with { Items = items };
+            }
+        }
+    }
+
+    private void ToggleMenu()
+    {
+        if (Nav.MenuOpen)
+        {
+            Nav.CloseMenu();
+        }
+        else
+        {
+            Nav.OpenMenu();
+        }
+    }
+
+    private string CurrentPath() => new Uri(Navigation.Uri).AbsolutePath;
+
+    private void CloseOnEscape(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape")
+        {
+            Nav.CloseMenu();
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _ = InvokeAsync(() =>
+        {
+            _path = CurrentPath();
+            _query = "";
+            Nav.CloseMenu();
+            StateHasChanged();
+        });
+    }
+
+    private void OnNavChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Nav.Changed -= OnNavChanged;
+    }
+}

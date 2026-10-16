@@ -1,4 +1,5 @@
-﻿using Riftcaster.Core.Network;
+﻿using Riftcaster.Admin.Layout;
+using Riftcaster.Core.Network;
 using Riftcaster.Server.Api;
 
 namespace Riftcaster.Server;
@@ -46,11 +47,11 @@ internal static class RemoteAccess
                 return;
             }
 
-            // A page (the admin, or the API's docs, which a browser can't send the code to): send
+            // A page (any of the admin's, or the API's docs, which a browser can't send the code to): send
             // the operator to sign in. Anything else (the admin's live connection, its scripts)
             // just fails until they have.
             if (HttpMethods.IsGet(context.Request.Method)
-                && (context.Request.Path == "/" || context.Request.Path.StartsWithSegments(RestApi.DocsPath)))
+                && (AdminNav.IsAdminPage(context.Request.Path.Value) || context.Request.Path.StartsWithSegments(RestApi.DocsPath)))
             {
                 context.Response.Redirect(OperatorSignIn.SignInPath);
                 return;

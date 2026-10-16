@@ -26,13 +26,20 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         Assert.Equal(StatusCodes.Status403Forbidden, response.StatusCode);
     }
 
-    [Fact]
-    public async Task CodeSet_RemoteAdmin_RedirectsToSignIn()
+    // Every page of the admin, not only the dashboard: a bookmarked or shared link to one lands on sign-in.
+    [Theory]
+    [InlineData("/")]
+    [InlineData("/overlay-list")]
+    [InlineData("/network")]
+    [InlineData("/settings")]
+    [InlineData("/logs")]
+    [InlineData("/about")]
+    public async Task CodeSet_RemoteAdmin_RedirectsToSignIn(string path)
     {
         AccessCode.Set(Code);
         var device = new RemoteDevice(factory, "192.168.1.61");
 
-        var response = await device.GetAsync("/");
+        var response = await device.GetAsync(path);
 
         Assert.Equal(StatusCodes.Status302Found, response.StatusCode);
         Assert.Equal("/signin", response.Headers.Location);

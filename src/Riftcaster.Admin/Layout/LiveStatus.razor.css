@@ -1,0 +1,55 @@
+.summary {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+/* The connection pill's greens and ambers are only used here, so they aren't tokens. */
+.connection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #25302a;
+  border-radius: var(--radius-pill);
+  background: #141a16;
+  color: #b9c9bd;
+  font: 500 var(--fs-meta) / 1 var(--font);
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+/* Not in the design, whose pill is always connected: with no overlays, it's a warning. */
+.connection.none {
+  border-color: #3a3122;
+  background: #1c1912;
+  color: #d9c7a3;
+}
+
+.connection.none .dot {
+  background: var(--warn);
+}
+
+/* No overlay files at all: an error, not a warning. */
+.connection.missing {
+  border-color: #4a2523;
+  background: #221413;
+  color: var(--live-soft);
+}
+
+.connection.missing .dot {
+  background: var(--live);
+}
+
+/* Phones: the title and menu button are there instead. */
+@media (width < 760px) {
+  .summary {
+    display: none;
+  }
+}

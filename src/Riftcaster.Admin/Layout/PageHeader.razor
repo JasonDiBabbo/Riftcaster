@@ -1,0 +1,56 @@
+@implements IDisposable
+
+@* The bar across the top of every admin page: the page's name, and whatever the page wants at the
+   right (ChildContent). On a phone, which has no side navigation on screen, it also holds the
+   button that opens the menu, and the logo. *@
+<header class="bar">
+    <button type="button" class="menu-button"
+            aria-label="Open menu"
+            aria-controls="side-nav"
+            aria-expanded="@(Nav.MenuOpen ? "true" : "false")"
+            @onclick="Nav.OpenMenu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+    </button>
+    <span class="mark" aria-hidden="true"></span>
+    <h1 class="title">@Title@if (Section is not null){<span class="section"> · @Section</span>}</h1>
+    <div class="status">@ChildContent</div>
+</header>
+
+@code {
+    [CascadingParameter]
+    private NavMenuState Nav { get; set; } = null!;
+
+    /// <summary>
+    /// The page's name.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Which part of the page is showing, when the page shows one at a time. Phones only: wider
+    /// screens show every part at once, so the title stands alone.
+    /// </summary>
+    [Parameter]
+    public string? Section { get; set; }
+
+    /// <summary>
+    /// What goes at the bar's right: status pills, buttons.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Nav.Changed += OnNavChanged;
+    }
+
+    private void OnNavChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Nav.Changed -= OnNavChanged;
+    }
+}

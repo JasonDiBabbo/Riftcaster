@@ -5,6 +5,10 @@
 
 <PageTitle>Riftcaster Dashboard</PageTitle>
 
+<PageHeader Title="Live" Section="@SectionLabel">
+    <LiveStatus />
+</PageHeader>
+
 <main class="dashboard" data-tab="@_tab" data-players="@Match.Settings.PlayerCount">
     <div class="column players-column">
         <div class="slot players-slot">
@@ -41,6 +45,18 @@
     /// Wider screen layouts show every section and do not use tabs.
     /// </remarks>
     private DashboardTab _tab = DashboardTab.Players;
+
+    /// <summary>
+    /// The visible tab's name, which phones add to the page header's title.
+    /// </summary>
+    private string SectionLabel => _tab switch
+    {
+        DashboardTab.Players => "Players",
+        DashboardTab.Match => "Match",
+        DashboardTab.Cards => "Cards",
+        DashboardTab.LowerThirds => "Lower thirds",
+        _ => "",
+    };
 
     protected override void OnInitialized()
     {
