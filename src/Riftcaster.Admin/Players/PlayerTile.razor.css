@@ -4,10 +4,15 @@
 .tile {
   --player: oklch(0.74 0.13 var(--player-hue));
   container: tile / inline-size;
-  display: flex;
-  flex-direction: column;
+  /* Three rows (heading, tags, controls) shared with the other cells in the same row of the panel
+     (see LiveTiles.razor.css), so a cell whose tags wrap onto more lines doesn't move its controls
+     out of line with the others. */
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
   min-width: 0;
   background: var(--panel);
+  box-shadow: -1px 0 0 var(--line), 0 -1px 0 var(--line);
 }
 
 .bar {
@@ -57,9 +62,10 @@
 }
 
 .controls {
-  flex: 1;
+  /* Any spare height in the row (the Timer beside it can be taller) goes above the controls, so they
+     are the same size in every cell. */
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  align-content: end;
   gap: 12px;
   padding: 14px 16px 16px;
 }
@@ -67,8 +73,6 @@
 /* Points is the number touched most: the biggest control. Game wins and XP sit beside each other
    until the tile is too narrow for both, then stack. */
 .points {
-  display: flex;
-  flex-direction: column;
   --stepper-height: 64px;
   --step-width: 64px;
   --step-font: 28px;
@@ -89,14 +93,4 @@
   .pair {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-/* Any spare height in the cell (the Timer beside it can be taller) goes to Points, the biggest control. */
-.points ::deep .field {
-  flex: 1;
-}
-
-.points ::deep .stepper {
-  flex: 1;
-  min-height: 64px;
 }

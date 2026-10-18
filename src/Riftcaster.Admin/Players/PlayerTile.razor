@@ -5,12 +5,14 @@
 @* A player's place on the Live page: who they are (read-only, set on the Match setup page) and the
    scores that change during a match. *@
 <article class="tile" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
-    <div class="bar"></div>
-    <header class="head">
-        <h3 class="slot">Player @Number</h3>
-        <span class="who">@PlayerLabels.Name(Player, Seat)</span>
-        <a class="edit" href="@AdminNav.MatchSetupPath" aria-label="@($"Edit player {Number} on the Match setup page")">Edit</a>
-    </header>
+    <div class="top">
+        <div class="bar"></div>
+        <header class="head">
+            <h3 class="slot">Player @Number</h3>
+            <span class="who">@PlayerLabels.Name(Player, Seat)</span>
+            <a class="edit" href="@AdminNav.MatchSetupPath" aria-label="@($"Edit player {Number} on the Match setup page")">Edit</a>
+        </header>
+    </div>
     <PlayerChips Player="Player" />
 
     <div class="controls">

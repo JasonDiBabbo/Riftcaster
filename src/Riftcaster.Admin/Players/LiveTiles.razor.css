@@ -8,13 +8,14 @@
   min-width: 0;
 }
 
-/* The gap is a 1px rule between cells: the grid's background shows through it. */
+/* Each player's cell spans three rows (heading, tags, controls) and shares them with the cells beside
+   it, so the tags row is as tall as the tallest and every cell's controls start on the same line.
+   The third row takes the spare height. The rules between cells are drawn by the cells themselves. */
 .tiles {
   flex: 1;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1px;
-  background: var(--line);
+  grid-auto-rows: auto auto minmax(0, 1fr);
 }
 
 /* Two columns once there's room for two cells, then as many as the players, up to their count. */
@@ -23,7 +24,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  /* An odd one out takes the whole last row, so no empty cell shows the rule's colour. */
+  /* An odd one out takes the whole last row, so no gap is left beside it. */
   .tiles[data-players='3'] ::deep .tile:last-child {
     grid-column: 1 / -1;
   }

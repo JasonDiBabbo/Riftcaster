@@ -7,6 +7,7 @@
   flex-direction: column;
   min-width: 0;
   background: var(--panel);
+  box-shadow: -1px 0 0 var(--line), 0 -1px 0 var(--line);
 }
 
 .bar {
