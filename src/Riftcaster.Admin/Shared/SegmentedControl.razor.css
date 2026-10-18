@@ -28,11 +28,47 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+  /* The label's colour fades with the pill (see ::before), a little slower than the shared 120ms. */
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 120ms ease;
+}
+
+/* The highlight is a pill behind the label, not the button's own background: when an option is
+   chosen its pill grows in from the middle while the old one shrinks away, so the change reads as
+   the highlight moving, without anything needing to measure where the options are (they wrap). */
+.segment {
+  position: relative;
+  isolation: isolate;
+}
+
+.segment::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: var(--radius-small);
+  background: var(--segment-bg);
+  opacity: 0;
+  transform: scale(0.82);
+  transition:
+    opacity 160ms ease,
+    transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .segment.selected {
-  background: var(--segment-bg);
   color: var(--segment-text);
+}
+
+.segment.selected::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* A press dips the option slightly, before the choice lands. */
+.segment:active:not(.selected) {
+  transform: scale(0.97);
 }
 
 @media (hover: hover) {
