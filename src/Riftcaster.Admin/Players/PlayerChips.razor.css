@@ -1,0 +1,25 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  max-width: 100%;
+  padding: 4px 8px;
+  overflow: hidden;
+  border: 1px solid oklch(0.74 0.13 var(--player-hue) / 0.34);
+  border-radius: var(--radius-small);
+  background: oklch(0.74 0.13 var(--player-hue) / 0.16);
+  color: var(--text-bright);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Nothing chosen yet: fainter, so a filled-in player stands out from an empty one. */
+.chip.none {
+  border-style: dashed;
+  background: transparent;
+  color: var(--text-muted);
+}

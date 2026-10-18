@@ -6,7 +6,7 @@
 public enum DashboardTab
 {
     Players,
-    Match,
+    Timer,
     Cards,
     LowerThirds
 }

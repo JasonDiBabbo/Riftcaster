@@ -18,7 +18,7 @@ public class SideNavTests : BunitContext
 
         Assert.Equal(["Broadcast", "System"], sideNav.FindAll(".group-title").Select(title => title.TextContent));
         Assert.Equal(
-            ["Live", "Overlays", "Network", "Settings", "Logs", "About"],
+            ["Live", "Match setup", "Overlays", "Network", "Settings", "Logs", "About"],
             sideNav.FindAll("a.item").Select(link => link.TextContent.Trim()));
         Assert.Equal("/settings", sideNav.FindAll("a.item").Single(link => link.TextContent.Trim() == "Settings").GetAttribute("href"));
     }

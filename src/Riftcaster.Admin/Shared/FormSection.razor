@@ -1,0 +1,32 @@
+<section class="section">
+    <div class="header">
+        <h2 class="title">@Title</h2>
+        @if (Meta is not null)
+        {
+            <span class="meta">@Meta</span>
+        }
+    </div>
+    <div class="body">
+        @ChildContent
+    </div>
+</section>
+
+@code {
+    /// <summary>
+    /// The section's heading.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Plain text beside the heading, such as a count.
+    /// </summary>
+    [Parameter]
+    public string? Meta { get; set; }
+
+    /// <summary>
+    /// The section's content.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

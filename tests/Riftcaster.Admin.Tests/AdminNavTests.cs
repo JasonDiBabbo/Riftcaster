@@ -53,6 +53,8 @@ public class AdminNavTests
     [InlineData("/", "Settings", false)]
     [InlineData("/settings", "Settings", true)]
     [InlineData("/settings/", "Settings", true)]
+    [InlineData("/match-setup", "Match setup", true)]
+    [InlineData("/match-setup", "Live", false)]
     [InlineData("/settings", "Live", false)]
     public void IsCurrent_MatchesTheItemsPage(string path, string title, bool expected)
     {

@@ -12,7 +12,7 @@
 @* What's on air and how it's connected, for the Live page's header (the PageHeader's right side). It
    lives with the Live page rather than in the navigation because it only matters while running a
    broadcast. *@
-<div class="summary">@MatchLabels.Summary(Match.Settings)</div>
+<div class="summary">@MatchLabels.Summary(Match.Settings)<a href="@AdminNav.MatchSetupPath">Match setup</a></div>
 
 @if (FeaturedCard.Current is { } card)
 {

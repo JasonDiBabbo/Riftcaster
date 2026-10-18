@@ -27,6 +27,8 @@ public static class AdminNav
 {
     public const string LivePath = "/";
 
+    public const string MatchSetupPath = "/match-setup";
+
     /// <summary>
     /// Not "/overlays": the overlay pages themselves are served there (and open to the network).
     /// </summary>
@@ -45,6 +47,7 @@ public static class AdminNav
             new("Broadcast",
             [
                 new("Live", LivePath, "M3 5h18v11H3zM8 20h8M12 16v4"),
+                new("Match setup", MatchSetupPath, "M4 7h10M18 7h2M4 17h2M10 17h10M16 5v4M8 15v4"),
                 new("Overlays", OverlaysPath, "M3 5h14v10H3zM7 9h14v10H7z"),
                 new("Network", NetworkPath, "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"),
             ]),

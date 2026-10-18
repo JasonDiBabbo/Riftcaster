@@ -1,0 +1,111 @@
+/* --player-hue is set on the row from the seat (see PlayerLabels.Hue). The rows are separated by a
+   rule that can be seen, since they are the only thing telling one player's fields from the next. */
+.row {
+  --player: oklch(0.74 0.13 var(--player-hue));
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  align-items: end;
+  gap: 8px 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--edge-hover);
+}
+
+.who {
+  grid-column: 1 / span 6;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  align-self: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--player);
+  font: 700 var(--fs-small) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mark {
+  flex: none;
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--player);
+}
+
+/* Narrow rows come first. The seat swap sits on the player's label line, where it takes the least room. */
+.swap {
+  grid-column: 7 / span 2;
+  grid-row: 1;
+}
+
+.swap ::deep .caption {
+  display: none;
+}
+
+.name,
+.legend,
+.champion,
+.battlefield {
+  grid-column: span 2;
+}
+
+/* Tablet and up: the label and seat swap share a line, then Name, Legend, Champion and Battlefield. */
+@container setup (min-width: 600px) {
+  .name,
+  .legend,
+  .champion,
+  .battlefield {
+    grid-column: span 2;
+  }
+}
+
+/* Phone: stacked, and the swap is a field of its own. */
+@container setup (max-width: 599px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 0;
+  }
+
+  .who,
+  .swap,
+  .name,
+  .legend,
+  .champion,
+  .battlefield {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .swap ::deep .caption {
+    display: block;
+  }
+
+  .row ::deep select,
+  .row ::deep input {
+    height: 44px;
+  }
+}
+
+/* Wide: one line per player, captioned once above the rows (see PlayerSetupSection). */
+@container setup (min-width: 980px) {
+  .row {
+    grid-template-columns: var(--setup-columns);
+    align-items: center;
+    padding: 12px 0;
+  }
+
+  .who,
+  .swap,
+  .name,
+  .legend,
+  .champion,
+  .battlefield {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .row ::deep .caption {
+    display: none;
+  }
+}

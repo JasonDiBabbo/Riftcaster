@@ -1,0 +1,28 @@
+/* A titled part of a form page. Unlike a Panel it has no box: a heading with a rule under it,
+   sitting straight on the page. */
+.section {
+  min-width: 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.title {
+  margin: 0;
+  color: var(--text-bright);
+  font: 700 var(--fs-featured) / 1.2 var(--font);
+}
+
+.meta {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.body {
+  padding-top: 16px;
+}

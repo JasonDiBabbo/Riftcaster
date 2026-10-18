@@ -1,114 +1,146 @@
-.dashboard {
-  /* Ultrawide width of the Players column: 0.62fr per player (data-players, set from the match mode). */
-  --players-fr: 1.24fr;
+/* The Live page is a twelve-column grid, and every layout below follows the width the page has (the
+   container), so opening the side navigation can't leave a layout that only fits a wider screen.
+   Nothing here depends on the screen's width except the phone's tabs.
+
+   Wide pages stop at 1800px and stay on the left, where the eye is: the rest is empty rather than
+   stretched. */
+.live {
+  container: live / inline-size;
   flex: 1;
   min-height: 0;
+  overflow-y: auto;
+}
+
+.grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   align-content: start;
-  align-items: start;
   gap: 12px;
-  width: 100%;
-  margin: 0 auto;
+  max-width: 1800px;
   padding: 12px;
 }
 
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-width: 0;
-  min-height: 0;
-}
-
+/* One column: everything stacked. Phones show one slot at a time (below). */
 .slot {
+  grid-column: 1 / -1;
   display: flex;
   flex-direction: column;
-  min-height: 0;
+  min-width: 0;
 }
 
-/* Timer grows to fill the column; Match keeps its natural height and never shrinks. */
-.timer-slot {
-  flex: 1 0 auto;
+/* The Players panel's cells fill it, whatever the Timer beside it needs. */
+.tiles-slot ::deep .body {
+  display: flex;
+  flex-direction: column;
 }
 
-.match-slot {
-  flex: none;
+/* The lists scroll inside their panels, so a long catalogue or library never makes the page long.
+   The Timer needs no cap: it is the same height whatever it holds. */
+.cards-slot ::deep .body,
+.lowers-slot ::deep .body {
+  max-height: 280px;
+  overflow-y: auto;
 }
 
-/* Tablet: Players across the top, then two columns. The page scrolls. */
-@media (width >= 760px) {
-  .dashboard {
+/* Two columns once each panel gets about 450px: Timer on a row of its own, then Featured card and
+   Lower thirds side by side. Narrower than that they stack, rather than squeeze. */
+@container live (min-width: 920px) {
+  .cards-slot,
+  .lowers-slot {
+    grid-column: span 6;
+  }
+}
+
+/* Three across: Timer, Featured card and Lower thirds under the players. */
+@container live (min-width: 1380px) {
+  .timer-slot,
+  .cards-slot,
+  .lowers-slot {
+    grid-column: span 4;
+  }
+}
+
+/* One against one has room beside its two tiles: the Timer goes there, and Featured card and Lower
+   thirds share the row below. */
+@container live (min-width: 1440px) {
+  .grid[data-players='2'] .tiles-slot {
+    grid-column: 1 / 7;
+  }
+
+  .grid[data-players='2'] .timer-slot {
+    grid-column: 7 / -1;
+  }
+
+  .grid[data-players='2'] .cards-slot {
+    grid-column: 1 / 7;
+  }
+
+  .grid[data-players='2'] .lowers-slot {
+    grid-column: 7 / -1;
+  }
+
+  /* Beside two players the Timer fills its row: a big time on the left, big buttons on the right. */
+  .grid[data-players='2'] .timer-slot {
+    --fs-timer: 128px;
+  }
+
+  .grid[data-players='2'] .timer-slot ::deep .content {
+    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    align-items: center;
+    column-gap: 24px;
   }
 
-  .players-column {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Desktop: three columns locked to the viewport. Panels scroll internally,
-   except the Timer + Match column, which scrolls as a whole. */
-@media (width >= 1200px) {
-  .dashboard {
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.95fr) minmax(0, 1.1fr);
-    grid-template-rows: minmax(0, 1fr);
-    align-items: stretch;
+  .grid[data-players='2'] .timer-slot ::deep .display {
+    grid-row: 1 / span 3;
   }
 
-  .players-column {
-    grid-column: auto;
-  }
-
-  .match-column {
-    overflow-y: auto;
-  }
-
-  .players-slot {
-    flex: 1;
-  }
-
-  .cards-slot {
-    flex: 1.15;
-  }
-
-  .lower-thirds-slot {
-    flex: 1;
+  .grid[data-players='2'] .timer-slot ::deep .controls button {
+    height: 56px;
   }
 }
 
-.dashboard[data-players='3'] {
-  --players-fr: 1.86fr;
-}
-
-.dashboard[data-players='4'] {
-  --players-fr: 2.48fr;
-}
-
-/* Ultrawide: four columns, with Featured card and Lower thirds as their own columns. */
-@media (width >= 2400px) {
-  .dashboard {
-    max-width: 5200px;
-    grid-template-columns: minmax(0, var(--players-fr)) minmax(0, 0.85fr) minmax(0, 1fr) minmax(0, 1fr);
+/* Three players take three quarters of the row, and the Timer the rest. */
+@container live (min-width: 1760px) {
+  .grid[data-players='3'] .tiles-slot {
+    grid-column: 1 / 10;
   }
 
-  .feature-column {
-    display: contents;
+  .grid[data-players='3'] .timer-slot {
+    grid-column: 10 / -1;
+  }
+
+  .grid[data-players='3'] .cards-slot {
+    grid-column: 1 / 7;
+  }
+
+  .grid[data-players='3'] .lowers-slot {
+    grid-column: 7 / -1;
+  }
+
+  /* Three players leave a narrow column: a smaller time fits it. */
+  .grid[data-players='3'] .timer-slot {
+    --fs-timer: 76px;
   }
 }
 
-/* Phone: one section at a time, chosen by the tab bar. Hidden sections stay rendered,
-   so switching tabs keeps their state. The bottom padding clears the fixed tab bar. */
+/* Phone: one section at a time, chosen by the tab bar. Hidden sections stay rendered, so switching
+   tabs keeps their state. The bottom padding clears the fixed tab bar. */
 @media (width < 760px) {
-  .dashboard {
+  .grid {
     padding-bottom: 84px;
   }
 
-    .dashboard:not([data-tab='Players']) .players-column,
-    .dashboard:not([data-tab='Match']) .match-column,
-    .dashboard:not([data-tab='Cards']):not([data-tab='LowerThirds']) .feature-column,
-    .dashboard:not([data-tab='Cards']) .cards-slot,
-    .dashboard:not([data-tab='LowerThirds']) .lower-thirds-slot {
-      display: none;
-    }
+  .grid:not([data-tab='Players']) .tiles-slot,
+  .grid:not([data-tab='Timer']) .timer-slot,
+  .grid:not([data-tab='Cards']) .cards-slot,
+  .grid:not([data-tab='LowerThirds']) .lowers-slot {
+    display: none;
+  }
+
+  .cards-slot ::deep .body,
+  .lowers-slot ::deep .body {
+    max-height: none;
+  }
 }

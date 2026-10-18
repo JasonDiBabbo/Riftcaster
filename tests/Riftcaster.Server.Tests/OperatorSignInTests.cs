@@ -29,6 +29,7 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
     // Every page of the admin, not only the dashboard: a bookmarked or shared link to one lands on sign-in.
     [Theory]
     [InlineData("/")]
+    [InlineData("/match-setup")]
     [InlineData("/overlay-list")]
     [InlineData("/network")]
     [InlineData("/settings")]

@@ -1,0 +1,16 @@
+@using Riftcaster.Core.Players
+
+@* A player's legend, champion and battlefield, read-only. They are chosen on the Match setup page. *@
+<div class="chips">
+    <span class="chip @(Player.Legend is null ? "none" : null)">@(Player.Legend?.Name ?? "No legend")</span>
+    <span class="chip @(Player.Champion is null ? "none" : null)">@(Player.Champion?.Name ?? "No champion")</span>
+    <span class="chip @(Player.Battlefield is null ? "none" : null)">@(Player.Battlefield?.Name ?? "No battlefield")</span>
+</div>
+
+@code {
+    /// <summary>
+    /// The player whose cards to show.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public Player Player { get; set; } = null!;
+}
