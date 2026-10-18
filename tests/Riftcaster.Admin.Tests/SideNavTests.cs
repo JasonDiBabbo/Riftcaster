@@ -96,13 +96,13 @@ public class SideNavTests : BunitContext
     {
         var sideNav = RenderNav();
         Assert.DoesNotContain("open", sideNav.Find("nav").ClassList);
-        Assert.Empty(sideNav.FindAll(".scrim"));
+        Assert.Empty(sideNav.FindAll(".scrim.shown")); // It's always there, so it can fade; only visible while open
 
         sideNav.Find(".expand-toggle").Click();
 
         Assert.True(_nav.MenuOpen);
         Assert.Contains("open", sideNav.Find("nav").ClassList);
-        Assert.Single(sideNav.FindAll(".scrim"));
+        Assert.Single(sideNav.FindAll(".scrim.shown"));
     }
 
     [Fact]

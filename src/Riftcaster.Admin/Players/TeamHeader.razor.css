@@ -1,5 +1,6 @@
 /* Wraps on narrow screens: the steppers drop below the name. */
 .team {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -17,7 +18,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
-  min-width: 140px;
+  min-width: 120px;
 }
 
 .name {
@@ -33,9 +34,19 @@
   font: 400 var(--fs-meta) / 1.3 var(--font);
 }
 
+/* Beside the name when there's room, and otherwise on a row of its own, filling it. */
 .scores {
   --step-width: 28px;
+  flex: 1 1 240px;
   display: grid;
-  grid-template-columns: repeat(2, 130px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+/* Phone: bigger to touch. */
+@media (width < 760px) {
+  .scores {
+    --step-width: 44px;
+    --stepper-height: 44px;
+  }
 }

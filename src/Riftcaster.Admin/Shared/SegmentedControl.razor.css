@@ -1,7 +1,11 @@
+/* Each option is as wide as its text needs and shares out whatever is left. When they can't all fit
+   in one row, they wrap onto another, rather than being cut short with an ellipsis: no width is
+   picked to suit one set of labels, so any labels work in any width. */
 .segmented {
   display: flex;
+  flex-wrap: wrap;
   gap: 3px;
-  height: 36px;
+  min-height: 36px;
   padding: 3px;
   border: 1px solid var(--edge);
   border-radius: var(--radius-segmented);
@@ -9,9 +13,11 @@
 }
 
 .segment {
-  flex: 1;
+  flex: 1 0 auto;
   min-width: 0;
-  padding: 0 6px;
+  max-width: 100%; /* Only an option wider than the whole control is cut short */
+  height: 28px;
+  padding: 0 10px;
   overflow: hidden;
   border: none;
   border-radius: var(--radius-small);

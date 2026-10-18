@@ -5,11 +5,9 @@
    which it is (see NavMenuState): an open rail on desktops, an icon rail on tablets that opens over
    the page, and on phones a menu that fills the screen, opened from the page header's menu button. *@
 <div class="slot @(Nav.Collapsed ? "collapsed" : null)">
-    @if (Nav.MenuOpen)
-    {
-        @* Over the page, behind the open menu, on tablets: a tap outside the menu closes it. *@
-        <button type="button" class="scrim" aria-label="Close menu" tabindex="-1" @onclick="Nav.CloseMenu"></button>
-    }
+    @* Over the page, behind the open menu, on tablets: a tap outside the menu closes it. It stays in the page
+       and fades in and out, rather than coming and going. *@
+    <button type="button" class="scrim @(Nav.MenuOpen ? "shown" : null)" aria-label="Close menu" aria-hidden="@(Nav.MenuOpen ? null : "true")" tabindex="-1" @onclick="Nav.CloseMenu"></button>
 
     <nav id="side-nav" class="rail @(Nav.MenuOpen ? "open" : null)" aria-label="Main" @onkeydown="CloseOnEscape">
         <div class="brand">

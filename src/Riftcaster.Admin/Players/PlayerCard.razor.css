@@ -72,11 +72,13 @@
   padding: 12px 14px 14px;
 }
 
-/* Three steppers side by side need narrower buttons than the default, to leave room for the number. */
+/* Three steppers side by side need narrower buttons than the default, to leave room for the number.
+   Each column is at least wide enough for its caption ("Game wins" is the longest), so a card too
+   narrow for all three puts the last one on a second row rather than wrapping the caption. */
 .stats {
   --step-width: 26px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: 8px;
 }
 
