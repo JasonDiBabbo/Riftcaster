@@ -79,39 +79,9 @@ export const minimums = [
     why: 'Not tested yet: how each kind of lower third is labelled in the list.',
   },
   {
-    match: 'src/Riftcaster.Admin/Match/MatchPanel.razor',
-    min: 35,
-    why: 'Not tested yet: controls over MatchService, which is tested.',
-  },
-  {
     match: 'src/Riftcaster.Admin/Pages/Home.razor',
     min: 65,
     why: 'The page layout: which panels go where. Rendered through the server tests.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Players/PlayerCard.razor',
-    min: 40,
-    why: 'Not tested yet. Its card select and champion filter are tested on their own.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Players/PlayerLabels.cs',
-    min: 60,
-    why: 'Not tested yet: player names, sides, colours and team names per match mode.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Players/PlayersPanel.razor',
-    min: 60,
-    why: 'Not tested yet: lays out the player cards per match mode.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Players/ScoreStrip.razor',
-    min: 70,
-    why: 'Not tested yet: the scores summary above the player cards.',
-  },
-  {
-    match: 'src/Riftcaster.Admin/Players/TeamHeader.razor',
-    min: 0,
-    why: 'Not tested yet: only shown in 2v2.',
   },
   {
     match: 'src/Riftcaster.Admin/',
