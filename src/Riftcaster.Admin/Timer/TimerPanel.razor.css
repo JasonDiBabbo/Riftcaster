@@ -24,26 +24,33 @@
   background: currentColor;
 }
 
-/* Fills the panel, so the display can take the spare height when the Timer slot grows. */
+/* The panel's contents are as big as they need to be and no bigger. If the panel is made taller (by
+   a neighbour in its row), the spare height is left around them evenly, never added between them. */
 .content {
   --row-gap: 14px;
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: var(--row-gap);
   min-height: 100%;
   padding: 16px;
 }
 
+/* The buttons and the Set remaining form, as one group: a page can put it beside the time. */
+.actions {
+  display: contents;
+}
+
 /* --tone is the time's colour; the progress bar uses it too. */
 .display {
   --tone: var(--text-bright);
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 120px;
+  padding: 8px 0;
 }
 
 .display.low {
