@@ -18,7 +18,7 @@ namespace Riftcaster.Server;
 public partial class Program
 {
     /// <summary>
-    /// How long stopping waits for what's still open, such as an admin dashboard's connection,
+    /// How long stopping waits for what's still open, such as a dashboard's connection,
     /// before closing it. The default, 30 seconds, kept Quit, Ctrl+C and Restart to update waiting
     /// that long whenever a dashboard was open: it reconnects as the server starts stopping, and
     /// its connection never ends by itself. Nothing needs longer: overlay sockets close within 2
@@ -198,7 +198,7 @@ public partial class Program
     {
         if (!network.Enabled)
         {
-            logger.LogInformation("Network access is off. Only the server can reach Riftcaster. Turn it on from the admin dashboard, or start Riftcaster with --network on.");
+            logger.LogInformation("Network access is off. Only the server can reach Riftcaster. Turn it on from the dashboard, or start Riftcaster with --network on.");
             return;
         }
 
@@ -210,10 +210,10 @@ public partial class Program
         }
 
         logger.LogInformation(
-            "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). {Admin}",
+            "Network access is on. Other devices can open the overlays at {Urls} (followed by /overlays/...). {Access}",
             string.Join(" or ", urls),
             accessCode.IsSet
-                ? "Approved operators can sign in to the admin dashboard there with the access code."
-                : "Until an access code is set, the admin dashboard can only be used on the server.");
+                ? "Approved operators can sign in to the dashboard there with the access code."
+                : "Until an access code is set, the dashboard can only be used on the server.");
     }
 }

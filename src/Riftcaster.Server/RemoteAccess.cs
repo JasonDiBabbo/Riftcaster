@@ -6,7 +6,7 @@ namespace Riftcaster.Server;
 
 /// <summary>
 /// Limits what other devices on the network can reach (issue #16). Overlays need nothing: their
-/// pages and what they read are open. The admin, which controls the broadcast, needs a sign-in
+/// pages and what they read are open. The dashboard, which controls the broadcast, needs a sign-in
 /// with the access code (see <see cref="OperatorSignIn"/>); with no code set, it's on this
 /// computer only. The REST API (issue #9) takes the code in a header instead, from tools that
 /// can't sign in: <c>Authorization: Bearer &lt;code&gt;</c>.
@@ -34,7 +34,7 @@ internal static class RemoteAccess
             var isApi = RestApi.IsApiPath(context.Request.Path);
             if (!accessCode.IsSet)
             {
-                const string OnlyHere = "The admin dashboard is only available on the server. To use it on this device, set an access code in the admin dashboard on the server.";
+                const string OnlyHere = "The dashboard is only available on the server. To use it on this device, set an access code in the dashboard on the server.";
                 if (isApi)
                 {
                     await Problem(context, StatusCodes.Status403Forbidden, "No access code is set", OnlyHere);
@@ -47,8 +47,8 @@ internal static class RemoteAccess
                 return;
             }
 
-            // A page (any of the admin's, or the API's docs, which a browser can't send the code to): send
-            // the operator to sign in. Anything else (the admin's live connection, its scripts)
+            // A page (any of the dashboard's, or the API's docs, which a browser can't send the code to): send
+            // the operator to sign in. Anything else (the dashboard's live connection, its scripts)
             // just fails until they have.
             if (HttpMethods.IsGet(context.Request.Method)
                 && (AppNav.IsAppPage(context.Request.Path.Value) || context.Request.Path.StartsWithSegments(RestApi.DocsPath)))
@@ -77,7 +77,7 @@ internal static class RemoteAccess
         {
             context.Response.Headers.WWWAuthenticate = "Bearer";
             await Problem(context, StatusCodes.Status401Unauthorized, "The access code is needed",
-                "From other devices, send the access code set in the admin dashboard, as Authorization: Bearer <code>.");
+                "From other devices, send the access code set in the dashboard, as Authorization: Bearer <code>.");
             return;
         }
 
@@ -136,7 +136,7 @@ internal static class RemoteAccess
 
     /// <summary>
     /// Whether this path is part of signing in, which a device must reach before it has: the
-    /// sign-in page and its post, sign-out, and the admin's font, which the page uses.
+    /// sign-in page and its post, sign-out, and the dashboard's font, which the page uses.
     /// </summary>
     internal static bool IsPartOfSigningIn(PathString path) =>
         path.Equals(OperatorSignIn.SignInPath, StringComparison.OrdinalIgnoreCase)

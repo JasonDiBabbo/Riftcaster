@@ -4,7 +4,7 @@
  * Makes the logo's bitmap icons from its SVG (src/Riftcaster.WebUI/wwwroot/logo/icon.svg):
  *
  * - src/Riftcaster.Windows/Riftcaster.ico: the launcher's .exe and tray icon, 16 to 256 px.
- * - src/Riftcaster.WebUI/wwwroot/logo/favicon.ico: the admin's browser tab icon, 16 to 48 px.
+ * - src/Riftcaster.WebUI/wwwroot/logo/favicon.ico: the dashboard's browser tab icon, 16 to 48 px.
  * - src/Riftcaster.WebUI/wwwroot/logo/apple-touch-icon.png: 180 px, for a phone or tablet's
  *   home screen. Square, since the phone rounds the corners itself.
  *

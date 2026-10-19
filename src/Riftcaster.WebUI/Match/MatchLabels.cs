@@ -4,7 +4,7 @@ using Riftcaster.Contracts;
 namespace Riftcaster.WebUI.Match;
 
 /// <summary>
-/// How the match settings are labelled in the admin: the panel's options, and the header's summary.
+/// How the match settings are labelled in the dashboard: the panel's options, and the header's summary.
 /// </summary>
 public static class MatchLabels
 {

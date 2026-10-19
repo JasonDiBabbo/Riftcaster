@@ -56,7 +56,7 @@ export const minimums = [
     why: 'Endpoints, sign-in and the network switch, covered by the integration tests.',
   },
 
-  // --- Admin: Blazor components, tested with bUnit since #18. Panels added before then have little
+  // --- WebUI: Blazor components, tested with bUnit since #18. Panels added before then have little
   // or no component test yet; their minimums record where they are, to rise as tests are added. ---
   {
     match: 'src/Riftcaster.WebUI/Layout/OnAirPill.razor',

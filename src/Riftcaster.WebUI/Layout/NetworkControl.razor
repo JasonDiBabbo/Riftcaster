@@ -57,15 +57,15 @@
                 }
                 else
                 {
-                    <p class="text muted">Only the server can open the overlays and the admin dashboard. Network access will always be off when the server starts.</p>
+                    <p class="text muted">Only the server can open the overlays and the dashboard. Network access will always be off when the server starts.</p>
                 }
 
-                <p class="text muted">Turning network access on or off will briefly reconnect the admin dashboard and every overlay.</p>
+                <p class="text muted">Turning network access on or off will briefly reconnect the dashboard and every overlay.</p>
 
                 <h3 class="subtitle">Access code</h3>
                 @if (AccessCode.IsSet)
                 {
-                    <p class="text muted">Approved operators can sign in to the admin dashboard with this code. Changing or removing the code will sign out every remote device.</p>
+                    <p class="text muted">Approved operators can sign in to the dashboard with this code. Changing or removing the code will sign out every remote device.</p>
                     <div class="code-row">
                         <code class="code">@(_showCode ? AccessCode.Code : "••••••••")</code>
                         <button type="button" class="ghost" @onclick="() => _showCode = !_showCode">@(_showCode ? "Hide" : "Show")</button>
@@ -73,7 +73,7 @@
                 }
                 else
                 {
-                    <p class="text muted">No access code is set. The admin dashboard will only be usable on the server. Set an access code to let approved operators sign in from remote devices.</p>
+                    <p class="text muted">No access code is set. The dashboard will only be usable on the server. Set an access code to let approved operators sign in from remote devices.</p>
                 }
 
                 <div class="code-form">

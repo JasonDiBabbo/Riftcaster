@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Riftcaster's mark: a trading card, turned in 3D and torn by a rift, in the admin's mint. The
+  <!-- Riftcaster's mark: a trading card, turned in 3D and torn by a rift, in the dashboard's mint. The
        dashboard header uses only its shape, filled with the theme's accent. -->
   <defs>
     <mask id="tear" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">

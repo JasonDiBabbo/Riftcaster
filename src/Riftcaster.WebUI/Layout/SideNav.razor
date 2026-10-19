@@ -1,7 +1,7 @@
 @implements IDisposable
 @inject NavigationManager Navigation
 
-@* The admin's side navigation. One element serves every screen size, and the stylesheet decides
+@* The dashboard's side navigation. One element serves every screen size, and the stylesheet decides
    which it is (see NavMenuState): an open rail on desktops, an icon rail on tablets that opens over
    the page, and on phones a menu that fills the screen, opened from the page header's menu button. *@
 <div class="slot @(Nav.Collapsed ? "collapsed" : null)">

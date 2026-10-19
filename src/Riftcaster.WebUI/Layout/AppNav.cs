@@ -1,7 +1,7 @@
 namespace Riftcaster.WebUI.Layout;
 
 /// <summary>
-/// One destination in the admin's side navigation.
+/// One destination in the dashboard's side navigation.
 /// </summary>
 /// <param name="Title">The label shown beside the icon.</param>
 /// <param name="Href">The page's route, relative to the site root.</param>
@@ -16,7 +16,7 @@ public sealed record NavItem(string Title, string Href, string Icon);
 public sealed record NavGroup(string Title, IReadOnlyList<NavItem> Items);
 
 /// <summary>
-/// The admin's pages, as the side navigation lists them.
+/// The dashboard's pages, as the side navigation lists them.
 /// </summary>
 /// <remarks>
 /// Adding a page to the navigation takes an entry here and a page with the same route: the side
@@ -60,7 +60,7 @@ public static class AppNav
         ];
 
     /// <summary>
-    /// Whether this request path is one of the admin's pages (as opposed to an overlay, the REST
+    /// Whether this request path is one of the dashboard's pages (as opposed to an overlay, the REST
     /// API, or a script or font the pages load).
     /// </summary>
     /// <param name="path">The request path, such as <c>/settings</c>.</param>

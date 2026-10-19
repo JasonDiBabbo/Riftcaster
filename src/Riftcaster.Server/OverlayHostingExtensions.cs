@@ -7,7 +7,7 @@ public static class OverlayHostingExtensions
 {
     /// <summary>
     /// Finds the built overlay pages, from the Overlays:Path setting, for <see cref="UseOverlays"/>
-    /// and the admin header.
+    /// and the dashboard header.
     /// </summary>
     /// <remarks>
     /// A published build has them in its overlays folder (appsettings.json); Development uses the

@@ -26,7 +26,7 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         Assert.Equal(StatusCodes.Status403Forbidden, response.StatusCode);
     }
 
-    // Every page of the admin, not only the dashboard: a bookmarked or shared link to one lands on sign-in.
+    // Every page of the app, not only the Live page: a bookmarked or shared link to one lands on sign-in.
     [Theory]
     [InlineData("/")]
     [InlineData("/match-setup")]

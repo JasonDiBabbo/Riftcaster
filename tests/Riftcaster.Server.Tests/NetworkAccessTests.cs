@@ -44,8 +44,8 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     [InlineData("/api/info", true)]
     [InlineData("/api/timer/events", true)]
     [InlineData("/api/featured-card/events", true)]
-    [InlineData("/", false)] // The admin
-    [InlineData("/_blazor", false)] // The admin's live connection
+    [InlineData("/", false)] // The dashboard
+    [InlineData("/_blazor", false)] // The dashboard's live connection
     [InlineData("/_framework/blazor.web.js", false)]
     [InlineData("/api/timer", false)] // Not a stream
     [InlineData("/api/timer/events/extra", false)]

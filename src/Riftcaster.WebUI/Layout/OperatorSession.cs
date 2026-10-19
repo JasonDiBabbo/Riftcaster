@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.WebUI.Layout;
 
 /// <summary>
-/// Who is using this admin page: an operator at the computer running the server, or a remote
+/// Who is using this dashboard page: an operator at the computer running the server, or a remote
 /// operator signed in with the access code (issue #16). Cascaded from <see cref="Routes"/> to
 /// every component.
 /// </summary>

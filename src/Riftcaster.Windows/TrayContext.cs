@@ -23,7 +23,7 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>
     /// Shows the icon.
     /// </summary>
-    /// <param name="dashboard">The admin dashboard's address, on this computer.</param>
+    /// <param name="dashboard">The dashboard's address, on this computer.</param>
     /// <param name="logFolder">The folder where log files are stored.</param>
     /// <param name="updates">Updates, for the menu to offer one once it's downloaded.</param>
     public TrayContext(Uri dashboard, string logFolder, Updates updates)
@@ -74,7 +74,7 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// Opens the admin dashboard in the default browser.
+    /// Opens the dashboard in the default browser.
     /// </summary>
     /// <param name="dashboard">The dashboard's address.</param>
     public static void OpenDashboard(Uri dashboard) => Open(dashboard.ToString());

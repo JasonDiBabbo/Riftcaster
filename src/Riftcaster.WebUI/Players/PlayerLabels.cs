@@ -5,7 +5,7 @@ using Riftcaster.Core.Match;
 namespace Riftcaster.WebUI.Players;
 
 /// <summary>
-/// How players are labelled and coloured in the admin, which depends on the match mode.
+/// How players are labelled and coloured in the dashboard, which depends on the match mode.
 /// </summary>
 public static class PlayerLabels
 {

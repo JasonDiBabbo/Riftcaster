@@ -158,7 +158,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
         _ => false,
     };
 
-    // Null for a card missing anything the admin or overlays need: one malformed card is skipped
+    // Null for a card missing anything the dashboard or overlays need: one malformed card is skipped
     // rather than failing the whole catalogue. Adds any type or supertype it doesn't know to unknown.
     private static Card? ToCard(RiftcodexCard? item, ISet<string> unknown)
     {

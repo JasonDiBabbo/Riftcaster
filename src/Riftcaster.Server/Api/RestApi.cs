@@ -7,9 +7,9 @@ using Scalar.AspNetCore;
 namespace Riftcaster.Server.Api;
 
 /// <summary>
-/// The REST API (issue #9): HTTP endpoints for tools outside the admin, such as Stream Deck or
+/// The REST API (issue #9): HTTP endpoints for tools outside the dashboard, such as Stream Deck or
 /// Bitfocus Companion buttons and scripts. Each area's endpoints are in its own file (TimerEndpoints
-/// and so on), next to its overlay stream, and call the same Core service methods as the admin.
+/// and so on), next to its overlay stream, and call the same Core service methods as the dashboard.
 /// </summary>
 /// <remarks>
 /// This computer needs nothing to call it. Other devices send the access code, as
@@ -58,7 +58,7 @@ internal static class RestApi
                 Title = "Riftcaster API",
                 Version = identity.Version,
                 Description = """
-                    Control the overlays from outside the admin dashboard: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the dashboard does is here, except network access and the access code, which can only be changed on the server.
+                    Control the overlays from outside the dashboard: Stream Deck or Bitfocus Companion buttons, scripts and so on. Everything the dashboard does is here, except network access and the access code, which can only be changed on the server.
 
                     **Calling it:** from the server, no sign-in is needed. From another device, network access must be on, and each request needs the access code, as `Authorization: Bearer <code>`.
 
@@ -72,7 +72,7 @@ internal static class RestApi
             {
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
-                Description = "The access code set in the admin dashboard. Only needed from other devices.",
+                Description = "The access code set in the dashboard. Only needed from other devices.",
             };
 
             return Task.CompletedTask;

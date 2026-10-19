@@ -48,7 +48,7 @@ public class HostCheckTests(RiftcasterWebApplicationFactory factory) : IClassFix
     }
 
     [Theory]
-    [InlineData("/")] // The admin
+    [InlineData("/")] // The dashboard
     [InlineData("/api/timer")] // The REST API
     [InlineData("/overlays/timer/timer.html")] // The overlays
     [InlineData("/api/timer/events")] // Their streams

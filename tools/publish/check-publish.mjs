@@ -3,7 +3,7 @@
 /**
  * Checks that a published server works on its own (issue #48): starts it from the publish folder,
  * as Production and from a different current folder (as a shortcut or a terminal elsewhere would),
- * then fetches the admin, every overlay page and the REST API's docs page, with the scripts and
+ * then fetches the dashboard, every overlay page and the REST API's docs page, with the scripts and
  * stylesheets each one links, and the API's OpenAPI document.
  *
  * Also fails if the publish folder contains a data folder: that's the computer's own saved state
@@ -138,7 +138,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `The published server, started by ${entryPoints.map((entryPoint) => entryPoint.name).join(' and by ')}, serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
+  `The published server, started by ${entryPoints.map((entryPoint) => entryPoint.name).join(' and by ')}, serves the dashboard, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
 );
 
 /**

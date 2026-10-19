@@ -27,7 +27,7 @@ public class OverlayHostingTests(RiftcasterWebApplicationFactory factory) : ICla
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
     }
 
-    // A wrong or missing Overlays:Path doesn't stop the server, but the admin header says so.
+    // A wrong or missing Overlays:Path doesn't stop the server, but the dashboard header says so.
     [Theory]
     [InlineData("no-such-folder")]
     [InlineData("")]

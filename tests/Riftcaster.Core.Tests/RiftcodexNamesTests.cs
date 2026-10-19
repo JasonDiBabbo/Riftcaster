@@ -5,7 +5,7 @@ namespace Riftcaster.Core.Tests;
 
 public class RiftcodexNamesTests
 {
-    // Real names from Riftcodex, and what the admin and overlays should show for them.
+    // Real names from Riftcodex, and what the dashboard and overlays should show for them.
     [Theory]
     [InlineData("Star Spring", CardType.Battlefield, "Star Spring", null)]
     [InlineData("Xerath - Freed", CardType.Unit, "Xerath, Freed", null)]

@@ -17,7 +17,7 @@ public static class LowerThirdEndpoints
                 StateSockets.SendStatesAsync(context, lowerThird.WatchAsync, lifetime.ApplicationStopping))
             .ExcludeFromDescription(); // A WebSocket, which OpenAPI can't describe
 
-        // REST (issue #9): the admin's Lower thirds panel. The library holds saved lower thirds, by
+        // REST (issue #9): the dashboard's Lower thirds panel. The library holds saved lower thirds, by
         // id; showing one puts it on air.
         var lowerThird = app.MapGroup("/api/lower-third").WithTags("Lower thirds");
 

@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Overlays;
 
 /// <summary>
-/// How many overlays are connected to the server right now, for the admin header.
+/// How many overlays are connected to the server right now, for the dashboard header.
 /// </summary>
 /// <remarks>
 /// Counts open state streams. Each overlay page opens one, so this is the number of overlay pages

@@ -8,7 +8,7 @@
 /// here could press its buttons: a hidden <c>fetch("http://localhost:5062/api/timer/reset", { method: "POST" })</c>
 /// works without any CORS permission, since the browser sends it and only hides the response.
 /// Browsers send an <c>Origin</c> header with such requests, saying which site made them; the
-/// admin's own pages (the docs page included) are this server's origin, and tools such as Stream
+/// dashboard's own pages (the docs page included) are this server's origin, and tools such as Stream
 /// Deck, Companion or curl send none. Reads are left alone: the browser doesn't let another site
 /// see their responses.
 /// </remarks>
