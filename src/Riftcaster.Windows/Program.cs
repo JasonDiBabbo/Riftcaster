@@ -13,10 +13,10 @@ namespace Riftcaster.Windows;
 static class Program
 {
     /// <summary>
-    /// The setting that opens the dashboard on starting, true unless set: started from the Start
-    /// menu or after installing, Riftcaster shows its dashboard rather than only an icon by the clock.
+    /// The setting that opens the web interface on starting, true unless set: started from the Start
+    /// menu or after installing, Riftcaster shows its web interface rather than only an icon by the clock.
     /// </summary>
-    public const string OpenDashboardSetting = "Launcher:OpenDashboard";
+    public const string OpenWebUISetting = "Launcher:OpenWebUI";
 
     /// <summary>
     ///  The main entry point for the application.
@@ -46,18 +46,18 @@ static class Program
 
         using (server)
         {
-            // With network access on, the server may listen on every interface, but the dashboard
+            // With network access on, the server may listen on every interface, but the web interface
             // always opens on this computer.
             var listenUrl = server.Services.GetRequiredService<NetworkAccess>().ListenUrls[0];
-            var dashboard = new UriBuilder(listenUrl) { Host = "localhost" }.Uri;
+            var webUI = new UriBuilder(listenUrl) { Host = "localhost" }.Uri;
             var logFolder = server.Services.GetRequiredService<LogFolder>().Path;
 
-            // One copy at a time (#68): started again, it opens the running copy's dashboard instead of
+            // One copy at a time (#68): started again, it opens the running copy's web interface instead of
             // failing to listen on the same port. Held until Main returns.
             using var instance = new Mutex(initiallyOwned: true, "Riftcaster", out var firstCopy);
             if (!firstCopy)
             {
-                TrayContext.OpenDashboard(dashboard);
+                TrayContext.OpenWebUI(webUI);
                 return 0;
             }
 
@@ -75,21 +75,21 @@ static class Program
             using var updates = new Updates(
                 configuration[Updates.Setting],
                 server.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Updates>());
-            using var tray = new TrayContext(dashboard, logFolder, updates);
+            using var tray = new TrayContext(webUI, logFolder, updates);
             updates.Start();
 
-            if (configuration.GetValue(OpenDashboardSetting, defaultValue: true))
+            if (configuration.GetValue(OpenWebUISetting, defaultValue: true))
             {
-                TrayContext.OpenDashboard(dashboard);
+                TrayContext.OpenWebUI(webUI);
             }
 
             Application.Run(tray);
 
             server.StopAsync().GetAwaiter().GetResult();
 
-            // Restarted with the same arguments, such as --urls, but without another dashboard tab:
+            // Restarted with the same arguments, such as --urls, but without another browser tab:
             // the one from before the update is usually still open.
-            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenDashboardSetting}=false"]);
+            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenWebUISetting}=false"]);
         }
 
         return 0;

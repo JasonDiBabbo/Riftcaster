@@ -118,7 +118,7 @@ if (launcher) {
     name: 'the tray launcher, Riftcaster.exe',
     command: launcherExe,
     // Otherwise every check opens the web interface in a browser.
-    args: ['--Launcher:OpenDashboard=false'],
+    args: ['--Launcher:OpenWebUI=false'],
   });
 }
 
