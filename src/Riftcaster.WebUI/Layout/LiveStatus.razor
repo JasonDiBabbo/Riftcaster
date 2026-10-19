@@ -1,0 +1,71 @@
+﻿@using Riftcaster.Core.FeaturedCard
+@using Riftcaster.Core.LowerThird
+@using Riftcaster.Core.Match
+@using Riftcaster.Core.Overlays
+@implements IDisposable
+@inject FeaturedCardService FeaturedCard
+@inject LowerThirdService LowerThird
+@inject MatchService Match
+@inject OverlayConnections Overlays
+@inject OverlayFiles OverlayFiles
+
+@* What's on air and how it's connected, for the Live page's header (the PageHeader's right side). It
+   lives with the Live page rather than in the navigation because it only matters while running a
+   broadcast. *@
+<div class="summary">@MatchLabels.Summary(Match.Settings)<a href="@AppNav.MatchSetupPath">Match setup</a></div>
+
+@if (FeaturedCard.Current is { } card)
+{
+    <OnAirPill Label="Card" Text="@card.Name" MaxWidth="260" OnClear="FeaturedCard.Clear" />
+}
+@if (LowerThird.CurrentMessage is { } message)
+{
+    <OnAirPill Label="Lower third" Text="@LowerThirdSummary.For(message).Primary" MaxWidth="280" OnClear="LowerThird.Hide" />
+}
+<NetworkControl />
+@if (!OverlayFiles.Found)
+{
+    @* In place of the count: no overlay can connect, and every OBS source is blank. *@
+    <div class="connection missing" role="alert"
+         title="The overlay files are missing. Without them, your streaming software won't be able to show any overlays. Check the log for details. If that doesn't help, reinstall Riftcaster.">
+        <span class="dot"></span>Overlay files missing
+    </div>
+}
+else
+{
+    var overlays = Overlays.Count;
+    <div class="connection @(overlays == 0 ? "none" : null)" role="status">
+        <span class="dot"></span>@ConnectionText(overlays)
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        FeaturedCard.Changed += OnStateChanged;
+        LowerThird.Changed += OnStateChanged;
+        Match.Changed += OnStateChanged;
+        Overlays.Changed += OnStateChanged;
+    }
+
+    // "No overlays connected", "1 overlay connected", "6 overlays connected".
+    private static string ConnectionText(int overlays) => overlays switch
+    {
+        0 => "No overlays connected",
+        1 => "1 overlay connected",
+        _ => $"{overlays} overlays connected",
+    };
+
+    private void OnStateChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        FeaturedCard.Changed -= OnStateChanged;
+        LowerThird.Changed -= OnStateChanged;
+        Match.Changed -= OnStateChanged;
+        Overlays.Changed -= OnStateChanged;
+    }
+}

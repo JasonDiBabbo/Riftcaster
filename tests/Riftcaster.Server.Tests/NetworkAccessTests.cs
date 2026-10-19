@@ -58,7 +58,7 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     [Theory]
     [InlineData("/")]
     [InlineData("/_blazor/negotiate")]
-    public async Task OtherDevice_Admin_IsForbidden(string path)
+    public async Task OtherDevice_WebUI_IsForbidden(string path)
     {
         var response = await SendAsync(path, OtherDevice);
 
@@ -74,7 +74,7 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     }
 
     [Fact]
-    public async Task ThisComputer_Admin_IsAllowed()
+    public async Task ThisComputer_WebUI_IsAllowed()
     {
         var response = await SendAsync("/", IPAddress.Loopback);
 

@@ -169,7 +169,7 @@ internal static class OperatorSignIn
               <meta name="viewport" content="width=device-width, initial-scale=1" />
               <title>Sign in · Riftcaster Dashboard</title>
               <style>
-                @font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('/_content/Riftcaster.Admin/fonts/dm-sans-latin-opsz-normal.woff2') format('woff2'); }
+                @font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('/_content/Riftcaster.WebUI/fonts/dm-sans-latin-opsz-normal.woff2') format('woff2'); }
                 * { box-sizing: border-box; }
                 html { color-scheme: dark; }
                 body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 16px; background: #0e0f11; color: #e8e6e1; font: 400 14px / 1.45 'DM Sans', sans-serif; }

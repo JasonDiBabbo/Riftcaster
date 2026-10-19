@@ -16,7 +16,7 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
     private AccessCode AccessCode => factory.Services.GetRequiredService<AccessCode>();
 
     [Fact]
-    public async Task NoCode_RemoteAdmin_IsForbidden()
+    public async Task NoCode_RemoteWebUI_IsForbidden()
     {
         AccessCode.Remove();
         var device = new RemoteDevice(factory, "192.168.1.60");
@@ -35,7 +35,7 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
     [InlineData("/settings")]
     [InlineData("/logs")]
     [InlineData("/about")]
-    public async Task CodeSet_RemoteAdmin_RedirectsToSignIn(string path)
+    public async Task CodeSet_RemoteWebUI_RedirectsToSignIn(string path)
     {
         AccessCode.Set(Code);
         var device = new RemoteDevice(factory, "192.168.1.61");
@@ -64,11 +64,11 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         var device = new RemoteDevice(factory, "192.168.1.63");
 
         var signIn = await device.SignInAsync("k7qm 4xpa"); // As typed on a phone
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
         Assert.Equal(StatusCodes.Status302Found, signIn.StatusCode);
         Assert.Equal("/", signIn.Headers.Location);
-        Assert.Equal(StatusCodes.Status200OK, admin.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, dashboard.StatusCode);
     }
 
     [Fact]
@@ -78,11 +78,11 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         var device = new RemoteDevice(factory, "192.168.1.64");
 
         var signIn = await device.SignInAsync("WRONG-CODE");
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
         Assert.Equal(StatusCodes.Status401Unauthorized, signIn.StatusCode);
         Assert.Contains("isn't right", WebUtility.HtmlDecode(signIn.Body));
-        Assert.Equal(StatusCodes.Status302Found, admin.StatusCode); // Still not signed in
+        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode); // Still not signed in
     }
 
     [Fact]
@@ -105,10 +105,10 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         AccessCode.Set("NEWC-ODE7");
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status302Found, admin.StatusCode);
-        Assert.Equal("/signin", admin.Headers.Location);
+        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode);
+        Assert.Equal("/signin", dashboard.Headers.Location);
     }
 
     [Fact]
@@ -119,9 +119,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         AccessCode.Remove();
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status403Forbidden, admin.StatusCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, dashboard.StatusCode);
     }
 
     [Fact]
@@ -132,9 +132,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         await device.PostFormAsync("/signout", []);
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status302Found, admin.StatusCode);
+        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode);
     }
 
     [Fact]
@@ -160,9 +160,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         AccessCode.Set(Code);
         var device = new RemoteDevice(factory, "127.0.0.1");
 
-        var admin = await device.GetAsync("/");
+        var dashboard = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status200OK, admin.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, dashboard.StatusCode);
     }
 
     [GeneratedRegex("""name="(?<name>[^"]+)" value="(?<value>[^"]+)" """)]

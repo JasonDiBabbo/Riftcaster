@@ -1,0 +1,69 @@
+@using Riftcaster.Core.Match
+@using Riftcaster.Core.Players
+@inject PlayersService Players
+
+@* A player's place on the Live page: who they are (read-only, set on the Match setup page) and the
+   scores that change during a match. *@
+<article class="tile" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
+    <div class="top">
+        <div class="bar"></div>
+        <header class="head">
+            <h3 class="slot">Player @Number</h3>
+            <span class="who">@PlayerLabels.Name(Player, Seat)</span>
+            <a class="edit" href="@AppNav.MatchSetupPath" aria-label="@($"Edit player {Number} on the Match setup page")">Edit</a>
+        </header>
+    </div>
+    <PlayerChips Player="Player" />
+
+    <div class="controls">
+        <div class="points">
+            <Field Label="Points" Composite>
+                <Stepper Label="@($"Player {Number} points")"
+                         Max="Settings.PointsToWin"
+                         @bind-Value:get="Player.Points"
+                         @bind-Value:set="points => Update(player => player with { Points = points })" />
+            </Field>
+        </div>
+        <div class="pair">
+            <Field Label="Game wins" Composite>
+                <Stepper Label="@($"Player {Number} game wins")"
+                         Max="Settings.MaxGameWins"
+                         @bind-Value:get="Player.GameWins"
+                         @bind-Value:set="wins => Update(player => player with { GameWins = wins })" />
+            </Field>
+            <Field Label="XP" Composite>
+                <Stepper Label="@($"Player {Number} XP")"
+                         Max="PlayersService.MaxXp"
+                         @bind-Value:get="Player.Xp"
+                         @bind-Value:set="xp => Update(player => player with { Xp = xp })" />
+            </Field>
+        </div>
+    </div>
+</article>
+
+@code {
+    /// <summary>
+    /// The player's seat, from 0.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public int Seat { get; set; }
+
+    /// <summary>
+    /// The match settings and players. The tile shows the player in <see cref="Seat"/>; the settings
+    /// decide its colour and the scores' limits.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public MatchState State { get; set; } = null!;
+
+    // What the operator sees: seats count from 1.
+    private int Number => Seat + 1;
+
+    private Player Player => State.Players.Players[Seat];
+
+    private MatchSettings Settings => State.Settings;
+
+    private void Update(Func<Player, Player> change)
+    {
+        Players.UpdatePlayer(Seat, change);
+    }
+}

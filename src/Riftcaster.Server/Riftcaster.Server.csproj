@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <!-- blazor.web.js is only included automatically for projects that contain .razor files;
-       ours live in Riftcaster.Admin, so opt in explicitly. -->
+       ours live in Riftcaster.WebUI, so opt in explicitly. -->
     <RequiresAspNetWebAssets>true</RequiresAspNetWebAssets>
     <!-- The XML doc comments on the REST API's request types become their descriptions in the
          OpenAPI document. Only the API's types need them, so missing comments elsewhere aren't
@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Riftcaster.Contracts\Riftcaster.Contracts.csproj" />
-    <ProjectReference Include="..\Riftcaster.Admin\Riftcaster.Admin.csproj" />
+    <ProjectReference Include="..\Riftcaster.WebUI\Riftcaster.WebUI.csproj" />
     <ProjectReference Include="..\Riftcaster.Core\Riftcaster.Core.csproj" />
     <!-- Build order only: Codegen must regenerate the overlays' TypeScript types before
          BuildOverlays runs. Nothing from Codegen is referenced or copied into this project. -->

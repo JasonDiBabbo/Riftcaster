@@ -1,7 +1,7 @@
 using System.Net.Http.Headers;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
-using Riftcaster.Admin;
+using Riftcaster.WebUI;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;

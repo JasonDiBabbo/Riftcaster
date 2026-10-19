@@ -1,4 +1,4 @@
-﻿using Riftcaster.Admin.Layout;
+﻿using Riftcaster.WebUI.Layout;
 using Riftcaster.Core.Network;
 using Riftcaster.Server.Api;
 
@@ -51,7 +51,7 @@ internal static class RemoteAccess
             // the operator to sign in. Anything else (the admin's live connection, its scripts)
             // just fails until they have.
             if (HttpMethods.IsGet(context.Request.Method)
-                && (AdminNav.IsAdminPage(context.Request.Path.Value) || context.Request.Path.StartsWithSegments(RestApi.DocsPath)))
+                && (AppNav.IsAppPage(context.Request.Path.Value) || context.Request.Path.StartsWithSegments(RestApi.DocsPath)))
             {
                 context.Response.Redirect(OperatorSignIn.SignInPath);
                 return;
@@ -141,5 +141,5 @@ internal static class RemoteAccess
     internal static bool IsPartOfSigningIn(PathString path) =>
         path.Equals(OperatorSignIn.SignInPath, StringComparison.OrdinalIgnoreCase)
         || path.Equals(OperatorSignIn.SignOutPath, StringComparison.OrdinalIgnoreCase)
-        || path.StartsWithSegments("/_content/Riftcaster.Admin/fonts");
+        || path.StartsWithSegments("/_content/Riftcaster.WebUI/fonts");
 }

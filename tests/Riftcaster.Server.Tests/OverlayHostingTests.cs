@@ -31,7 +31,7 @@ public class OverlayHostingTests(RiftcasterWebApplicationFactory factory) : ICla
     [Theory]
     [InlineData("no-such-folder")]
     [InlineData("")]
-    public async Task NoOverlayFiles_AdminSaysSo(string configuredPath)
+    public async Task NoOverlayFiles_DashboardSaysSo(string configuredPath)
     {
         using var server = factory.WithWebHostBuilder(builder => builder.UseSetting("Overlays:Path", configuredPath));
         var client = server.CreateClient();
