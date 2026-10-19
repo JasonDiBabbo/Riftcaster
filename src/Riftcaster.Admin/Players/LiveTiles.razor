@@ -1,0 +1,62 @@
+@using Riftcaster.Core.Match
+@using Riftcaster.Core.Cards
+@using Riftcaster.Core.Players
+@implements IDisposable
+@inject CardCatalog Catalog
+@inject PlayersService Players
+
+@{
+    // One read, so the settings and players always belong together (see PlayersService.MatchState).
+    var state = Players.MatchState;
+}
+
+@* The players' scores, as big controls, in one panel like the others: one cell per player, or per team
+   in 2v2, where the teams hold the scores. Who the players are, and the match's settings, are set on
+   the Match setup page. *@
+<Panel Title="Players" Meta="@PlayerLabels.Meta(state.Settings)">
+    <Actions>
+        <button type="button" class="button-secondary" @onclick="Players.ResetScores">Reset scores</button>
+    </Actions>
+    <ChildContent>
+        <div class="live-tiles">
+            <div class="tiles" data-players="@state.Settings.PlayerCount" data-teams="@(state.Settings.IsTeamMode ? "true" : null)">
+                @if (state.Settings.IsTeamMode)
+                {
+                    @foreach (var team in Enumerable.Range(0, PlayersService.TeamCount))
+                    {
+                        <TeamTile @key="team" Team="team" State="state" />
+                    }
+                }
+                else
+                {
+                    @foreach (var seat in Enumerable.Range(0, state.Settings.PlayerCount))
+                    {
+                        <PlayerTile @key="seat" Seat="seat" State="state" />
+                    }
+                }
+            </div>
+        </div>
+    </ChildContent>
+</Panel>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Also raised when the match settings change, which changes the tiles shown.
+        Players.Changed += OnPlayersChanged;
+
+        // New names for the legend, champion and battlefield chips.
+        Catalog.Changed += OnPlayersChanged;
+    }
+
+    private void OnPlayersChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Players.Changed -= OnPlayersChanged;
+        Catalog.Changed -= OnPlayersChanged;
+    }
+}

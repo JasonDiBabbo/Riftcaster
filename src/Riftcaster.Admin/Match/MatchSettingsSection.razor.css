@@ -1,0 +1,54 @@
+/* The settings wrap rather than sit in fixed columns: each takes at least the width its control needs
+   (Mode's four options, Format's two, the overtime switch and its label) and shares out the rest, so
+   whatever the page's width, no control is cut short or pushed out of view. Bottom-aligned, so the
+   switch lines up with the steppers, not their captions. */
+.fields {
+  display: grid;
+  gap: 16px;
+}
+
+/* Two lines: how the match is played (mode and format), then its limits (points, duration, overtime). */
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 14px 16px;
+}
+
+.mode {
+  flex: 0 1 360px;
+}
+
+.format {
+  flex: 0 1 260px;
+}
+
+.number {
+  flex: 0 1 170px;
+}
+
+.overtime {
+  flex: 0 1 200px;
+}
+
+/* Phone: the controls are taller to touch. */
+@media (width < 760px) {
+  .fields {
+    --stepper-height: 44px;
+  }
+
+  .mode,
+  .format,
+  .number,
+  .overtime {
+    flex-basis: 100%;
+  }
+
+  .fields ::deep .segment {
+    height: 38px;
+  }
+
+  .fields ::deep .toggle {
+    height: 44px;
+  }
+}

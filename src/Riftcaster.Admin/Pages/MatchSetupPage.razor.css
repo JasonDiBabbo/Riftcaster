@@ -1,0 +1,45 @@
+/* A form, not a dashboard: two sections straight on the page, each as wide as the page allows (up to
+   a limit, so a form never stretches across an ultrawide screen: the rest is left empty on the right). The page is the container the
+   rows lay themselves out by, so they follow the width actually available, whether or not the side
+   navigation is open. */
+.setup {
+  --setup-columns: 150px repeat(4, minmax(0, 1fr)) 170px;
+  container: setup / inline-size;
+  display: grid;
+  align-content: start;
+  gap: 36px;
+  padding: 24px 28px 32px;
+}
+
+.setup > * {
+  max-width: 1200px;
+}
+
+.hint {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.hint a {
+  margin-left: 6px;
+  color: var(--acc);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .hint a:hover {
+    text-decoration: underline;
+  }
+}
+
+@media (width < 760px) {
+  .setup {
+    gap: 28px;
+    padding: 16px;
+  }
+
+  /* Phone: the title and menu button are there instead. */
+  .hint {
+    display: none;
+  }
+}

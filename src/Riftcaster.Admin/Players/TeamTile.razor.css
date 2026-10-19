@@ -1,0 +1,166 @@
+/* The team's cell is flat and works as a player's does (see PlayerTile). */
+.tile {
+  --player: oklch(0.74 0.13 var(--player-hue));
+  --rule: oklch(0.74 0.13 var(--player-hue) / 0.22);
+  container: tile / inline-size;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--panel);
+  box-shadow: -1px 0 0 var(--line), 0 -1px 0 var(--line);
+}
+
+.bar {
+  height: 3px;
+  background: var(--player);
+}
+
+/* Inside the tile, which is the container: a container can't be laid out by its own queries. */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 12px 16px 0;
+}
+
+.name {
+  margin: 0;
+  color: var(--player);
+  font: 700 var(--fs-body) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.members {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 var(--fs-title) / 1.2 var(--font);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.edit {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  text-decoration: none;
+}
+
+@media (hover: hover) {
+  .edit:hover {
+    color: var(--text);
+  }
+}
+
+.scores {
+  --stepper-height: 64px;
+  --step-width: 64px;
+  --step-font: 28px;
+  --fs-stepper: 34px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px 16px 16px;
+}
+
+.players {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--rule);
+}
+
+.player + .player {
+  border-left: 1px solid var(--rule);
+}
+
+.player {
+  --stepper-height: 52px;
+  --step-width: 52px;
+  --step-font: 24px;
+  --fs-stepper: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px 14px 14px;
+}
+
+/* The XP stepper sits at the bottom of both players, whatever their tags take up above it. */
+.xp {
+  margin-top: auto;
+}
+
+.who {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.slot {
+  color: var(--player);
+  font: 700 var(--fs-meta) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.player-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font: 600 var(--fs-body) / 1.2 var(--font);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Narrow: the team's two scores stack, then so do its players, so no stepper is squeezed. */
+@container tile (max-width: 419px) {
+  .scores,
+  .players {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .player + .player {
+    border-top: 1px solid var(--rule);
+    border-left: 0;
+  }
+}
+
+/* Wide: the scores on the left, the two players side by side on the right: one block. */
+@container tile (min-width: 760px) {
+  .layout {
+    grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+  }
+
+  .head {
+    grid-column: 1 / -1;
+  }
+
+  .scores {
+    grid-column: 1;
+    grid-row: 3;
+    grid-template-columns: minmax(0, 1fr);
+    /* Points at the top and Game wins at the bottom, so when the players' tags make the tile taller,
+       Game wins still ends level with the players' XP. */
+    align-content: space-between;
+    gap: 14px;
+    padding-bottom: 14px;
+  }
+
+  .players {
+    grid-column: 2;
+    grid-row: 3;
+    margin-top: 12px;
+    border-top: 0;
+    border-left: 1px solid var(--rule);
+  }
+}

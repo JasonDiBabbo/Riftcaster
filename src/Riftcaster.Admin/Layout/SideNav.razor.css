@@ -1,0 +1,471 @@
+/* The side navigation, at the dashboard's breakpoints (see Home.razor.css):
+   - phone, under 760px: hidden, and a full-screen menu when open (the page header's menu button);
+   - tablet, 760px to 1199px: an icon rail, widening over the page when opened;
+   - desktop, 1200px and up: an open rail, which can be shrunk to icons (and ultrawide the same).
+   The rules below start from the phone and add to it.
+
+   Everything stays rendered and moves between states with CSS transitions, so it animates in the
+   browser without waiting on the server, and closing animates as well as opening. A hidden part
+   uses visibility, which transitions at the end of a fade out (and the start of a fade in), and
+   also takes it out of the tab order. The icons never move: each state only changes how much of
+   the rail shows around them. */
+
+/* The rail's place in the page. Phones have none: the menu is fixed over everything. The timing is
+   set here, not on :root, which a component's stylesheet can't reach (it's scoped to the component). */
+.slot {
+  --nav-duration: 160ms;
+  --nav-ease: cubic-bezier(0.2, 0, 0, 1);
+  display: contents;
+}
+
+/* Phone: the menu, closed (faded out, a little above its place) until opened. */
+.rail {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px 16px; /* The page header's: its menu button and this one's close button share a spot */
+  background: var(--bg);
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity var(--nav-duration) var(--nav-ease),
+    transform var(--nav-duration) var(--nav-ease),
+    visibility 0s linear var(--nav-duration);
+}
+
+.rail.open {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--nav-duration) var(--nav-ease),
+    transform var(--nav-duration) var(--nav-ease),
+    visibility 0s;
+}
+
+.scrim {
+  display: none;
+}
+
+/* On a phone, this row sits exactly over the page header (PageHeader.razor.css): the same gap
+   between the button and the logo, and the same type size as the page title, so opening the menu
+   doesn't shift anything but the words. */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: none;
+  min-height: 44px;
+}
+
+/* The logo's card, in the theme's accent (the same technique as the dashboard's old header): the
+   SVG only gives the shape. */
+.mark {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: -1px -7px -1px -5px; /* Trims the space around the card in its SVG */
+  background: var(--acc);
+  mask: url('logo/mark.svg') center / contain no-repeat;
+}
+
+.wordmark {
+  color: var(--acc);
+  font: 700 var(--fs-title) / 1 var(--font);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* Phone only: opening the menu covers the page header, so this takes the place of the header's menu
+   button (the same size, in the same spot) until the menu closes. */
+.close {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-right: -6px;
+  padding: 0;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-item);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.find {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 12px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-item);
+  background: var(--input);
+  color: var(--text-faint);
+}
+
+.find:focus-within {
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--focus-glow);
+}
+
+.find svg,
+.item svg,
+.close svg {
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.find svg {
+  width: 18px;
+  height: 18px;
+}
+
+.close svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* The field has its own focus style (the glow on .find), so its border and glow come off. */
+.find input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font: 500 16px / 1 var(--font);
+}
+
+.find input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.groups {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-x: hidden; /* The labels of a narrow rail are wider than it, though they're hidden */
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.group-title {
+  padding: 8px 12px 6px;
+  color: var(--text-faint);
+  font: 700 var(--fs-meta) / 1 var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.none {
+  margin: 0;
+  padding: 0 12px;
+  color: var(--text-muted);
+  font-size: var(--fs-small);
+}
+
+.item {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  height: 56px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-item);
+  background: transparent;
+  color: var(--text-secondary);
+  font: 500 17px / 1 var(--font);
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.item svg {
+  width: 22px;
+  height: 22px;
+}
+
+.item.active {
+  background: var(--acc-wash);
+  color: var(--acc);
+}
+
+@media (hover: hover) {
+  .item:not(.active):hover {
+    background: var(--button-hover);
+    color: var(--text);
+  }
+
+  .close:hover {
+    background: var(--button-hover);
+  }
+}
+
+/* The collapse and expand buttons are for tablets and desktops. */
+.footer {
+  display: none;
+}
+
+/* Tablet and up: a rail down the page's left edge. It is laid over a 64px place in the page, so
+   widening it (opening it, on a tablet) covers the page instead of moving it. */
+@media (width >= 760px) {
+  .slot {
+    display: block;
+    flex: none;
+    width: 64px;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: 100vh;
+    align-self: flex-start;
+  }
+
+  .rail {
+    position: absolute;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: 64px;
+    gap: 8px;
+    padding: 14px 8px;
+    border-right: 1px solid var(--header-line);
+    background: var(--hd);
+    overflow: hidden;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      width var(--nav-duration) var(--nav-ease),
+      box-shadow var(--nav-duration) var(--nav-ease);
+  }
+
+  .rail.open {
+    transition:
+      width var(--nav-duration) var(--nav-ease),
+      box-shadow var(--nav-duration) var(--nav-ease);
+  }
+
+  .brand {
+    gap: 10px;
+    min-height: 0;
+    padding: 2px 8px 14px 18px; /* Puts the logo over the icons below it */
+  }
+
+  .wordmark {
+    font-size: var(--fs-wordmark);
+  }
+
+  .find {
+    height: 36px;
+    overflow: hidden;
+  }
+
+  .find input {
+    font-size: var(--fs-small);
+  }
+
+  /* A fixed height (11px of text and its padding), so it can shrink away when the rail is narrow. */
+  .group-title {
+    box-sizing: border-box;
+    height: 21px;
+    padding: 6px 10px 4px;
+    overflow: hidden;
+    font-size: var(--fs-label);
+  }
+
+  /* In a narrow rail there's no title to separate the groups: a line does it. */
+  .group + .group {
+    border-top: 1px solid transparent;
+  }
+
+  /* The icon sits in the middle of the narrow rail, and stays there as the labels appear. */
+  .item {
+    gap: 10px;
+    height: 40px;
+    padding: 0 10px 0 15px;
+    border-radius: 7px;
+    font-size: var(--fs-body);
+  }
+
+  .item svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  /* Tablets and up close the menu with the Collapse button at the bottom. */
+  .close {
+    display: none;
+  }
+
+  .footer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: none;
+    padding-top: 10px;
+    border-top: 1px solid var(--header-line);
+  }
+
+  .collapse-toggle {
+    display: none;
+  }
+
+  /* What shows only when there's room for it fades in and out as the rail widens and narrows. */
+  .wordmark,
+  .label {
+    transition:
+      opacity var(--nav-duration) var(--nav-ease),
+      visibility var(--nav-duration) linear;
+  }
+
+  .find,
+  .group-title,
+  .group + .group {
+    transition:
+      opacity var(--nav-duration) var(--nav-ease),
+      visibility var(--nav-duration) linear,
+      height var(--nav-duration) var(--nav-ease),
+      margin var(--nav-duration) var(--nav-ease),
+      padding var(--nav-duration) var(--nav-ease),
+      border-color var(--nav-duration) var(--nav-ease),
+      border-width var(--nav-duration) var(--nav-ease);
+  }
+}
+
+/* Tablet: icons only, widening over the page when opened. */
+@media (width >= 760px) and (width < 1200px) {
+  .rail:not(.open) .wordmark,
+  .rail:not(.open) .find,
+  .rail:not(.open) .group-title,
+  .rail:not(.open) .label {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  /* The search box and group titles also give up their space (the rail's 8px gap too), so the icons close up. */
+  .rail:not(.open) .find {
+    height: 0;
+    margin-bottom: -8px;
+    padding-block: 0;
+    border-width: 0;
+  }
+
+  .rail:not(.open) .group-title {
+    height: 0;
+    padding-block: 0;
+  }
+
+  .rail:not(.open) .group + .group {
+    padding-top: 10px;
+    border-top-color: var(--header-line);
+  }
+
+  .rail.open {
+    width: 260px;
+    border-right-color: var(--edge);
+    box-shadow: 8px 0 32px rgb(0 0 0 / 0.5);
+  }
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    display: block;
+    padding: 0;
+    border: 0;
+    background: rgb(0 0 0 / 0.55);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity var(--nav-duration) var(--nav-ease),
+      visibility var(--nav-duration) linear;
+  }
+
+  .scrim.shown {
+    visibility: visible;
+    opacity: 1;
+  }
+}
+
+/* Desktop and ultrawide: open, or icons only when collapsed. */
+@media (width >= 1200px) {
+  /* The place the rail takes in the page changes at once, so the page lays itself out once for its
+     new width. Animating it would re-lay out the whole dashboard on every frame (and could switch its
+     columns part-way through). The rail itself, which is drawn over that place, is what animates:
+     it grows into the space when opened, and shrinks away from over the page when collapsed. */
+  .slot {
+    width: 232px;
+  }
+
+  .slot.collapsed {
+    width: 64px;
+  }
+
+  .rail,
+  .rail.open {
+    width: 232px;
+    box-shadow: none;
+  }
+
+  .slot.collapsed .rail {
+    width: 64px;
+  }
+
+  .expand-toggle {
+    display: none;
+  }
+
+  .collapse-toggle {
+    display: flex;
+  }
+
+  .slot.collapsed .wordmark,
+  .slot.collapsed .find,
+  .slot.collapsed .group-title,
+  .slot.collapsed .label {
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .slot.collapsed .find {
+    height: 0;
+    margin-bottom: -8px;
+    padding-block: 0;
+    border-width: 0;
+  }
+
+  .slot.collapsed .group-title {
+    height: 0;
+    padding-block: 0;
+  }
+
+  .slot.collapsed .group + .group {
+    padding-top: 10px;
+    border-top-color: var(--header-line);
+  }
+}

@@ -2,16 +2,18 @@
 @implements IDisposable
 @inject MatchService Match
 
-<Panel Title="Match">
-    <div class="content">
-        <div class="row">
-            <Field Label="Points to win" Composite>
-                <Stepper Label="Points to win"
-                         Min="MatchService.MinPointsToWin"
-                         Max="MatchService.MaxPointsToWin"
-                         @bind-Value:get="Match.Settings.PointsToWin"
-                         @bind-Value:set="value => Match.Update(settings => settings with { PointsToWin = value })" />
+<FormSection Title="Match">
+    <div class="fields">
+      <div class="line">
+        <div class="mode">
+            <Field Label="Mode" Composite>
+                <SegmentedControl Label="Mode"
+                                  Options="MatchLabels.ModeOptions"
+                                  @bind-Value:get="Match.Settings.Mode"
+                                  @bind-Value:set="value => Match.Update(settings => settings with { Mode = value })" />
             </Field>
+        </div>
+        <div class="format">
             <Field Label="Format" Composite>
                 <SegmentedControl Label="Format"
                                   Options="MatchLabels.FormatOptions"
@@ -19,15 +21,18 @@
                                   @bind-Value:set="value => Match.Update(settings => settings with { Format = value })" />
             </Field>
         </div>
-
-        <Field Label="Mode" Composite>
-            <SegmentedControl Label="Mode"
-                              Options="MatchLabels.ModeOptions"
-                              @bind-Value:get="Match.Settings.Mode"
-                              @bind-Value:set="value => Match.Update(settings => settings with { Mode = value })" />
-        </Field>
-
-        <div class="row bottom">
+      </div>
+      <div class="line">
+        <div class="number">
+            <Field Label="Points to win" Composite>
+                <Stepper Label="Points to win"
+                         Min="MatchService.MinPointsToWin"
+                         Max="MatchService.MaxPointsToWin"
+                         @bind-Value:get="Match.Settings.PointsToWin"
+                         @bind-Value:set="value => Match.Update(settings => settings with { PointsToWin = value })" />
+            </Field>
+        </div>
+        <div class="number">
             <Field Label="Duration (min)" Composite>
                 <Stepper Label="Duration in minutes"
                          Min="MatchService.MinDurationMinutes"
@@ -36,12 +41,15 @@
                          @bind-Value:get="Match.Settings.DurationMinutes"
                          @bind-Value:set="value => Match.Update(settings => settings with { DurationMinutes = value })" />
             </Field>
+        </div>
+        <div class="overtime">
             <Toggle Label="Allow overtime"
                     @bind-Value:get="Match.Settings.AllowOvertime"
                     @bind-Value:set="value => Match.Update(settings => settings with { AllowOvertime = value })" />
         </div>
+      </div>
     </div>
-</Panel>
+</FormSection>
 
 @code {
     protected override void OnInitialized()

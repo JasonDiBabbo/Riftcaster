@@ -1,0 +1,49 @@
+@using Riftcaster.Core.Match
+@using Riftcaster.Core.Cards
+@using Riftcaster.Core.Players
+@implements IDisposable
+@inject CardCatalog Catalog
+@inject PlayersService Players
+
+@{
+    // One read, so the settings and players always belong together (see PlayersService.MatchState).
+    var state = Players.MatchState;
+}
+
+<FormSection Title="Players" Meta="@PlayerLabels.Meta(state.Settings)">
+    @* Column captions for the wide layout, where the rows show no captions of their own. *@
+    <div class="columns" aria-hidden="true">
+        <span class="seat"></span>
+        <span>Name</span>
+        <span>Legend</span>
+        <span>Champion</span>
+        <span>Battlefield</span>
+        <span>Swap seat</span>
+    </div>
+    @foreach (var seat in Enumerable.Range(0, state.Settings.PlayerCount))
+    {
+        <PlayerSetupRow @key="seat" Seat="seat" State="state" />
+    }
+</FormSection>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // Also raised when the match settings change, which changes the rows shown.
+        Players.Changed += OnPlayersChanged;
+
+        // New cards for the legend, champion and battlefield selects.
+        Catalog.Changed += OnPlayersChanged;
+    }
+
+    private void OnPlayersChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Players.Changed -= OnPlayersChanged;
+        Catalog.Changed -= OnPlayersChanged;
+    }
+}

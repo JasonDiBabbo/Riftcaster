@@ -1,0 +1,47 @@
+/* The cells follow the width the panel gives them, not the screen's. Each is at least about 340px
+   wide, so each count of players needs its own width to share a row. */
+.live-tiles {
+  container: tiles / inline-size;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Each player's cell spans three rows (heading, tags, controls) and shares them with the cells beside
+   it, so the tags row is as tall as the tallest and every cell's controls start on the same line.
+   The third row takes the spare height. The rules between cells are drawn by the cells themselves. */
+.tiles {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-rows: auto auto minmax(0, 1fr);
+}
+
+/* Two columns once there's room for two cells, then as many as the players, up to their count. */
+@container tiles (min-width: 700px) {
+  .tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* An odd one out takes the whole last row, so no gap is left beside it. */
+  .tiles[data-players='3'] ::deep .tile:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container tiles (min-width: 1080px) {
+  .tiles[data-players='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tiles[data-players='3'] ::deep .tile:last-child {
+    grid-column: auto;
+  }
+}
+
+@container tiles (min-width: 1440px) {
+  .tiles[data-players='4']:not([data-teams]) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

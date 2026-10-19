@@ -1,7 +1,7 @@
 .stepper {
   display: flex;
   align-items: center;
-  height: 36px;
+  height: var(--stepper-height, 36px);
   overflow: hidden;
   border: 1px solid var(--edge);
   border-radius: var(--radius-control);
@@ -30,7 +30,7 @@
   border: none;
   background: transparent;
   color: var(--text-muted);
-  font: 500 16px / 1 var(--font);
+  font: 500 var(--step-font, 16px) / 1 var(--font);
   cursor: pointer;
 }
 
