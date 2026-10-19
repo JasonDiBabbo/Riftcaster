@@ -3,13 +3,13 @@
 namespace Riftcaster.Core.LowerThird;
 
 /// <summary>
-/// What makes a lower third message complete, for messages from outside the dashboard (the REST API),
+/// What makes a lower third message complete, for messages from outside the web interface (the REST API),
 /// whose editor checks the same things as they're typed.
 /// </summary>
 public static class LowerThirdMessageRules
 {
     /// <summary>
-    /// Tidies a message as the dashboard's editor does, then checks it: text is trimmed, socials
+    /// Tidies a message as the web interface's editor does, then checks it: text is trimmed, socials
     /// links with no handle are dropped, and every field it shows must have text.
     /// </summary>
     /// <param name="message">The message as received. Its text may be null when a field was left out.</param>

@@ -16,7 +16,7 @@ public static class MatchEndpoints
                 StateSockets.SendStatesAsync(context, players.WatchAsync, lifetime.ApplicationStopping))
             .ExcludeFromDescription(); // A WebSocket, which OpenAPI can't describe
 
-        // REST (issue #9): the dashboard's Match panel.
+        // REST (issue #9): the Match setup page.
         var match = app.MapGroup("/api/match").WithTags("Match");
 
         match.MapGet("/", (MatchService service) => TypedResults.Ok(service.Settings))

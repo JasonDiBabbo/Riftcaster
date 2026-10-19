@@ -9,7 +9,7 @@ namespace Riftcaster.Server;
 /// <summary>
 /// Keeps the access code in a JSON file, encrypted with ASP.NET Core Data Protection (on Windows,
 /// keys protected by the user's own Windows account), so it isn't readable as plain text on disk
-/// but the dashboard can still show it on this computer.
+/// but the web interface can still show it on this computer.
 /// </summary>
 /// <param name="path">The file. Its folder is created on the first save.</param>
 /// <param name="dataProtection">Encrypts and decrypts the code.</param>
@@ -35,7 +35,7 @@ internal sealed class ProtectedAccessCodeStore(string path, IDataProtectionProvi
         catch (Exception exception) when (exception is CryptographicException or JsonException)
         {
             // E.g. it was saved on another computer or Windows account, or the keys were lost.
-            logger.LogWarning(exception, "Couldn't read the saved access code. A new one will be generated to replace it. It can be viewed in the dashboard's network panel.");
+            logger.LogWarning(exception, "Couldn't read the saved access code. A new one will be generated to replace it. It can be viewed in the web interface's network settings.");
             return new(null, Unreadable: true);
         }
     }

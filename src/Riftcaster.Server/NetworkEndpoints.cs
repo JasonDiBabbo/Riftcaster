@@ -8,7 +8,7 @@ namespace Riftcaster.Server;
 /// reloads its endpoints and rebinds, without restarting the server.
 /// </summary>
 /// <remarks>
-/// Rebinding closes the old listener, so every connection drops for a moment; the dashboard and the
+/// Rebinding closes the old listener, so every connection drops for a moment; the web interface and the
 /// overlays reconnect by themselves. While off, nothing listens on the network at all, so Windows
 /// Firewall only asks about the server the first time network access is turned on.
 /// </remarks>

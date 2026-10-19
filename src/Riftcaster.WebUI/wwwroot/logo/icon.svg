@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- The mark on a dark tile (the dashboard's background), so it shows on light and dark taskbars and tabs. -->
+  <!-- The mark on a dark tile (the web interface's background), so it shows on light and dark taskbars and tabs. -->
   <defs>
     <mask id="tear" maskUnits="userSpaceOnUse" x="0" y="0" width="64" height="64">
       <path d="M18 14L46 5L48 59L16 50Z" fill="#fff" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>

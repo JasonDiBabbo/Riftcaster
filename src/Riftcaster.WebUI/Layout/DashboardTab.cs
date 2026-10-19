@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.WebUI.Layout;
 
 /// <summary>
-/// The different tabs shown on the dashboard for applicable screen sizes.
+/// The different tabs shown on the Live dashboard for applicable screen sizes.
 /// </summary>
 public enum DashboardTab
 {

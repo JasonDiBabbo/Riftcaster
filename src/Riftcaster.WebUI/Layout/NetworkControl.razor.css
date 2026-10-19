@@ -196,7 +196,7 @@
   flex: 1;
 }
 
-/* Phones: the full width of the header, with the dashboard's 16px gutters. */
+/* Phones: the full width of the header, with the web interface's 16px gutters. */
 @media (width < 760px) {
   .panel {
     left: 16px;

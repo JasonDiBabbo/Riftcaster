@@ -15,7 +15,7 @@ namespace Riftcaster.Server;
 /// See issue #32.
 ///
 /// Every overlay stream comes through here, so this is also where overlays are counted for the
-/// dashboard header (see <see cref="OverlayConnections"/>).
+/// Live dashboard header (see <see cref="OverlayConnections"/>).
 /// </remarks>
 internal static class StateSockets
 {

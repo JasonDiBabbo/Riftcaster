@@ -19,7 +19,7 @@ public class ShutdownTests(RiftcasterWebApplicationFactory factory) : IClassFixt
     [Fact]
     public async Task Stopping_GivesUpOnWhatsStillOpen_AfterTheShutdownTimeout()
     {
-        // Like a dashboard's connection, which doesn't end by itself: a service that only
+        // Like a web interface's connection, which doesn't end by itself: a service that only
         // stops when the server gives up waiting for it.
         // Its own server, since this one is stopped; the factory it comes from deletes its data folder.
         await using var serverFactory = new RiftcasterWebApplicationFactory();

@@ -10,11 +10,11 @@ using Riftcaster.Server.Api;
 namespace Riftcaster.Server;
 
 /// <summary>
-/// REST (issue #9) for the dashboard's Players panel: the players' details and scores, and the teams'
+/// REST (issue #9) for the Live dashboard's Players panel: the players' details and scores, and the teams'
 /// scores in 2v2. Their overlays' stream is /api/match/events (see <see cref="MatchEndpoints"/>).
 /// </summary>
 /// <remarks>
-/// Seats are numbered from 1, as the dashboard labels them (Player 1 to Player 4), and teams are a and
+/// Seats are numbered from 1, as the web interface labels them (Player 1 to Player 4), and teams are a and
 /// b (Team A and Team B), unlike the 0-based lists in the JSON.
 /// </remarks>
 public static class PlayersEndpoints

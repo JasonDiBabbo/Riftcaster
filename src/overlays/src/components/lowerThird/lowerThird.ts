@@ -1,5 +1,5 @@
 /**
- * Lower third overlay. Shows whatever the dashboard puts on air, streamed
+ * Lower third overlay. Shows whatever the web interface puts on air, streamed
  * from the server over a WebSocket (/api/lower-third/events): the
  * current state on connect, then one message per change.
  *

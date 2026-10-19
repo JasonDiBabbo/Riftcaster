@@ -14,7 +14,7 @@ public static class TimerEndpoints
                 StateSockets.SendStatesAsync(context, timer.WatchAsync, lifetime.ApplicationStopping))
             .ExcludeFromDescription(); // A WebSocket, which OpenAPI can't describe
 
-        // REST (issue #9): the same actions as the dashboard's Timer panel. Each returns the timer as it
+        // REST (issue #9): the same actions as the Live dashboard's Timer panel. Each returns the timer as it
         // is afterwards.
         var timer = app.MapGroup("/api/timer").WithTags("Timer");
 
@@ -36,7 +36,7 @@ public static class TimerEndpoints
         timer.MapPost("/adjust", (TimerAdjustment adjustment, TimerService service) =>
                 Act(service, () => service.Adjust(adjustment.Seconds!.Value)))
             .WithSummary("Add or take away time")
-            .WithDescription("Changes the timer's length, like the dashboard's −1m and +1m buttons. The time run is unchanged, and the length stays between 0 and 999:59.");
+            .WithDescription("Changes the timer's length, like the Live dashboard's −1m and +1m buttons. The time run is unchanged, and the length stays between 0 and 999:59.");
 
         timer.MapPut("/remaining", (TimerRemaining remaining, TimerService service) =>
                 Act(service, () => service.SetRemaining(remaining.Seconds!.Value)))

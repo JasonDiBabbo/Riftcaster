@@ -2,7 +2,7 @@
 
 # Riftcaster
 
-Riftcaster provides live, data-driven overlays for streaming Riftbound. You control them from a dashboard in your browser, or from a Stream Deck, Bitfocus Companion or your own scripts through its REST API.
+Riftcaster provides live, data-driven overlays for streaming Riftbound. You control them from the web interface in your browser, or from a Stream Deck, Bitfocus Companion or your own scripts through its REST API.
 
 Up your game on your next Riftbound livestream or recorded content with Riftcaster!
 
@@ -11,7 +11,7 @@ Up your game on your next Riftbound livestream or recorded content with Riftcast
 Riftcaster runs as a single server process and serves three things:
 
 - **Overlay pages.** Each overlay element is its own page, added to your streaming software as a Browser Source. The software's own scene editor handles layout and positioning.
-- **The dashboard.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
+- **The web interface.** A Blazor web app for controlling what the overlays show. It's meant to be opened from any device on the network (desktop, laptop, tablet, phone) once network access and an access code are set up; see below.
 - **An API:** live streams the overlays read their data from, and a REST API for controlling the show from Stream Deck, Bitfocus Companion or scripts (see "The REST API").
 
 ## Tech stack
@@ -29,8 +29,8 @@ Riftcaster runs as a single server process and serves three things:
 
 ```
 src/
-├── Riftcaster.Server/      ASP.NET Core host: API, dashboard, overlay files, and the overlays build
-├── Riftcaster.WebUI/       Blazor components for the dashboard (hosted by Server)
+├── Riftcaster.Server/      ASP.NET Core host: API, web interface, overlay files, and the overlays build
+├── Riftcaster.WebUI/       Blazor components for the web interface (hosted by Server)
 ├── Riftcaster.Core/        The services and rules: players, match, timer, cards, network access
 ├── Riftcaster.Contracts/   Shared DTOs; the source of truth for server ↔ overlay data shapes
 ├── Riftcaster.Windows/     Windows launcher: builds Riftcaster.exe, which runs the server with a tray icon and installs updates
@@ -73,7 +73,7 @@ Once it's running:
 
 | URL | What |
 | --- | --- |
-| http://localhost:5062/ | Dashboard |
+| http://localhost:5062/ | Web interface |
 | http://localhost:5062/api/info | Server identity (JSON) |
 | http://localhost:5062/api/docs | REST API docs, where you can try each endpoint |
 | http://localhost:5062/overlays/serverIdentity/serverIdentity.html | Example overlay |
@@ -87,11 +87,11 @@ Each [GitHub Release](https://github.com/JasonDiBabbo/Riftcaster/releases) has t
 - **`Riftcaster-win-Setup.exe`** installs Riftcaster for your Windows user, without administrator rights, and adds it to the Start menu. This is the one to use.
 - **`Riftcaster-win-Portable.zip`** runs from whatever folder you extract it to, such as a USB stick. Start `Riftcaster.exe` in it. It keeps its saved state in a `data` folder inside that folder, so the state goes wherever the folder goes and stays apart from an installed copy's. The folder must be one you can write to, for the saved state and for updates. To move to a new portable folder, copy `data` across. The access code is the exception: it can only be read on the server and Windows user that set it, so on another server a new one is generated.
 
-Riftcaster runs in the tray, by the clock, not in a window. Starting it opens the dashboard (http://localhost:5062/) in your browser; to start without, add `--Launcher:OpenDashboard=false`. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open the dashboard again. Quitting stops the server, and the overlays with it.
+Riftcaster runs in the tray, by the clock, not in a window. Starting it opens Riftcaster (http://localhost:5062/) in your browser; to start without, add `--Launcher:OpenDashboard=false`. Right-click its icon for **Open dashboard**, **Open log folder** and **Quit**, or double-click it to open Riftcaster again. Quitting stops the server, and the overlays with it.
 
 Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Control** lets them run. While a new release is still building its reputation, Windows may show **Windows protected your PC** on first run: click **More info**, then **Run anyway**. 0.1.0 isn't signed, so Smart App Control blocks it.
 
-**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another dashboard tab. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
+**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another web interface tab. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
 
 **Uninstalling.** Remove Riftcaster in **Settings**, **Apps**, **Installed apps**. Saved state isn't in the app's folder (see below), so it stays; delete `%APPDATA%\Riftcaster` as well to remove everything.
 
@@ -121,9 +121,9 @@ A published build runs as Production, on http://localhost:5062 (change it with `
 - **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
 - **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another server or user the saved code can't be read. Riftcaster then generates a new one in its place and logs that it did: **Show** it in the network panel to give to operators, or set your own.
-- **If the overlays are missing,** the dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
+- **If the overlays are missing,** the Live dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
 
-CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the dashboard and every overlay page, with their scripts and stylesheets. In a release's folder, it does that again with the server started by the tray launcher. To check a publish yourself:
+CI publishes on every run, then checks the result with [`tools/publish/check-publish.mjs`](tools/publish/check-publish.mjs): it starts the published server from another folder and fetches the web interface and every overlay page, with their scripts and stylesheets. In a release's folder, it does that again with the server started by the tray launcher. To check a publish yourself:
 
 ```bash
 node tools/publish/check-publish.mjs publish
@@ -167,7 +167,7 @@ Four test suites:
 | --- | --- |
 | `tests/Riftcaster.Core.Tests` | The services and their rules (players, match, timer, cards, access code and so on), with in-memory stores |
 | `tests/Riftcaster.Server.Tests` | The real server, started in memory with `WebApplicationFactory` and exercised over HTTP and WebSockets |
-| `tests/Riftcaster.WebUI.Tests` | The dashboard's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
+| `tests/Riftcaster.WebUI.Tests` | The web interface's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
 | `src/overlays` (Vitest) | The overlays' logic, run by the build's `npm test` step |
 
 bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
@@ -207,21 +207,21 @@ After rebuilding an overlay, click **Refresh cache of current page** in the sour
 
 By default, only the server can reach Riftcaster. To use the overlays from streaming software on another device on the same network:
 
-1. Turn on network access: click the **Local only** pill in the dashboard's header and switch on **Let other devices connect**, or start the server with `--network on` (for example `dotnet run --project src/Riftcaster.Server -- --network on`).
+1. Turn on network access: click the **Local only** pill in the Live dashboard's header and switch on **Let other devices connect**, or start the server with `--network on` (for example `dotnet run --project src/Riftcaster.Server -- --network on`).
 2. The network panel (and the server's console) shows the server's network address, such as `http://192.168.1.20:5062`. In the streaming software on the other device, use it in place of `http://localhost:5062`, for example `http://192.168.1.20:5062/overlays/timer/timer.html`.
 3. The first time, **Windows Firewall** asks whether to allow the server on the network. Allow it on **private networks**. If the venue's network is set to Public in Windows, either change it to Private (Settings > Network & internet > the network's properties) or allow the server on public networks too.
 
-Network access is off again every time the server starts. Switching it on or off briefly reconnects the dashboard and every overlay.
+Network access is off again every time the server starts. Switching it on or off briefly reconnects the web interface and every overlay.
 
 Riftcaster only answers requests addressed to the server itself: `localhost`, an IP address, or the server's own name (`{computer-name}` or `{computer-name}.local`). Requests addressed to any other name get a 400. That stops a website from reaching the server through DNS rebinding, a trick where the site points its own domain at the server. To reach the server by another name, such as one from your router or a reverse proxy, add it to `HostNames` in `appsettings.json`, separated by semicolons: `"HostNames": "riftcaster.lan;obs.example.com"`.
 
-## The dashboard on other devices (access code)
+## The web interface on other devices (access code)
 
-Other devices can always open the overlays while network access is on. The dashboard, which controls the broadcast, needs an **access code**: without one, it can only be used on the server.
+Other devices can always open the overlays while network access is on. The web interface, which controls the broadcast, needs an **access code**: without one, it can only be used on the server.
 
-1. On the server, open the network panel (the pill in the dashboard's header), and under **Access code** type a code or press **Generate**, then **Set**. **Show** reveals it again later, to read out to someone.
-2. Turn on network access. Operators open the dashboard address the panel shows, such as `http://192.168.1.20:5062/`, on their phone or laptop, and enter the code once. Case, spaces and dashes don't matter.
-3. Their device stays signed in until the code changes. **Change** or **Remove** the code (for example after an event) to sign every device out at once, including dashboard pages they have open.
+1. On the server, open the network panel (the pill in the Live dashboard's header), and under **Access code** type a code or press **Generate**, then **Set**. **Show** reveals it again later, to read out to someone.
+2. Turn on network access. Operators open the web interface address the panel shows, such as `http://192.168.1.20:5062/`, on their phone or laptop, and enter the code once. Case, spaces and dashes don't matter.
+3. Their device stays signed in until the code changes. **Change** or **Remove** the code (for example after an event) to sign every device out at once, including web interface pages they have open.
 
 Only the server can switch network access or change the code; signed-in devices can use everything else, and sign out from the network panel. Wrong codes are limited to a few attempts a minute per device. The code is saved encrypted in `data/accessCode.json`.
 
@@ -229,7 +229,7 @@ The connection is plain HTTP, so the code stops casual tampering by others on th
 
 ## The REST API
 
-Everything the dashboard does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the dashboard, so it and the overlays update together.
+Everything the web interface does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
 
 **[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
 
@@ -243,10 +243,10 @@ Everything the dashboard does, except network access and the access code, can al
 | Hide the lower third | `POST /api/lower-third/hide` |
 | Feature a card | `PUT /api/featured-card` with `{ "cardId": "..." }` (ids are in `GET /api/cards?search=jinx`) |
 
-Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the dashboard. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
+Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the web interface. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
 
 - **From the server,** no code is needed.
-- **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the dashboard can also use the docs page.
+- **From another device,** network access must be on and an access code set, and every request sends the code: `Authorization: Bearer K7QM-4XPA`. Wrong codes are limited to a few a minute per device, like the sign-in page. A device signed in to the web interface can also use the docs page.
 - **Other websites can't use it.** A page open in a browser on the server could otherwise send requests to `localhost`, so changes that come from another website's page are refused, as are requests addressed to names that aren't the server's (see "Streaming software on another device"). Stream Deck, Companion and scripts aren't affected, and nor are the server's own pages.
 
 ## Working on overlays

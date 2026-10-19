@@ -1,4 +1,4 @@
-/* Not in the design, which has no reconnection state. Shaped like a panel, in the dashboard's
+/* Not in the design, which has no reconnection state. Shaped like a panel, in the web interface's
    tokens; amber while reconnecting, red once Blazor has given up. */
 .reconnect {
   width: min(440px, calc(100vw - 32px));

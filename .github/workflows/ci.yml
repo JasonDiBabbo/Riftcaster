@@ -43,7 +43,7 @@ jobs:
         run: node tools/coverage/check-coverage.mjs TestResults
 
       # A published build works on its own: run as Production from another folder, it serves the
-      # dashboard and every overlay (#48). Uses the Release build above.
+      # web interface and every overlay (#48). Uses the Release build above.
       - name: Publish
         run: dotnet publish src/Riftcaster.Server --configuration Release --no-build --output publish
 

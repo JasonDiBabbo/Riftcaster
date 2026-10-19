@@ -2,11 +2,11 @@
 
 /// <summary>
 /// Where the built overlay pages are, and whether they're there, so the server can serve them and
-/// the dashboard can warn when it can't.
+/// raise a warning when it can't.
 /// </summary>
 /// <remarks>
-/// A missing folder doesn't stop the server: the dashboard still works. But every OBS source would be
-/// blank, so the dashboard header says so rather than leaving it to a line in the console.
+/// A missing folder doesn't stop the server: the web interface still works. But every OBS source would be
+/// blank, so the Live dashboard's header says so rather than leaving it to a line in the console.
 /// </remarks>
 /// <param name="Folder">The folder's full path, or null when no folder is configured.</param>
 /// <param name="Found">True when the folder exists, so the overlays are served.</param>

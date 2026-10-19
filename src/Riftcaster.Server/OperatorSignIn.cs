@@ -26,7 +26,7 @@ internal static class OperatorSignIn
     public const string SignInPath = "/signin";
 
     /// <summary>
-    /// Where the dashboard's Sign out button posts.
+    /// Where the web interface's Sign out button posts.
     /// </summary>
     public const string SignOutPath = "/signout";
 
@@ -138,8 +138,8 @@ internal static class OperatorSignIn
     }
 
     /// <summary>
-    /// Writes the sign-in page: plain HTML, not part of the Blazor dashboard, since a device that
-    /// hasn't signed in mustn't open the dashboard's live connection.
+    /// Writes the sign-in page: plain HTML, not part of the Blazor web interface, since a device that
+    /// hasn't signed in mustn't open the web interface's live connection.
     /// </summary>
     /// <param name="context">The request.</param>
     /// <param name="form">Antiforgery tokens for the form, or <see langword="null"/> for no form (no code is set, or too many attempts).</param>
@@ -148,7 +148,7 @@ internal static class OperatorSignIn
     {
         var accessCode = context.RequestServices.GetRequiredService<AccessCode>();
         var body = !accessCode.IsSet
-            ? """<p>Remote access isn't set up. To use the dashboard on this device, first set an access code on the server.</p>"""
+            ? """<p>Remote access isn't set up. To use Riftcaster on this device, first set an access code on the server.</p>"""
             : form is null
                 ? ""
                 : $"""
@@ -167,7 +167,7 @@ internal static class OperatorSignIn
             <head>
               <meta charset="utf-8" />
               <meta name="viewport" content="width=device-width, initial-scale=1" />
-              <title>Sign in · Riftcaster Dashboard</title>
+              <title>Sign in · Riftcaster</title>
               <style>
                 @font-face { font-family: 'DM Sans'; font-weight: 100 1000; src: url('/_content/Riftcaster.WebUI/fonts/dm-sans-latin-opsz-normal.woff2') format('woff2'); }
                 * { box-sizing: border-box; }
@@ -190,7 +190,7 @@ internal static class OperatorSignIn
             <body>
               <main>
                 <h1>RIFTCASTER</h1>
-                <p>Enter the access code to use the dashboard on this device. Whoever runs the server can give it to you.</p>
+                <p>Enter the access code to use Riftcaster on this device. Whoever runs the server can give it to you.</p>
                 {{(message is null ? "" : $"""<p class="error" role="alert">{WebUtility.HtmlEncode(message)}</p>""")}}
                 {{body}}
               </main>

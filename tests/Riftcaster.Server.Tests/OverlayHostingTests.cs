@@ -27,11 +27,11 @@ public class OverlayHostingTests(RiftcasterWebApplicationFactory factory) : ICla
         Assert.Equal("text/html", response.Content.Headers.ContentType?.MediaType);
     }
 
-    // A wrong or missing Overlays:Path doesn't stop the server, but the dashboard header says so.
+    // A wrong or missing Overlays:Path doesn't stop the server, but the Live dashboard's header says so.
     [Theory]
     [InlineData("no-such-folder")]
     [InlineData("")]
-    public async Task NoOverlayFiles_DashboardSaysSo(string configuredPath)
+    public async Task NoOverlayFiles_LiveDashboardSaysSo(string configuredPath)
     {
         using var server = factory.WithWebHostBuilder(builder => builder.UseSetting("Overlays:Path", configuredPath));
         var client = server.CreateClient();

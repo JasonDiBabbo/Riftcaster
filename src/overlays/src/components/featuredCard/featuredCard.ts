@@ -1,5 +1,5 @@
 /**
- * Featured card overlay. Shows the card the dashboard features, streamed from the server
+ * Featured card overlay. Shows the card the web interface features, streamed from the server
  * (/api/featured-card/events): the current state on connect, then one per change.
  *
  * Switching cards fades the old one out before the new one fades in, rather than cutting to it

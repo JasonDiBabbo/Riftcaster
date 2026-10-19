@@ -3,7 +3,7 @@
 namespace Riftcaster.WebUI.FeaturedCard;
 
 /// <summary>
-/// How cards are described in the dashboard.
+/// How cards are described in the web interface.
 /// </summary>
 public static class CardLabels
 {

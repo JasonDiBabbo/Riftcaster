@@ -36,7 +36,7 @@ public class SideNavTests : BunitContext
     }
 
     [Fact]
-    public void Dashboard_IsCurrentAtTheRoot()
+    public void Live_IsCurrentAtTheRoot()
     {
         var sideNav = RenderNav();
 

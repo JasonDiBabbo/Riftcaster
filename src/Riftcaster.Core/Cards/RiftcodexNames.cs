@@ -4,7 +4,7 @@ using Riftcaster.Contracts;
 namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// Turns Riftcodex's card names into the form the dashboard and overlays show: "Champion, Title",
+/// Turns Riftcodex's card names into the form the web interface and overlays show: "Champion, Title",
 /// with any variant (e.g. "Alternate Art") split off. The same repairs as the first version of
 /// this application (its scripts/fetch-cards.mjs), plus splitting off the variant, which it didn't
 /// need because it left most variants out.

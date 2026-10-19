@@ -1,7 +1,7 @@
-﻿/* Design tokens and base styles for the dashboard.
+﻿/* Design tokens and base styles for the web interface.
    Values come from the design handoff README, "Design Tokens". */
 
-/* DM Sans, served with the app rather than from Google Fonts, so the dashboard needs no internet.
+/* DM Sans, served with the app rather than from Google Fonts, so the web interface needs no internet.
    Variable files (weight 100 to 1000, and optical size), Latin and Latin Extended, from
    @fontsource-variable/dm-sans 5.3.0; openly licensed (SIL OFL, see fonts/DM-Sans-OFL.txt). */
 @font-face {

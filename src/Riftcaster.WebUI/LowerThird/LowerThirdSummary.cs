@@ -3,7 +3,7 @@
 namespace Riftcaster.WebUI.LowerThird;
 
 /// <summary>
-/// A record encapsulating how a lower third message is shown in the dashboard.
+/// A record encapsulating how a lower third message is shown in the web interface.
 /// </summary>
 /// <param name="Badge">The type label on the badge, for example "Keyword"</param>
 /// <param name="BadgeColor">The badge's CSS color.</param>

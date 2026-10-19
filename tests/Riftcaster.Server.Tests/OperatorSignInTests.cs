@@ -64,11 +64,11 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         var device = new RemoteDevice(factory, "192.168.1.63");
 
         var signIn = await device.SignInAsync("k7qm 4xpa"); // As typed on a phone
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
         Assert.Equal(StatusCodes.Status302Found, signIn.StatusCode);
         Assert.Equal("/", signIn.Headers.Location);
-        Assert.Equal(StatusCodes.Status200OK, dashboard.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, webInterface.StatusCode);
     }
 
     [Fact]
@@ -78,11 +78,11 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         var device = new RemoteDevice(factory, "192.168.1.64");
 
         var signIn = await device.SignInAsync("WRONG-CODE");
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
         Assert.Equal(StatusCodes.Status401Unauthorized, signIn.StatusCode);
         Assert.Contains("isn't right", WebUtility.HtmlDecode(signIn.Body));
-        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode); // Still not signed in
+        Assert.Equal(StatusCodes.Status302Found, webInterface.StatusCode); // Still not signed in
     }
 
     [Fact]
@@ -105,10 +105,10 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         AccessCode.Set("NEWC-ODE7");
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode);
-        Assert.Equal("/signin", dashboard.Headers.Location);
+        Assert.Equal(StatusCodes.Status302Found, webInterface.StatusCode);
+        Assert.Equal("/signin", webInterface.Headers.Location);
     }
 
     [Fact]
@@ -119,9 +119,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         AccessCode.Remove();
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status403Forbidden, dashboard.StatusCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, webInterface.StatusCode);
     }
 
     [Fact]
@@ -132,9 +132,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         await device.SignInAsync(Code);
 
         await device.PostFormAsync("/signout", []);
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status302Found, dashboard.StatusCode);
+        Assert.Equal(StatusCodes.Status302Found, webInterface.StatusCode);
     }
 
     [Fact]
@@ -160,9 +160,9 @@ public partial class OperatorSignInTests(RiftcasterWebApplicationFactory factory
         AccessCode.Set(Code);
         var device = new RemoteDevice(factory, "127.0.0.1");
 
-        var dashboard = await device.GetAsync("/");
+        var webInterface = await device.GetAsync("/");
 
-        Assert.Equal(StatusCodes.Status200OK, dashboard.StatusCode);
+        Assert.Equal(StatusCodes.Status200OK, webInterface.StatusCode);
     }
 
     [GeneratedRegex("""name="(?<name>[^"]+)" value="(?<value>[^"]+)" """)]
