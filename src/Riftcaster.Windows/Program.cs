@@ -46,8 +46,8 @@ static class Program
 
         using (server)
         {
-            // With network access on, the server may listen on every interface, but the web interface
-            // always opens on this computer.
+            // With network access on, the server accepts connections from other devices too, but the
+            // launcher always opens Riftcaster through localhost, on this computer.
             var listenUrl = server.Services.GetRequiredService<NetworkAccess>().ListenUrls[0];
             var webUI = new UriBuilder(listenUrl) { Host = "localhost" }.Uri;
             var logFolder = server.Services.GetRequiredService<LogFolder>().Path;
