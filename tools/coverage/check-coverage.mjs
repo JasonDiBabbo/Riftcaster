@@ -65,8 +65,13 @@ for (const rule of minimums) {
   }
 }
 
-const atMinimum = rows.filter((row) => row.min > 0 && row.percent - row.min < 5).length;
-console.log(`Coverage: ${rows.length} files from ${reports.length} reports; ${atMinimum} within 5 points of their minimum.`);
+const nearMargin = 5;
+const atMinimum = rows.filter((row) => row.min > 0 && row.percent - row.min < nearMargin).length;
+console.log(`Coverage: ${rows.length} files from ${reports.length} reports; ${atMinimum} within ${nearMargin} points of their minimum.`);
+
+if (process.env.GITHUB_STEP_SUMMARY) {
+  fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, summarize(rows, failures, reports.length, nearMargin));
+}
 
 if (failures.length > 0) {
   console.error(`\n${failures.length} coverage problem(s):`);
@@ -77,6 +82,50 @@ if (failures.length > 0) {
 }
 
 console.log('Every file meets its minimum.');
+
+/**
+ * The Markdown for the CI run's summary page: total line coverage, the files below their minimum
+ * (or with no rule), the files within `margin` points of it, and every file in a collapsible table.
+ * @param {{ file: string, percent: number, min: number }[]} rows
+ * @param {string[]} problems
+ * @param {number} reportCount
+ * @param {number} margin
+ */
+function summarize(rows, problems, reportCount, margin) {
+  let coveredLines = 0;
+  let totalLines = 0;
+  for (const lines of files.values()) {
+    coveredLines += [...lines.values()].filter(Boolean).length;
+    totalLines += lines.size;
+  }
+  const total = totalLines === 0 ? 100 : (100 * coveredLines) / totalLines;
+
+  const below = rows.filter((row) => row.percent < row.min);
+  // Files fully covered can't slip any further, so they'd only be noise here.
+  const near = rows.filter((row) => row.percent >= row.min && row.percent < 100 && row.min > 0 && row.percent - row.min < margin);
+  const table = (/** @type {typeof rows} */ list) =>
+    ['| File | Coverage | Minimum |', '| --- | ---: | ---: |']
+      .concat(list.map((row) => `| \`${row.file}\` | ${row.percent.toFixed(1)}% | ${row.min}% |`))
+      .join('\n');
+
+  const out = [
+    '## C# line coverage',
+    '',
+    `**${total.toFixed(1)}%** of ${totalLines} lines, across ${rows.length} files from ${reportCount} reports.`,
+    '',
+  ];
+  if (problems.length > 0) {
+    out.push(`### ${problems.length} problem(s)`, '', ...problems.map((problem) => `- ${problem}`), '');
+  }
+  if (below.length > 0) {
+    out.push('### Below their minimum', '', table(below), '');
+  }
+  if (near.length > 0) {
+    out.push(`### Within ${margin} points of their minimum`, '', table(near), '');
+  }
+  out.push('<details><summary>All files</summary>', '', table(rows), '', '</details>', '');
+  return out.join('\n');
+}
 
 /** @param {string} dir */
 function findReports(dir) {

@@ -43,9 +43,11 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      # Also records line coverage (coverlet), one report per test project, for the next step.
+      # Also records line coverage (coverlet), one report per test project, for the coverage step. The
+      # GitHubActions logger puts the results on the run's summary page and flags failing tests in the
+      # pull request's changed files (#81).
       - name: Test .NET
-        run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --results-directory TestResults
+        run: dotnet test --configuration Release --no-build --logger GitHubActions --collect:"XPlat Code Coverage" --results-directory TestResults
 
       # dotnet test doesn't pick up the overlays' Vitest tests, so they get their own step.
       - name: Test overlays
