@@ -53,7 +53,7 @@ public class RestApiAccessTests(RiftcasterWebApplicationFactory factory) : IClas
         AccessCode.Set(Code);
 
         var read = await SendAsync("192.168.1.72", HttpMethods.Get, "/api/timer", bearer: Code);
-        var change = await SendAsync("192.168.1.72", HttpMethods.Post, "/api/timer/pause", bearer: "k7qm 4xpa"); // As the admin accepts it
+        var change = await SendAsync("192.168.1.72", HttpMethods.Post, "/api/timer/pause", bearer: "k7qm 4xpa"); // As the web interface accepts it
         var document = await SendAsync("192.168.1.72", HttpMethods.Get, "/openapi/v1.json", bearer: Code);
 
         Assert.Equal(StatusCodes.Status200OK, read.StatusCode);

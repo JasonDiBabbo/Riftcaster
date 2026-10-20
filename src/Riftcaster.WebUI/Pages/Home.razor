@@ -1,0 +1,69 @@
+﻿@page "/"
+@using Riftcaster.Core.Match
+@implements IDisposable
+@inject MatchService Match
+
+<PageTitle>Live · Riftcaster</PageTitle>
+
+<PageHeader Title="Live" Section="@SectionLabel">
+    <LiveStatus />
+</PageHeader>
+
+@* Everything used during a match, on one page: the scores, the timer, the featured card and the lower
+   thirds. What the match is (its settings and players) is set on the Match setup page. *@
+<main class="live">
+    <div class="grid" data-tab="@_tab" data-players="@Match.Settings.PlayerCount">
+        <div class="slot tiles-slot">
+            <LiveTiles />
+        </div>
+        <div class="slot timer-slot">
+            <TimerPanel />
+        </div>
+        <div class="slot cards-slot">
+            <FeaturedCardPanel />
+        </div>
+        <div class="slot lowers-slot">
+            <LowerThirdPanel />
+        </div>
+    </div>
+</main>
+
+<DashboardTabBar @bind-Tab="_tab" />
+
+@code {
+    /// <summary>
+    /// The visible tab, if applicable.
+    /// </summary>
+    /// <remarks>
+    /// Wider screen layouts show every section and do not use tabs.
+    /// </remarks>
+    private DashboardTab _tab = DashboardTab.Players;
+
+    /// <summary>
+    /// The visible tab's name, which phones add to the page header's title.
+    /// </summary>
+    private string SectionLabel => _tab switch
+    {
+        DashboardTab.Players => "Players",
+        DashboardTab.Timer => "Timer",
+        DashboardTab.Cards => "Cards",
+        DashboardTab.LowerThirds => "Lower thirds",
+        _ => "",
+    };
+
+    protected override void OnInitialized()
+    {
+        // The player count decides where the Timer goes (see Home.razor.css).
+        Match.Changed += OnMatchChanged;
+    }
+
+    private void OnMatchChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Match.Changed -= OnMatchChanged;
+    }
+}

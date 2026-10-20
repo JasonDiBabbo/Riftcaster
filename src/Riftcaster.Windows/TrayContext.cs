@@ -4,12 +4,12 @@ namespace Riftcaster.Windows;
 
 /// <summary>
 /// Riftcaster's icon by the clock, in place of a console window (#68). Its menu names the version
-/// running, then has Open dashboard, Open log folder and Quit; double-clicking the icon also opens
-/// the dashboard. Once an update is downloaded (#62), it says so and the menu adds Restart to update.
+/// running, then has Open Riftcaster, Open log folder and Quit; double-clicking the icon also opens
+/// the web interface. Once an update is downloaded (#62), it says so and the menu adds Restart to update.
 /// </summary>
 internal sealed class TrayContext : ApplicationContext
 {
-    private readonly Uri _dashboard;
+    private readonly Uri _webUI;
 
     private readonly NotifyIcon _icon;
 
@@ -23,12 +23,12 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>
     /// Shows the icon.
     /// </summary>
-    /// <param name="dashboard">The admin dashboard's address, on this computer.</param>
+    /// <param name="webUI">The web interface's address, on this computer.</param>
     /// <param name="logFolder">The folder where log files are stored.</param>
     /// <param name="updates">Updates, for the menu to offer one once it's downloaded.</param>
-    public TrayContext(Uri dashboard, string logFolder, Updates updates)
+    public TrayContext(Uri webUI, string logFolder, Updates updates)
     {
-        _dashboard = dashboard;
+        _webUI = webUI;
         _updates = updates;
 
         // Hidden until an update is ready.
@@ -37,7 +37,7 @@ internal sealed class TrayContext : ApplicationContext
         var menu = new ContextMenuStrip();
         menu.Items.Add(new ToolStripMenuItem($"Riftcaster {Updates.RunningVersion}") { Enabled = false });
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Open dashboard", null, (_, _) => OpenDashboard(_dashboard));
+        menu.Items.Add("Open Riftcaster", null, (_, _) => OpenWebUI(_webUI));
         menu.Items.Add("Open log folder", null, (_, _) => Open(logFolder));
         menu.Items.Add(_restartToUpdate);
         menu.Items.Add(new ToolStripSeparator());
@@ -51,7 +51,7 @@ internal sealed class TrayContext : ApplicationContext
             ContextMenuStrip = menu,
         };
 
-        _icon.DoubleClick += (_, _) => OpenDashboard(_dashboard);
+        _icon.DoubleClick += (_, _) => OpenWebUI(_webUI);
         _updates.ReadyChanged += (_, _) => ShowUpdateReady();
     }
 
@@ -74,10 +74,10 @@ internal sealed class TrayContext : ApplicationContext
     }
 
     /// <summary>
-    /// Opens the admin dashboard in the default browser.
+    /// Opens the web interface in the default browser.
     /// </summary>
-    /// <param name="dashboard">The dashboard's address.</param>
-    public static void OpenDashboard(Uri dashboard) => Open(dashboard.ToString());
+    /// <param name="webUI">The web interface's address.</param>
+    public static void OpenWebUI(Uri webUI) => Open(webUI.ToString());
 
     private void ShowUpdateReady()
     {

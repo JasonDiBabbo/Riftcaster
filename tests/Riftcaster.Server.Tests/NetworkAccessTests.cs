@@ -44,8 +44,8 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     [InlineData("/api/info", true)]
     [InlineData("/api/timer/events", true)]
     [InlineData("/api/featured-card/events", true)]
-    [InlineData("/", false)] // The admin
-    [InlineData("/_blazor", false)] // The admin's live connection
+    [InlineData("/", false)] // The web interface
+    [InlineData("/_blazor", false)] // The web interface's live connection
     [InlineData("/_framework/blazor.web.js", false)]
     [InlineData("/api/timer", false)] // Not a stream
     [InlineData("/api/timer/events/extra", false)]
@@ -58,7 +58,7 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     [Theory]
     [InlineData("/")]
     [InlineData("/_blazor/negotiate")]
-    public async Task OtherDevice_Admin_IsForbidden(string path)
+    public async Task OtherDevice_WebUI_IsForbidden(string path)
     {
         var response = await SendAsync(path, OtherDevice);
 
@@ -74,7 +74,7 @@ public class NetworkAccessTests(RiftcasterWebApplicationFactory factory) : IClas
     }
 
     [Fact]
-    public async Task ThisComputer_Admin_IsAllowed()
+    public async Task ThisComputer_WebUI_IsAllowed()
     {
         var response = await SendAsync("/", IPAddress.Loopback);
 

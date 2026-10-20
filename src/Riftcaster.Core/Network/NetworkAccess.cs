@@ -10,7 +10,7 @@ namespace Riftcaster.Core.Network;
 /// <remarks>
 /// Off every time the server starts, unless started with <c>--network on</c>: a server carried to
 /// venues shouldn't open itself up just because it was open last time. While on, other devices
-/// can open the overlays; the admin stays on this computer only (issue #16).
+/// can open the overlays; the web interface stays on this computer only (issue #16).
 /// </remarks>
 public sealed class NetworkAccess
 {

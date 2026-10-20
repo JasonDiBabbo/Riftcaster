@@ -4,8 +4,8 @@ using System.Text;
 namespace Riftcaster.Core.Network;
 
 /// <summary>
-/// The shared code that lets approved operators (casters, event coordinators) use the admin from
-/// their own devices while network access is on (issue #16). Without one, the admin stays on this
+/// The shared code that lets approved operators (casters, event coordinators) use the web interface from
+/// their own devices while network access is on (issue #16). Without one, the web interface stays on this
 /// computer only. Only this computer can set, show, change or remove it.
 /// </summary>
 /// <remarks>
@@ -37,7 +37,7 @@ public sealed class AccessCode
     /// <summary>
     /// Creates the service with the saved code, if any. A saved code this computer can't read, such
     /// as one a portable copy brought from another computer, is replaced with a new generated one:
-    /// other devices can still be let in, with the new code shown in the admin.
+    /// other devices can still be let in, with the new code shown in the web interface.
     /// </summary>
     /// <param name="store">Where the code is kept between restarts.</param>
     public AccessCode(IAccessCodeStore store)
@@ -101,7 +101,7 @@ public sealed class AccessCode
     }
 
     /// <summary>
-    /// Removes the code, signing out every remote device. The admin is then on this computer only.
+    /// Removes the code, signing out every remote device. The web interface is then on this computer only.
     /// Does nothing if there's no code.
     /// </summary>
     public void Remove()

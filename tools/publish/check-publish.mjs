@@ -3,7 +3,7 @@
 /**
  * Checks that a published server works on its own (issue #48): starts it from the publish folder,
  * as Production and from a different current folder (as a shortcut or a terminal elsewhere would),
- * then fetches the admin, every overlay page and the REST API's docs page, with the scripts and
+ * then fetches the web interface, every overlay page and the REST API's docs page, with the scripts and
  * stylesheets each one links, and the API's OpenAPI document.
  *
  * Also fails if the publish folder contains a data folder: that's the computer's own saved state
@@ -117,8 +117,8 @@ if (launcher) {
   entryPoints.push({
     name: 'the tray launcher, Riftcaster.exe',
     command: launcherExe,
-    // Otherwise every check opens the dashboard in a browser.
-    args: ['--Launcher:OpenDashboard=false'],
+    // Otherwise every check opens the web interface in a browser.
+    args: ['--Launcher:OpenWebUI=false'],
   });
 }
 
@@ -138,7 +138,7 @@ if (failures.length > 0) {
 }
 
 console.log(
-  `The published server, started by ${entryPoints.map((entryPoint) => entryPoint.name).join(' and by ')}, serves the admin, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
+  `The published server, started by ${entryPoints.map((entryPoint) => entryPoint.name).join(' and by ')}, serves the web interface, ${overlayPages.length} overlays and the API docs, with their scripts and stylesheets.`
 );
 
 /**
@@ -190,7 +190,7 @@ async function checkStartedBy(entryPoint) {
   } catch (error) {
     failures.push(error instanceof Error ? error.message : String(error));
     if (entryPoint.command === launcherExe && server.exitCode === 0) {
-      failures.push('Is Riftcaster already running? The launcher opens its dashboard instead.');
+      failures.push('Is Riftcaster already running? The launcher opens its web interface instead.');
     }
   } finally {
     // Windows won't delete the temporary folder while the server is still running in it.
@@ -213,7 +213,7 @@ async function checkStartedBy(entryPoint) {
     }
     logs.push(`Output of ${entryPoint.name}:\n${log}`);
 
-    // Best effort: a process the server started, such as a browser opened on its dashboard, can
+    // Best effort: a process the server started, such as a browser opened on its web interface, can
     // keep the folder in use, and that mustn't hide what the check found.
     try {
       fs.rmSync(workDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });

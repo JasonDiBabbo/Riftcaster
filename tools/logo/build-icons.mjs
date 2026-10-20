@@ -1,11 +1,11 @@
 // @ts-check
 /// <reference types="node" />
 /**
- * Makes the logo's bitmap icons from its SVG (src/Riftcaster.Admin/wwwroot/logo/icon.svg):
+ * Makes the logo's bitmap icons from its SVG (src/Riftcaster.WebUI/wwwroot/logo/icon.svg):
  *
  * - src/Riftcaster.Windows/Riftcaster.ico: the launcher's .exe and tray icon, 16 to 256 px.
- * - src/Riftcaster.Admin/wwwroot/logo/favicon.ico: the admin's browser tab icon, 16 to 48 px.
- * - src/Riftcaster.Admin/wwwroot/logo/apple-touch-icon.png: 180 px, for a phone or tablet's
+ * - src/Riftcaster.WebUI/wwwroot/logo/favicon.ico: the web interface's browser tab icon, 16 to 48 px.
+ * - src/Riftcaster.WebUI/wwwroot/logo/apple-touch-icon.png: 180 px, for a phone or tablet's
  *   home screen. Square, since the phone rounds the corners itself.
  *
  * Microsoft Edge (or Chrome) draws each size from the SVG, so small sizes are drawn at that size
@@ -22,7 +22,7 @@ import path from "path";
 import zlib from "zlib";
 
 const root = path.resolve(import.meta.dirname, "../..");
-const logoDir = "src/Riftcaster.Admin/wwwroot/logo";
+const logoDir = "src/Riftcaster.WebUI/wwwroot/logo";
 const icon = fs.readFileSync(path.join(root, logoDir, "icon.svg"), "utf8");
 const square = icon.replace('rx="14" ', "");
 // At 24 px and under the card is drawn bigger and its tear wider, or the tear blurs into a grey line.

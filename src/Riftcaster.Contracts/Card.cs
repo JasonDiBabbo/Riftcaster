@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Contracts;
 
 /// <summary>
-/// A Riftbound card, as the admin and the overlays show it.
+/// A Riftbound card, as the web interface and the overlays show it.
 /// </summary>
 /// <remarks>
 /// Describes the card itself, not where it came from: any card database (currently Riftcodex,
@@ -21,7 +21,7 @@
 /// </param>
 /// <param name="Variant">
 /// Which printing this is, e.g. "Alternate Art", "Signature" or "Metal", or <see langword="null"/>
-/// for the standard one. Tells apart cards with the same name in the admin.
+/// for the standard one. Tells apart cards with the same name in the web interface.
 /// </param>
 /// <param name="Type">What kind of card it is.</param>
 /// <param name="Supertype">The card's supertype, or <see langword="null"/> for none.</param>

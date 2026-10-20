@@ -22,7 +22,7 @@ public static class FeaturedCardEndpoints
                 StateSockets.SendStatesAsync(context, featuredCard.WatchAsync, lifetime.ApplicationStopping))
             .ExcludeFromDescription(); // A WebSocket, which OpenAPI can't describe
 
-        // REST (issue #9): the admin's Featured card panel, and the card catalogue it searches.
+        // REST (issue #9): the Live dashboard's Featured card panel, and the card catalogue it searches.
         var featured = app.MapGroup("/api/featured-card").WithTags("Featured card");
 
         featured.MapGet("/", (FeaturedCardService service) => TypedResults.Ok(new FeaturedCardState(service.Current)))

@@ -1,5 +1,5 @@
 // Mirrors TimerFormatTests and TimerReadoutTests (tests/Riftcaster.Core.Tests): the overlay and the
-// admin must show the same time for the same state.
+// web interface must show the same time for the same state.
 import { describe, expect, it } from 'vitest';
 import type { TimerState } from '../generated';
 import { elapsedAt, formatTime, readTimer } from './timer';

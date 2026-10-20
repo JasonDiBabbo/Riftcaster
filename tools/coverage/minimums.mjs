@@ -56,35 +56,35 @@ export const minimums = [
     why: 'Endpoints, sign-in and the network switch, covered by the integration tests.',
   },
 
-  // --- Admin: Blazor components, tested with bUnit since #18. Panels added before then have little
+  // --- WebUI: Blazor components, tested with bUnit since #18. Panels added before then have little
   // or no component test yet; their minimums record where they are, to rise as tests are added. ---
   {
-    match: 'src/Riftcaster.Admin/Layout/OnAirPill.razor',
+    match: 'src/Riftcaster.WebUI/Layout/OnAirPill.razor',
     min: 0,
     why: 'Not tested yet: a label and a clear button, used by the header.',
   },
   {
-    match: 'src/Riftcaster.Admin/LowerThird/LowerThirdListItem.razor',
+    match: 'src/Riftcaster.WebUI/LowerThird/LowerThirdListItem.razor',
     min: 0,
     why: 'Not tested yet: one saved lower third, with Edit, Delete and Show buttons.',
   },
   {
-    match: 'src/Riftcaster.Admin/LowerThird/LowerThirdPanel.razor',
+    match: 'src/Riftcaster.WebUI/LowerThird/LowerThirdPanel.razor',
     min: 20,
     why: 'Not tested yet: a thin layer over LowerThirdService, which is tested. Its editor is tested.',
   },
   {
-    match: 'src/Riftcaster.Admin/LowerThird/LowerThirdSummary.cs',
+    match: 'src/Riftcaster.WebUI/LowerThird/LowerThirdSummary.cs',
     min: 0,
     why: 'Not tested yet: how each kind of lower third is labelled in the list.',
   },
   {
-    match: 'src/Riftcaster.Admin/Pages/Home.razor',
+    match: 'src/Riftcaster.WebUI/Pages/Home.razor',
     min: 65,
     why: 'The page layout: which panels go where. Rendered through the server tests.',
   },
   {
-    match: 'src/Riftcaster.Admin/',
+    match: 'src/Riftcaster.WebUI/',
     min: 80,
     why: 'Components and helpers with bUnit or unit tests. A new component should come with them.',
   },

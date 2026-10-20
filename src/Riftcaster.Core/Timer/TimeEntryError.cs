@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Timer;
 
 /// <summary>
-/// Why typed text isn't a time (see <see cref="TimerFormat.Check"/>), so the admin can say what to fix.
+/// Why typed text isn't a time (see <see cref="TimerFormat.Check"/>), so a caller can say what to fix.
 /// </summary>
 public enum TimeEntryError
 {

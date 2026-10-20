@@ -1,0 +1,204 @@
+/* Status beside the title: a dot and a label in the status colour. */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.status.running {
+  color: var(--ok);
+}
+
+.status.alert {
+  color: var(--live);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* The panel's contents are as big as they need to be and no bigger. If the panel is made taller (by
+   a neighbour in its row), the spare height is left around them evenly, never added between them. */
+.content {
+  --row-gap: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--row-gap);
+  min-height: 100%;
+  padding: 16px;
+}
+
+/* The buttons and the Set remaining form, as one group: a page can put it beside the time. */
+.actions {
+  display: contents;
+}
+
+/* --tone is the time's colour; the progress bar uses it too. */
+.display {
+  --tone: var(--text-bright);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.display.low {
+  --tone: var(--warn);
+}
+
+.display.overtime {
+  --tone: var(--live-soft);
+}
+
+.time {
+  color: var(--tone);
+  font: 600 var(--fs-timer) / 1 var(--font);
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  color: var(--text-muted);
+  font: 500 var(--fs-meta) / 1 var(--font);
+}
+
+.track {
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--button);
+}
+
+.fill {
+  height: 100%;
+  background: var(--tone);
+}
+
+/* Start/Pause/Resume beside Reset. */
+.controls {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 8px;
+}
+
+.controls button {
+  height: 44px;
+  border-radius: var(--radius-segmented);
+  font: 600 var(--fs-title) / 1 var(--font);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.start {
+  border: none;
+  background: var(--acc);
+  color: var(--acc-ink);
+  font-weight: 700;
+}
+
+.start.running {
+  background: var(--button-strong);
+  color: var(--text-bright);
+}
+
+/* Start is disabled (the shared disabled style, in app.css) once time is up with overtime off. */
+.reset {
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--text);
+}
+
+.adjust {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.adjust button {
+  height: 34px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--card);
+  color: var(--text-secondary);
+  font: 500 var(--fs-small) / 1 var(--font);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+
+/* The Set remaining form, with its error under it (the shared .validation-message). */
+.set-field {
+  display: grid;
+}
+
+/* Spaced like a row of its own: as far below the box as the rows above are from each other. The
+   shared style's small top margin would crowd it against the box, and a paragraph's own bottom
+   margin would add to the panel's padding below it. */
+.set-field .validation-message {
+  margin: var(--row-gap) 0 0;
+}
+
+.set {
+  display: flex;
+  gap: 6px;
+}
+
+.set input {
+  flex: 1;
+  min-width: 0;
+}
+
+.set button {
+  flex: none;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid var(--edge);
+  border-radius: var(--radius-control);
+  background: var(--button);
+  color: var(--text);
+  font: 500 var(--fs-small) / 1 var(--font);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .start:hover {
+    background: var(--acc-hover);
+  }
+
+  .start.running:hover {
+    background: var(--button-strong-hover);
+  }
+
+  .reset:hover {
+    background: var(--button-hover);
+  }
+
+  .adjust button:hover {
+    background: var(--button);
+    color: var(--text);
+  }
+
+  .set button:hover {
+    background: var(--button-strong);
+  }
+}
+
+/* Phone: a slightly smaller time. */
+@media (width < 760px) {
+  .time {
+    font-size: 56px;
+  }
+}

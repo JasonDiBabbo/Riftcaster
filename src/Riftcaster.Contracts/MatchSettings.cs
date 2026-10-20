@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Contracts;
 
 /// <summary>
-/// The match's rules, set in the admin's Match panel. They drive the players panel,
+/// The match's rules, set on the Match setup page. They drive the players panel,
 /// the timer's default length and the overlays.
 /// </summary>
 /// <param name="PointsToWin">Points a player (or team, in 2v2) needs to win a game.</param>
