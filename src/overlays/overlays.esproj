@@ -15,7 +15,7 @@
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
 
     <!-- Lists the Vitest tests (src/**/*.test.ts) in Visual Studio's Test Explorer. IDE-only too:
-         the build still runs them with npm test (see Riftcaster.Server.csproj).
+         the build does not run them: CI and the release workflow run npm test, and so can you.
 
          This is why package.json pins Vitest to 4.x: Visual Studio's Vitest helper (its own
          TestFrameworks\Vitest\VitestRunner.ts, as of VS 18.10) imports "vitest/runners", which

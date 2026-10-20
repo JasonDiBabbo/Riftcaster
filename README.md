@@ -168,7 +168,7 @@ Four test suites:
 | `tests/Riftcaster.Core.Tests` | The services and their rules (players, match, timer, cards, access code and so on), with in-memory stores |
 | `tests/Riftcaster.Server.Tests` | The real server, started in memory with `WebApplicationFactory` and exercised over HTTP and WebSockets |
 | `tests/Riftcaster.WebUI.Tests` | The web interface's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
-| `src/overlays` (Vitest) | The overlays' logic, run by the build's `npm test` step |
+| `src/overlays` (Vitest) | The overlays' logic, run with `npm test` (or `npm run test:watch`) in `src/overlays`, from Test Explorer in Visual Studio, and by CI |
 
 bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behavior such as layout or how a `<select>` keeps its selection.
 
@@ -197,7 +197,7 @@ Use American spelling everywhere: code, comments, docs, UI text and scripts ("ca
 
 ## Pre-commit checks
 
-The first build points Git at the repository's hooks in `.githooks/` (by setting `core.hooksPath` in your clone's own config). Before each commit, the `pre-commit` hook runs the fast checks on staged files: C# whitespace formatting, plus Oxlint and the Prettier check for overlay files. It takes a couple of seconds. The slower checks (naming and style rules, typechecking, tests) stay in the build and CI. Skip the hook in an emergency with `git commit --no-verify`.
+The first build points Git at the repository's hooks in `.githooks/` (by setting `core.hooksPath` in your clone's own config). Before each commit, the `pre-commit` hook runs the fast checks on staged files: C# whitespace formatting, plus Oxlint and the Prettier check for overlay files. It takes a couple of seconds. The slower checks (naming and style rules, typechecking, tests) stay in the build or the test run, and in CI. Skip the hook in an emergency with `git commit --no-verify`.
 
 ## Adding an overlay to your streaming software
 

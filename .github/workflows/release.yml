@@ -63,8 +63,12 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Test
+      - name: Test .NET
         run: dotnet test --configuration Release --no-build
+
+      - name: Test overlays
+        run: npm test
+        working-directory: src/overlays
 
       # The tray launcher, which publishes the server into the same folder (see Riftcaster.Windows.csproj).
       # Self-contained: the .NET runtime goes in the folder, with real .exe files to start it.
