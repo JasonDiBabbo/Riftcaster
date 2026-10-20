@@ -4,18 +4,18 @@ using Riftcaster.Core.Cards;
 namespace Riftcaster.WebUI.FeaturedCard;
 
 /// <summary>
-/// How the card catalogue's state reads in the Featured card panel's meta, e.g.
+/// How the card catalog's state reads in the Featured card panel's meta, e.g.
 /// "1,320 cards · updated 3h ago" or "Updating… page 4 of 15".
 /// </summary>
 /// <param name="Text">The meta text.</param>
-/// <param name="Warn">Whether it's a problem, shown in the warning colour.</param>
+/// <param name="Warn">Whether it's a problem, shown in the warning color.</param>
 /// <param name="Detail">More on the problem, for a tooltip, or <see langword="null"/>.</param>
 public sealed record CatalogStatusLabel(string Text, bool Warn, string? Detail)
 {
     /// <summary>
-    /// Describes the catalogue's state.
+    /// Describes the catalog's state.
     /// </summary>
-    /// <param name="catalog">The catalogue.</param>
+    /// <param name="catalog">The catalog.</param>
     /// <param name="now">The time now, for how long ago things happened.</param>
     public static CatalogStatusLabel For(CardCatalog catalog, DateTimeOffset now)
     {

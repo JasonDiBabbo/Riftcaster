@@ -1,0 +1,18 @@
+# Settings for crate-ci/typos, which CI runs to keep American spelling everywhere (#86).
+[default]
+locale = "en-us"
+
+[files]
+extend-exclude = [
+    "package-lock.json",
+    # Third-party font license text.
+    "*-OFL.txt",
+]
+
+# Words that look like typos but aren't.
+[default.extend-words]
+# "PNGs", "+ OT" (overtime), the Paeth PNG filter, and hex digits in a font's unicode-range.
+PN = "PN"
+OT = "OT"
+paeth = "paeth"
+BA = "BA"

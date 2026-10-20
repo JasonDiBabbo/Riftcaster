@@ -9,12 +9,12 @@ namespace Riftcaster.Core.Cards;
 public sealed class InMemoryCardSource : ICardSource
 {
     /// <summary>
-    /// The cards each fetch returns. Empty by default, which the catalogue treats as a failed fetch.
+    /// The cards each fetch returns. Empty by default, which the catalog treats as a failed fetch.
     /// </summary>
     public IReadOnlyList<Card> Cards { get; set; } = [];
 
     /// <summary>
-    /// How many times <see cref="FetchAllAsync"/> has been called, so tests can check when the catalogue fetches.
+    /// How many times <see cref="FetchAllAsync"/> has been called, so tests can check when the catalog fetches.
     /// </summary>
     public int FetchCount => _fetchCount;
 

@@ -12,7 +12,7 @@ namespace Riftcaster.Core.Players;
 /// <remarks>
 /// Also reads files saved before players held card snapshots, when legends, champions and
 /// battlefields were saved as names. Those names are dropped (the operator chooses the cards again
-/// from the catalogue), and the rest of each player is kept. The next save writes the new shape.
+/// from the catalog), and the rest of each player is kept. The next save writes the new shape.
 /// </remarks>
 public sealed class JsonFilePlayersStore : IPlayersStore
 {

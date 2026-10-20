@@ -1,12 +1,12 @@
 ﻿<select disabled="@(Options.Count == 0)" @bind:get="Value?.Id ?? None" @bind:set="SetAsync">
     @* Each option is keyed by its card, so when the options change around an unchanged choice (the
-       catalogue arriving after a restart), the chosen option's element is kept rather than replaced.
+       catalog arriving after a restart), the chosen option's element is kept rather than replaced.
        Blazor only sets the select's value when the value changes, so a replaced element would leave
        the browser showing "None". *@
     <option @key="None" value="@None">@(Options.Count == 0 ? EmptyText : "None")</option>
     @if (Value is not null && !Options.Any(option => option.Id == Value.Id))
     {
-        @* A saved card that isn't in the list (e.g. while the catalogue loads): keep it shown rather than a blank select. *@
+        @* A saved card that isn't in the list (e.g. while the catalog loads): keep it shown rather than a blank select. *@
         <option @key="Value.Id" value="@Value.Id">@Value.Name</option>
     }
     @foreach (var option in Options)

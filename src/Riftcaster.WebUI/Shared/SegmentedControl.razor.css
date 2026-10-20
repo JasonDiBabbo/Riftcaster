@@ -28,7 +28,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
-  /* The label's colour fades with the pill (see ::before), a little slower than the shared 120ms. */
+  /* The label's color fades with the pill (see ::before), a little slower than the shared 120ms. */
   transition:
     background-color 160ms ease,
     color 160ms ease,

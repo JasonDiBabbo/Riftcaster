@@ -194,7 +194,7 @@ public static class PlayersEndpoints
         if (catalog.Find(id) is not { } card)
         {
             errors[field] = [catalog.Cards.Count == 0
-                ? "The card catalogue hasn't loaded yet. Try again in a minute."
+                ? "The card catalog hasn't loaded yet. Try again in a minute."
                 : $"No card with id '{id}'. Find ids with GET /api/cards?search=..."];
             return null;
         }

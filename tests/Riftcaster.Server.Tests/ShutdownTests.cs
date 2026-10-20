@@ -41,7 +41,7 @@ public class ShutdownTests(RiftcasterWebApplicationFactory factory) : IClassFixt
     {
         public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-        // Cancelled when the shutdown timeout runs out.
+        // Canceled when the shutdown timeout runs out.
         public Task StopAsync(CancellationToken cancellationToken) =>
             Task.Delay(Timeout.Infinite, cancellationToken).ContinueWith(_ => { }, TaskScheduler.Default);
     }

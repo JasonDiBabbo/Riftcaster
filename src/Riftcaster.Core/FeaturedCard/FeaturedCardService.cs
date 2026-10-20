@@ -10,7 +10,7 @@ namespace Riftcaster.Core.FeaturedCard;
 /// </summary>
 /// <remarks>
 /// Keeps a copy of the card as it was when it was featured, not just its id, so it stays on air
-/// across a restart even while the catalogue is still loading, or after a refresh changes it.
+/// across a restart even while the catalog is still loading, or after a refresh changes it.
 /// </remarks>
 /// <param name="store">Where the featured card is loaded from and saved to.</param>
 /// <param name="catalog">Where cards are looked up when featured.</param>
@@ -40,8 +40,8 @@ public class FeaturedCardService(IFeaturedCardStore store, CardCatalog catalog)
     /// <summary>
     /// Puts a card on air, replacing whatever is featured.
     /// </summary>
-    /// <param name="id">The card's id in the catalogue (<see cref="Card.Id"/>).</param>
-    /// <returns><see langword="true"/> if the card is featured, and <see langword="false"/> if the catalogue has no card with that id.</returns>
+    /// <param name="id">The card's id in the catalog (<see cref="Card.Id"/>).</param>
+    /// <returns><see langword="true"/> if the card is featured, and <see langword="false"/> if the catalog has no card with that id.</returns>
     public bool Feature(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
@@ -84,10 +84,10 @@ public class FeaturedCardService(IFeaturedCardStore store, CardCatalog catalog)
     }
 
     /// <summary>
-    /// Streams the featured card: the current state first, then each change to it, until cancelled.
+    /// Streams the featured card: the current state first, then each change to it, until canceled.
     /// A burst of changes yields only the latest.
     /// </summary>
-    /// <param name="cancellationToken">Ends the stream when cancelled, for example when the overlay disconnects.</param>
+    /// <param name="cancellationToken">Ends the stream when canceled, for example when the overlay disconnects.</param>
     /// <returns>The featured card, first as it is now and then after each change.</returns>
     public async IAsyncEnumerable<FeaturedCardState> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {

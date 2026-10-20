@@ -34,7 +34,7 @@
   flex-direction: column;
 }
 
-/* The lists scroll inside their panels, so a long catalogue or library never makes the page long.
+/* The lists scroll inside their panels, so a long catalog or library never makes the page long.
    The Timer needs no cap: it is the same height whatever it holds. */
 .cards-slot ::deep .body,
 .lowers-slot ::deep .body {

@@ -154,10 +154,10 @@ public class LowerThirdService(ILowerThirdStore store)
     }
 
     /// <summary>
-    /// Streams what's on air: the current state first, then each change to it, until cancelled.
+    /// Streams what's on air: the current state first, then each change to it, until canceled.
     /// Changes to entries that aren't live are skipped, and a burst of changes yields only the latest.
     /// </summary>
-    /// <param name="cancellationToken">Ends the stream when cancelled, for example when the overlay disconnects.</param>
+    /// <param name="cancellationToken">Ends the stream when canceled, for example when the overlay disconnects.</param>
     /// <returns>The on-air state, first as it is now and then after each change.</returns>
     public async IAsyncEnumerable<LowerThirdState> WatchAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {

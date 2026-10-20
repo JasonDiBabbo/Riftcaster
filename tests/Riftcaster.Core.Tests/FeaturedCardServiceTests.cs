@@ -41,7 +41,7 @@ public class FeaturedCardServiceTests
     }
 
     [Fact]
-    public void Constructor_SavedCardNotInTheCatalogue_IsStillFeatured()
+    public void Constructor_SavedCardNotInTheCatalog_IsStillFeatured()
     {
         // E.g. after a restart, before the first fetch: the saved copy is enough to show it.
         _store.Save(new FeaturedCardState(Poppy));
@@ -156,7 +156,7 @@ public class FeaturedCardServiceTests
     }
 
     [Fact]
-    public async Task WatchAsync_EndsWhenCancelled()
+    public async Task WatchAsync_EndsWhenCanceled()
     {
         using var cts = new CancellationTokenSource(); // no timeout: we cancel it ourselves
         await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();

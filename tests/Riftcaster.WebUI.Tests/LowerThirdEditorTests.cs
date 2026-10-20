@@ -84,7 +84,7 @@ public class LowerThirdEditorTests : BunitContext
     }
 
     [Fact]
-    public void Editing_StartsWithTheEntrysTypeAndValues()
+    public void Editing_StartsWithTheEntryTypeAndValues()
     {
         var entry = new LowerThirdEntry(Guid.NewGuid(), new LowerThirdInformationMessage("Back in 5"));
 
@@ -97,12 +97,12 @@ public class LowerThirdEditorTests : BunitContext
     [Fact]
     public void Cancel_RaisesOnCancel()
     {
-        var cancelled = false;
-        var editor = Render<LowerThirdEditor>(parameters => parameters.Add(e => e.OnCancel, () => cancelled = true));
+        var canceled = false;
+        var editor = Render<LowerThirdEditor>(parameters => parameters.Add(e => e.OnCancel, () => canceled = true));
 
         editor.Find("button.cancel").Click();
 
-        Assert.True(cancelled);
+        Assert.True(canceled);
     }
 
     private IRenderedComponent<LowerThirdEditor> RenderEditor(LowerThirdEntry? entry = null) =>

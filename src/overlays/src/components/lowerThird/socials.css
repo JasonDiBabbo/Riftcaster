@@ -6,7 +6,7 @@
   position: absolute;
   left: 50%;
   bottom: 48px;
-  /* width and margin-left (centring) are set by socialsVisual.ts from the longest handle */
+  /* width and margin-left (centering) are set by socialsVisual.ts from the longest handle */
   height: 78px; /* socialsVisual.ts's PLATE_HEIGHT */
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.5));
   will-change: transform;
@@ -23,7 +23,7 @@
   overflow: visible;
 }
 
-/* Centred on the bottom edge, straddling the border */
+/* Centered on the bottom edge, straddling the border */
 .socials__gem {
   position: absolute;
   left: calc(50% - 10px);

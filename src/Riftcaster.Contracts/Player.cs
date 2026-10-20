@@ -5,7 +5,7 @@
 /// </summary>
 /// <remarks>
 /// The legend, champion and battlefield are copies of the cards as they were when chosen, not
-/// just their ids, so they still show after a restart while the card catalogue is loading, and
+/// just their ids, so they still show after a restart while the card catalog is loading, and
 /// after a refresh changes them.
 /// </remarks>
 /// <param name="Name">The player's display name. Empty until the operator enters one.</param>

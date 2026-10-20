@@ -76,7 +76,7 @@ export const minimums = [
   {
     match: 'src/Riftcaster.WebUI/LowerThird/LowerThirdSummary.cs',
     min: 0,
-    why: 'Not tested yet: how each kind of lower third is labelled in the list.',
+    why: 'Not tested yet: how each kind of lower third is labeled in the list.',
   },
   {
     match: 'src/Riftcaster.WebUI/Pages/Home.razor',

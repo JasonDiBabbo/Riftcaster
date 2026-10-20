@@ -4,7 +4,7 @@ using Riftcaster.Core.Storage;
 namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// Saves the card catalogue to a JSON file, so it's there at startup and without internet.
+/// Saves the card catalog to a JSON file, so it's there at startup and without internet.
 /// </summary>
 /// <param name="path">The file to load from and save to. Its folder is created on the first save.</param>
 /// <param name="logger">Logs a missing, unreadable or unwritable file, since those never throw.</param>

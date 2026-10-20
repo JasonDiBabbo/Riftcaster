@@ -40,11 +40,11 @@ public class FeaturedCardPanelTests : BunitContext
     }
 
     [Fact]
-    public void NoCards_SaysTheCatalogueIsLoading()
+    public void NoCards_SaysTheCatalogIsLoading()
     {
         var panel = RenderPanel(saved: null);
 
-        Assert.Contains("Fetching the card catalogue", panel.Find(".results").TextContent);
+        Assert.Contains("Fetching the card catalog", panel.Find(".results").TextContent);
     }
 
     [Fact]

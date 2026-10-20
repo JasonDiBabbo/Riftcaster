@@ -118,7 +118,7 @@ Start `Riftcaster.exe` for the tray icon, or `Riftcaster.Server.exe` for the ser
 A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
-- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalogue and the access code. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalog and the access code. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
 - **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another server or user the saved code can't be read. Riftcaster then generates a new one in its place and logs that it did: **Show** it in the network panel to give to operators, or set your own.
 - **If the overlays are missing,** the Live dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
@@ -170,7 +170,7 @@ Four test suites:
 | `tests/Riftcaster.WebUI.Tests` | The web interface's Blazor components, rendered with [bUnit](https://bunit.dev): clicks, typing and what each shows |
 | `src/overlays` (Vitest) | The overlays' logic, run by the build's `npm test` step |
 
-bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behaviour such as layout or how a `<select>` keeps its selection.
+bUnit renders components in memory, without a browser, so it checks the HTML a component produces and how it reacts to events, not browser behavior such as layout or how a `<select>` keeps its selection.
 
 [CI](.github/workflows/ci.yml) runs the same `dotnet build` and `dotnet test` on every push to `main` and every pull request, then checks code coverage and a published build.
 
@@ -190,6 +190,10 @@ node tools/coverage/check-coverage.mjs TestResults
 ```
 
 Delete `TestResults` between runs (it's ignored by Git), or the check also reads older reports. When tests are added, raise the minimums they lift; never lower one without saying why.
+
+## Spelling
+
+Use American spelling everywhere: code, comments, docs, UI text and scripts ("catalog", "color", "canceled"). CI runs [typos](https://github.com/crate-ci/typos) with its American-English setting (see [`_typos.toml`](_typos.toml)) and fails on British spellings. Names we don't control, such as .NET's `CancellationToken`, stay as they are.
 
 ## Pre-commit checks
 

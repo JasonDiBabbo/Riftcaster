@@ -54,7 +54,7 @@ public class CardSelectTests : BunitContext
     [Fact]
     public void SavedCardNotInTheList_IsStillShown()
     {
-        // E.g. a saved choice while the catalogue is loading, or the legend changed under the champion.
+        // E.g. a saved choice while the catalog is loading, or the legend changed under the champion.
         var select = RenderSelect([Jinx], value: Viktor);
 
         Assert.Contains("Viktor, Herald of the Arcane", select.FindAll("option").Select(option => option.TextContent));

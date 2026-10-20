@@ -31,7 +31,7 @@ internal static class StateSockets
     /// <typeparam name="T">The state the service streams.</typeparam>
     /// <param name="context">The request, which must be a WebSocket request.</param>
     /// <param name="watch">Starts the service's watch, for example <c>timer.WatchAsync</c>.</param>
-    /// <param name="stopping">Cancelled when the server starts shutting down.</param>
+    /// <param name="stopping">Canceled when the server starts shutting down.</param>
     /// <returns>A task that completes when the socket has closed.</returns>
     public static async Task SendStatesAsync<T>(
         HttpContext context,
@@ -97,7 +97,7 @@ internal static class StateSockets
 
         try
         {
-            // Not done.Token: cancelling a read aborts the socket, which would make a clean close
+            // Not done.Token: canceling a read aborts the socket, which would make a clean close
             // impossible. The read ends by itself when the socket closes or drops.
             while (true)
             {

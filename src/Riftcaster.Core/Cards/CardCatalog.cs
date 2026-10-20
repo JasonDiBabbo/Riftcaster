@@ -8,9 +8,9 @@ namespace Riftcaster.Core.Cards;
 /// Every Riftbound card: searched by the Featured card panel, and listed by the Players panel.
 /// </summary>
 /// <remarks>
-/// Starts with the last saved catalogue, so it works at once and without internet. <see cref="RefreshAsync"/>
-/// fetches a new one (slowly: the whole catalogue can take minutes) and swaps it in; if the fetch fails,
-/// the catalogue keeps what it has.
+/// Starts with the last saved catalog, so it works at once and without internet. <see cref="RefreshAsync"/>
+/// fetches a new one (slowly: the whole catalog can take minutes) and swaps it in; if the fetch fails,
+/// the catalog keeps what it has.
 /// </remarks>
 public sealed class CardCatalog
 {
@@ -20,9 +20,9 @@ public sealed class CardCatalog
     public const int DefaultSearchLimit = 50;
 
     /// <summary>
-    /// The smallest share of the current catalogue a fetched one may have. A fetch that brings fewer
+    /// The smallest share of the current catalog a fetched one may have. A fetch that brings fewer
     /// cards than this is more likely a broken or cut-short answer than cards actually removed, so
-    /// the catalogue keeps what it has.
+    /// the catalog keeps what it has.
     /// </summary>
     public const double SmallestAcceptedShare = 0.5;
 
@@ -37,18 +37,18 @@ public sealed class CardCatalog
     // One refresh at a time: a second one while the first is running would only repeat its work.
     private readonly SemaphoreSlim _refreshing = new(1, 1);
 
-    // Replaced whole, never changed, so a reader always sees one consistent catalogue.
+    // Replaced whole, never changed, so a reader always sees one consistent catalog.
     private CardIndex _index;
 
     // Replaced whole too. Only a refresh changes it, and only one runs at a time.
     private CardCatalogStatus _status = CardCatalogStatus.Idle;
 
     /// <summary>
-    /// Creates the catalogue with the last saved cards, if any.
+    /// Creates the catalog with the last saved cards, if any.
     /// </summary>
-    /// <param name="store">Keeps the last fetched catalogue.</param>
-    /// <param name="source">Where new catalogues come from.</param>
-    /// <param name="time">The clock, for when a catalogue was fetched.</param>
+    /// <param name="store">Keeps the last fetched catalog.</param>
+    /// <param name="source">Where new catalogs come from.</param>
+    /// <param name="time">The clock, for when a catalog was fetched.</param>
     /// <param name="logger">Logs failed refreshes.</param>
     public CardCatalog(ICardStore store, ICardSource source, TimeProvider time, ILogger<CardCatalog> logger)
     {
@@ -139,17 +139,17 @@ public sealed class CardCatalog
     }
 
     /// <summary>
-    /// Fetches the whole catalogue and swaps it in, then saves it. Raises <see cref="Changed"/> if
+    /// Fetches the whole catalog and swaps it in, then saves it. Raises <see cref="Changed"/> if
     /// the cards differ from before.
     /// </summary>
     /// <remarks>
     /// Never throws for a failed fetch (unreachable, an error, a timeout, or an empty or suspiciously
-    /// small catalogue: see <see cref="SmallestAcceptedShare"/>): it logs it and keeps the cards it
+    /// small catalog: see <see cref="SmallestAcceptedShare"/>): it logs it and keeps the cards it
     /// has. Does nothing if a refresh is already running.
     /// </remarks>
     /// <param name="cancellationToken">Cancels the fetch, e.g. when the server shuts down.</param>
-    /// <returns>Whether a new catalogue was swapped in.</returns>
-    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was cancelled.</exception>
+    /// <returns>Whether a new catalog was swapped in.</returns>
+    /// <exception cref="OperationCanceledException"><paramref name="cancellationToken"/> was canceled.</exception>
     public async Task<bool> RefreshAsync(CancellationToken cancellationToken)
     {
         if (!await _refreshing.WaitAsync(TimeSpan.Zero, cancellationToken))
@@ -168,7 +168,7 @@ public sealed class CardCatalog
             }
             catch (Exception exception) when (IsFetchFailure(exception) && !cancellationToken.IsCancellationRequested)
             {
-                _logger.LogWarning(exception, "Couldn't fetch the card catalogue; keeping the {Count} cards already loaded.", Cards.Count);
+                _logger.LogWarning(exception, "Couldn't fetch the card catalog; keeping the {Count} cards already loaded.", Cards.Count);
                 Fail(exception.Message);
                 return false;
             }
@@ -206,7 +206,7 @@ public sealed class CardCatalog
         {
             if (_status.Fetching)
             {
-                SetStatus(_status with { Fetching = false, Progress = null }); // Cancelled: no new failure to report
+                SetStatus(_status with { Fetching = false, Progress = null }); // Canceled: no new failure to report
             }
 
             _refreshing.Release();
@@ -225,7 +225,7 @@ public sealed class CardCatalog
     }
 
     // HttpClient's own timeout surfaces as a TaskCanceledException (an OperationCanceledException)
-    // even though nobody cancelled; RefreshAsync tells the two apart with the token.
+    // even though nobody canceled; RefreshAsync tells the two apart with the token.
     private static bool IsFetchFailure(Exception exception) =>
         exception is HttpRequestException or JsonException or OperationCanceledException;
 
@@ -248,7 +248,7 @@ public sealed class CardCatalog
     }
 
     /// <summary>
-    /// One catalogue, with the lookups worked out once when it's loaded rather than on every use.
+    /// One catalog, with the lookups worked out once when it's loaded rather than on every use.
     /// </summary>
     private sealed record CardIndex(
         IReadOnlyList<Card> Cards,
