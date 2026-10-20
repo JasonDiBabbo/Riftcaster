@@ -7,7 +7,7 @@ using Riftcaster.Contracts;
 namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// Fetches the card catalogue from the Riftcodex API (https://riftcodex.com/docs), a page of
+/// Fetches the card catalog from the Riftcodex API (https://riftcodex.com/docs), a page of
 /// 100 cards at a time. A page that fails in a way that can clear up by itself (a dropped
 /// connection, a timeout, an overloaded server) is tried again, so one bad moment doesn't cost the
 /// whole fetch.
@@ -159,7 +159,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
     };
 
     // Null for a card missing anything the web interface or overlays need: one malformed card is skipped
-    // rather than failing the whole catalogue. Adds any type or supertype it doesn't know to unknown.
+    // rather than failing the whole catalog. Adds any type or supertype it doesn't know to unknown.
     private static Card? ToCard(RiftcodexCard? item, ISet<string> unknown)
     {
         if (item is not

@@ -9,7 +9,7 @@
 /// </remarks>
 /// <param name="Id">
 /// The card source's id for this printing: unique within that source, but meaningless outside
-/// it, so treat it as opaque. Use <paramref name="Code"/> to recognise a card across sources.
+/// it, so treat it as opaque. Use <paramref name="Code"/> to recognize a card across sources.
 /// </param>
 /// <param name="Code">
 /// The official collector code printed on the card, e.g. "ogn-247". The same in every card

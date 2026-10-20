@@ -19,7 +19,7 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
-# One release at a time; a newer tag waits rather than cancelling one half-published.
+# One release at a time; a newer tag waits rather than canceling one half-published.
 concurrency:
   group: release
   cancel-in-progress: false

@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// A fetch of the card catalogue that didn't swap in new cards.
+/// A fetch of the card catalog that didn't swap in new cards.
 /// </summary>
 /// <param name="At">When it failed.</param>
 /// <param name="Reason">Why, in words the operator can read, e.g. the error message.</param>

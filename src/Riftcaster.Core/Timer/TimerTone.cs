@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Timer;
 
 /// <summary>
-/// How urgently the time is shown: its colour in the panel.
+/// How urgently the time is shown: its color in the panel.
 /// </summary>
 public enum TimerTone
 {

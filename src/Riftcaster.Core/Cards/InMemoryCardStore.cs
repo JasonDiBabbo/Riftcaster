@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// An in-memory store for the card catalogue.
+/// An in-memory store for the card catalog.
 /// </summary>
 /// <remarks>
 /// Nothing survives a server restart. For tests.
@@ -9,12 +9,12 @@
 public sealed class InMemoryCardStore : ICardStore
 {
     /// <summary>
-    /// The most recently saved catalogue.
+    /// The most recently saved catalog.
     /// </summary>
     public CardCatalogSnapshot? Snapshot { get; private set; }
 
     /// <summary>
-    /// How many times <see cref="Save"/> has been called, so tests can check when the catalogue saves.
+    /// How many times <see cref="Save"/> has been called, so tests can check when the catalog saves.
     /// </summary>
     public int SaveCount { get; private set; }
 

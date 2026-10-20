@@ -1,7 +1,7 @@
 /**
- * Platform logos for the Socials lower third, one per SocialNetwork: 24x24 single-colour
+ * Platform logos for the Socials lower third, one per SocialNetwork: 24x24 single-color
  * path data from Simple Icons (simpleicons.org, CC0), as supplied in the Socials design
- * handoff. Recoloured with fill in socials.css. Check each platform's brand guidelines
+ * handoff. Recolored with fill in socials.css. Check each platform's brand guidelines
  * before changing how they're displayed.
  *
  * Record<SocialNetwork, string>: adding a network to Contracts fails the typecheck until

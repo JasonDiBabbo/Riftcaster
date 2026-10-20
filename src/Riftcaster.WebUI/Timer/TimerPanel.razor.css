@@ -1,4 +1,4 @@
-/* Status beside the title: a dot and a label in the status colour. */
+/* Status beside the title: a dot and a label in the status color. */
 .status {
   display: flex;
   align-items: center;
@@ -25,7 +25,7 @@
 }
 
 /* The panel's contents are as big as they need to be and no bigger. If the panel is made taller (by
-   a neighbour in its row), the spare height is left around them evenly, never added between them. */
+   a neighbor in its row), the spare height is left around them evenly, never added between them. */
 .content {
   --row-gap: 14px;
   display: flex;
@@ -41,7 +41,7 @@
   display: contents;
 }
 
-/* --tone is the time's colour; the progress bar uses it too. */
+/* --tone is the time's color; the progress bar uses it too. */
 .display {
   --tone: var(--text-bright);
   flex: none;

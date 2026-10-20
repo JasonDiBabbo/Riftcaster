@@ -6,13 +6,13 @@ namespace Riftcaster.Core.Timer;
 /// What the timer shows for a snapshot: the status, the big time and how far along it is.
 /// </summary>
 /// <param name="Status">The status beside the panel's title.</param>
-/// <param name="Tone">The time's colour.</param>
+/// <param name="Tone">The time's color.</param>
 /// <param name="Time">The time remaining as <c>mm:ss</c>, or the time past zero as <c>+mm:ss</c>.</param>
 /// <param name="Progress">The fraction of the total that has run, from 0 to 1.</param>
 public sealed record TimerReadout(TimerStatus Status, TimerTone Tone, string Time, double Progress)
 {
     /// <summary>
-    /// Below this much time left, a started timer is shown in the low-time colour: 5 minutes.
+    /// Below this much time left, a started timer is shown in the low-time color: 5 minutes.
     /// </summary>
     public const int LowTimeSeconds = 5 * 60;
 

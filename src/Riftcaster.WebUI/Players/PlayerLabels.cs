@@ -5,7 +5,7 @@ using Riftcaster.Core.Match;
 namespace Riftcaster.WebUI.Players;
 
 /// <summary>
-/// How players are labelled and coloured in the web interface, which depends on the match mode.
+/// How players are labeled and colored in the web interface, which depends on the match mode.
 /// </summary>
 public static class PlayerLabels
 {
@@ -60,7 +60,7 @@ public static class PlayerLabels
     public static IEnumerable<int> SeatsOf(int team) => Enumerable.Range(team * 2, 2);
 
     /// <summary>
-    /// The hue of a player's colour: one per seat, or one per team in 2v2 (Team A blue, Team B red).
+    /// The hue of a player's color: one per seat, or one per team in 2v2 (Team A blue, Team B red).
     /// </summary>
     /// <param name="settings">The match settings.</param>
     /// <param name="seat">The player's seat, from 0.</param>
@@ -68,7 +68,7 @@ public static class PlayerLabels
         settings.IsTeamMode ? TeamHue(TeamOf(seat)) : SeatHues[seat];
 
     /// <summary>
-    /// The hue of a team's colour: Team A blue, Team B red, the same as their first two seats.
+    /// The hue of a team's color: Team A blue, Team B red, the same as their first two seats.
     /// </summary>
     /// <param name="team">0 for Team A, 1 for Team B.</param>
     public static int TeamHue(int team) => SeatHues[team];

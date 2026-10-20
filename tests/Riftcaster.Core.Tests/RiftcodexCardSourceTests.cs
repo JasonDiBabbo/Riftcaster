@@ -201,7 +201,7 @@ public class RiftcodexCardSourceTests
     }
 
     [Fact]
-    public async Task FetchAllAsync_Cancelled_DoesNotTryAgain()
+    public async Task FetchAllAsync_Canceled_DoesNotTryAgain()
     {
         using var cts = new CancellationTokenSource();
         cts.Cancel();

@@ -116,7 +116,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Form controls don't inherit font or colour by default. */
+/* Form controls don't inherit font or color by default. */
 button,
 input,
 select,
@@ -176,7 +176,7 @@ select option {
 }
 
 /* Interaction states shared by every control (see the tokens above). Each component sets its own
-   hover colours, inside @media (hover: hover), so a tap on a touch screen doesn't leave one stuck;
+   hover colors, inside @media (hover: hover), so a tap on a touch screen doesn't leave one stuck;
    these rules cover what's the same everywhere. :where() keeps them overridable. */
 :where(button, input, select, textarea, a) {
   transition:
@@ -214,7 +214,7 @@ select option {
 }
 
 /* Blazor's validation classes, and invalid input elsewhere (the timer's Set remaining). Not in
-   the design (the prototype has no validation), so these use the existing status colours. Red
+   the design (the prototype has no validation), so these use the existing status colors. Red
    replaces the mint focus rather than mixing with it, and hover leaves it alone. */
 :where(input, select, textarea).invalid,
 :where(input, select, textarea).invalid:hover {

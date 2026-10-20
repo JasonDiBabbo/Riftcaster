@@ -4,7 +4,7 @@ using Riftcaster.Core.Match;
 
 namespace Riftcaster.WebUI.Tests;
 
-// How players are named and coloured in each match mode.
+// How players are named and colored in each match mode.
 public class PlayerLabelsTests
 {
     private static MatchSettings Settings(MatchMode mode) =>

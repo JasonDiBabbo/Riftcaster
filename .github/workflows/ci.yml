@@ -31,6 +31,10 @@ jobs:
           cache: npm
           cache-dependency-path: src/overlays/package-lock.json
 
+      # Riftcaster uses American spelling everywhere (#86); the settings are in _typos.toml.
+      - name: Check spelling
+        uses: crate-ci/typos@v1
+
       - name: Build
         run: dotnet build --configuration Release
 

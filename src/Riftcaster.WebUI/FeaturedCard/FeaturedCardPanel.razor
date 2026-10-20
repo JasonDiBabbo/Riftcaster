@@ -128,14 +128,14 @@
     {
         { Fetching: true, Progress: { } progress } =>
             @<div class="empty">
-                <p>Fetching the card catalogue: page @progress.Page of @progress.Pages.</p>
+                <p>Fetching the card catalog: page @progress.Page of @progress.Pages.</p>
                 <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="@progress.Pages" aria-valuenow="@progress.Page">
                     <div class="progress-fill" style="width: @Percent(progress)%"></div>
                 </div>
             </div>,
         { Fetching: false, LastFailure: { } failure } =>
-            @<p class="empty">Couldn't fetch the card catalogue: @failure.Reason The server will try again shortly.</p>,
-        _ => @<p class="empty">Fetching the card catalogue. The first fetch can take a few minutes.</p>,
+            @<p class="empty">Couldn't fetch the card catalog: @failure.Reason The server will try again shortly.</p>,
+        _ => @<p class="empty">Fetching the card catalog. The first fetch can take a few minutes.</p>,
     };
 
     private static string Percent(CardFetchProgress progress) =>

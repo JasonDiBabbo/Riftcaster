@@ -3,7 +3,7 @@
 namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// Where the card catalogue comes from: the whole of it, every time.
+/// Where the card catalog comes from: the whole of it, every time.
 /// </summary>
 public interface ICardSource
 {

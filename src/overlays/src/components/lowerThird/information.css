@@ -1,4 +1,4 @@
-/* Information lower third: the message on the Socials design's gilded plate, centred,
+/* Information lower third: the message on the Socials design's gilded plate, centered,
    wrapping to at most two lines. Driven by informationVisual.ts; plate artwork in plate.ts.
    Designed for a 1920x1080 OBS browser source. */
 
@@ -45,7 +45,7 @@
   overflow: visible;
 }
 
-/* Centred on the bottom edge, straddling the border */
+/* Centered on the bottom edge, straddling the border */
 .info__gem {
   position: absolute;
   left: calc(50% - 10px);

@@ -318,7 +318,7 @@ public class PlayersServiceTests
     }
 
     [Fact]
-    public async Task WatchAsync_EndsWhenCancelled()
+    public async Task WatchAsync_EndsWhenCanceled()
     {
         using var cts = new CancellationTokenSource(); // no timeout: we cancel it ourselves
         await using var watch = _service.WatchAsync(cts.Token).GetAsyncEnumerator();

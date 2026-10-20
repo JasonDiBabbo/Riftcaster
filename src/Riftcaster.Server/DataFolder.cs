@@ -2,7 +2,7 @@
 
 /// <summary>
 /// Where the server keeps its saved state: players, lower thirds, match settings, the featured
-/// card, the card catalogue and the access code (issue #59).
+/// card, the card catalog and the access code (issue #59).
 /// </summary>
 /// <remarks>
 /// A published build keeps it in the user's own app-data folder (%APPDATA%\Riftcaster on Windows),

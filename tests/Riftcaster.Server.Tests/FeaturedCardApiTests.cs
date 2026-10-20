@@ -68,15 +68,15 @@ public class FeaturedCardApiTests(RiftcasterWebApplicationFactory factory) : ICl
     }
 }
 
-// A server whose card catalogue never loads, as while the first fetch is running.
+// A server whose card catalog never loads, as while the first fetch is running.
 public class CardsNotLoadedApiTests(RiftcasterWebApplicationFactory factory) : IClassFixture<RiftcasterWebApplicationFactory>
 {
     private readonly RestApiClient _api = new(factory.CreateClient());
 
     [Fact]
-    public async Task ChoosingACard_SaysTheCatalogueIsLoading()
+    public async Task ChoosingACard_SaysTheCatalogIsLoading()
     {
-        const string Loading = "The card catalogue hasn't loaded yet. Try again in a minute.";
+        const string Loading = "The card catalog hasn't loaded yet. Try again in a minute.";
 
         Assert.Equal([Loading], (await _api.InvalidAsync(HttpMethod.Put, "/api/featured-card", new { cardId = "any" }))["cardId"]);
         Assert.Equal([Loading], (await _api.InvalidAsync(HttpMethod.Patch, "/api/players/1", new { battlefieldId = "any" }))["battlefieldId"]);

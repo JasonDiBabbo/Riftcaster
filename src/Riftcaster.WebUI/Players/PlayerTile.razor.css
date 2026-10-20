@@ -1,5 +1,5 @@
 /* --player-hue is set on the cell from the seat (see PlayerLabels.Hue); everything else follows from it.
-   The cell is flat, part of the Players panel: its colour is the bar across its top and its name. It
+   The cell is flat, part of the Players panel: its color is the bar across its top and its name. It
    is its own container, so its controls follow its width, not the screen's. */
 .tile {
   --player: oklch(0.74 0.13 var(--player-hue));

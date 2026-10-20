@@ -87,7 +87,7 @@ public class MatchSetupTests : BunitContext
     }
 
     [Fact]
-    public void Players_InTeamModeAreLabelledByTeam()
+    public void Players_InTeamModeAreLabeledByTeam()
     {
         _match.Update(settings => settings with { Mode = MatchMode.TwoVsTwo });
 

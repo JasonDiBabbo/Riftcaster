@@ -25,7 +25,7 @@ const root = path.resolve(import.meta.dirname, "../..");
 const logoDir = "src/Riftcaster.WebUI/wwwroot/logo";
 const icon = fs.readFileSync(path.join(root, logoDir, "icon.svg"), "utf8");
 const square = icon.replace('rx="14" ', "");
-// At 24 px and under the card is drawn bigger and its tear wider, or the tear blurs into a grey line.
+// At 24 px and under the card is drawn bigger and its tear wider, or the tear blurs into a gray line.
 const small = icon
   .replace('stroke-width="3.5"', 'stroke-width="5.5"')
   .replace("scale(0.68)", "scale(0.75)");
@@ -150,7 +150,7 @@ function makeIco(pngs) {
     const entry = 6 + 16 * i;
     header.writeUInt8(image.width % 256, entry); // 0 means 256
     header.writeUInt8(image.height % 256, entry + 1);
-    header.writeUInt16LE(1, entry + 4); // Colour planes
+    header.writeUInt16LE(1, entry + 4); // Color planes
     header.writeUInt16LE(32, entry + 6); // Bits per pixel
     header.writeUInt32LE(image.data.length, entry + 8);
     header.writeUInt32LE(offset, entry + 12);

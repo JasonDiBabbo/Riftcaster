@@ -1,7 +1,7 @@
 /**
  * The gilded plate shared by the Socials and Information lower thirds: a navy body in a
  * thin gold ring, notched at every corner, with gold filigree along the top and bottom
- * edges and a hex gem at the bottom centre. Ported from the Socials design handoff's
+ * edges and a hex gem at the bottom center. Ported from the Socials design handoff's
  * prototype (riftcaster-lower-third-v3.jsx: SCALLOP, Framed, Gilded and HexGem), which is
  * the source of every number here.
  *
@@ -12,7 +12,7 @@
 /** Width of the gold ring around the navy body. */
 const RING = 1.9;
 
-/** Radius of the concave notch at each corner, centred on the corner itself. */
+/** Radius of the concave notch at each corner, centered on the corner itself. */
 const NOTCH = 12.1;
 
 const GOLD = '#c9a45e';
@@ -108,8 +108,8 @@ export function plateSvg(id: string, w: number, h: number): string {
 }
 
 /**
- * The 20x20 hex gem: six triangular facets meeting at the centre, each shaded from a
- * pale highlight at the centre toward its own colour, with faint spokes, a centre glow
+ * The 20x20 hex gem: six triangular facets meeting at the center, each shaded from a
+ * pale highlight at the center toward its own color, with faint spokes, a center glow
  * and a dark outline.
  */
 export function gemSvg(id: string): string {

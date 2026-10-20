@@ -19,7 +19,7 @@ public class FeaturedCardEventsTests(RiftcasterWebApplicationFactory factory) : 
         var (_, initial) = await socket.ReceiveStateAsync<FeaturedCardState>(cts.Token);
         Assert.Null(initial?.Card);
 
-        // Put a card in the catalogue, then feature it through the server's own service
+        // Put a card in the catalog, then feature it through the server's own service
         await LoadCatalogAsync([Jinx], cts.Token);
         Assert.True(factory.Services.GetRequiredService<FeaturedCardService>().Feature(Jinx.Id));
 
@@ -29,7 +29,7 @@ public class FeaturedCardEventsTests(RiftcasterWebApplicationFactory factory) : 
         Assert.Equal(Jinx, changed?.Card);
     }
 
-    // The test server's catalogue starts empty. The refresher may be fetching at the same moment
+    // The test server's catalog starts empty. The refresher may be fetching at the same moment
     // (a refresh then does nothing), so try until the cards are in.
     private async Task LoadCatalogAsync(IReadOnlyList<Card> cards, CancellationToken cancellationToken)
     {

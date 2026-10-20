@@ -29,7 +29,7 @@
   margin: 0;
 }
 
-/* Not in the design, which has no card fetch. The catalogue's state, in the meta while not searching. */
+/* Not in the design, which has no card fetch. The catalog's state, in the meta while not searching. */
 .catalog-status.warn {
   color: var(--warn);
   cursor: help;

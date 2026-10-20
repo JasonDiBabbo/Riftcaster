@@ -137,11 +137,11 @@ public class CardCatalogTests
     }
 
     [Fact]
-    public async Task RefreshAsync_CancelledDuringFetch_Throws()
+    public async Task RefreshAsync_CanceledDuringFetch_Throws()
     {
         var catalog = CreateCatalog();
         using var cts = new CancellationTokenSource();
-        _source.Gate = new TaskCompletionSource(); // Never opened: the fetch waits until it's cancelled
+        _source.Gate = new TaskCompletionSource(); // Never opened: the fetch waits until it's canceled
         var refresh = catalog.RefreshAsync(cts.Token);
 
         cts.Cancel();
@@ -238,7 +238,7 @@ public class CardCatalogTests
     }
 
     [Fact]
-    public async Task Status_AfterCancelling_StopsFetchingWithoutAFailure()
+    public async Task Status_AfterCanceling_StopsFetchingWithoutAFailure()
     {
         var catalog = CreateCatalog();
         using var cts = new CancellationTokenSource();
@@ -339,7 +339,7 @@ public class CardCatalogTests
     /// <summary>
     /// Returns <see cref="Cards"/>, or throws <see cref="Failure"/>. If <see cref="Gate"/> is set, it
     /// first reports <see cref="ProgressBeforeGate"/> (if set), then waits for the gate to open, or
-    /// for the fetch to be cancelled.
+    /// for the fetch to be canceled.
     /// </summary>
     private sealed class FakeCardSource : ICardSource
     {

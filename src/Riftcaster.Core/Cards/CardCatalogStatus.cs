@@ -1,7 +1,7 @@
 ﻿namespace Riftcaster.Core.Cards;
 
 /// <summary>
-/// What the card catalogue is doing, for the web interface to show.
+/// What the card catalog is doing, for the web interface to show.
 /// </summary>
 /// <param name="Fetching">Whether a fetch is running.</param>
 /// <param name="Progress">
