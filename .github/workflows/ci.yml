@@ -15,6 +15,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Riftcaster uses American spelling everywhere (#86); the settings are in _typos.toml. Its own job
+  # on Linux, because the typos action downloads with wget, which Windows runners lack.
+  spelling:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: crate-ci/typos@v1.51.1
+
   build-and-test:
     # Windows, matching the platform Riftcaster runs on (the OBS machine).
     runs-on: windows-latest
@@ -30,10 +39,6 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: src/overlays/package-lock.json
-
-      # Riftcaster uses American spelling everywhere (#86); the settings are in _typos.toml.
-      - name: Check spelling
-        uses: crate-ci/typos@v1
 
       - name: Build
         run: dotnet build --configuration Release
