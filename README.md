@@ -233,7 +233,7 @@ The connection is plain HTTP, so the code stops casual tampering by others on th
 
 ## The REST API
 
-Everything the web interface does, except network access and the access code, can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
+Everything the web interface does, except network access, the access code and opening the log folder (which opens on the server's own screen), can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
 
 **[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
 

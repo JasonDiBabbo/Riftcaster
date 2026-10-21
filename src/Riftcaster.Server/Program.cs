@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Reflection;
 using Microsoft.AspNetCore.DataProtection;
@@ -6,6 +7,7 @@ using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
+using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Overlays;
@@ -79,6 +81,14 @@ public partial class Program
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         builder.Logging.AddLogFiles(dataDirectory);
+
+        // The Settings page's Open folder button. UseShellExecute makes .NET ask the system to show the
+        // folder: Explorer on Windows, Finder with open on macOS, xdg-open's file manager on Linux.
+        builder.Services.AddSingleton(services => new LogFolderOpener(
+            services.GetRequiredService<LogFolder>(),
+            () => DesktopSession.Current,
+            path => Process.Start(new ProcessStartInfo(path) { UseShellExecute = true })?.Dispose(),
+            services.GetRequiredService<ILogger<LogFolderOpener>>()));
 
         // The Settings page's settings. Created by the container, which has the logger the store needs.
         builder.Services.AddSingleton<IAppSettingsStore>(services => new JsonFileAppSettingsStore(

@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Riftcaster.Core.Diagnostics;
+using Serilog;
 using Serilog.Extensions.Logging;
 
 namespace Riftcaster.Server;
@@ -16,8 +17,9 @@ internal static class LogFiles
 
     /// <summary>
     /// Adds the log files: riftcaster-20261005.log and so on, a new one each day, in the data
-    /// folder's logs folder. A week's files are kept; older ones are deleted. The levels in the
-    /// Logging settings (appsettings.json) apply to them as to the console.
+    /// folder's logs folder. The most recent <see cref="LogFolder.RetainedFiles"/> files are kept;
+    /// older ones are deleted. The levels in the Logging settings (appsettings.json) apply to them
+    /// as to the console.
     /// </summary>
     /// <param name="logging">The app's logging.</param>
     /// <param name="dataDirectory">The saved-data folder (see <see cref="DataFolder"/>).</param>
@@ -30,7 +32,7 @@ internal static class LogFiles
             .MinimumLevel.Verbose() // Everything it's given: the Logging settings have already filtered it.
             .WriteTo.File(Path.Combine(folder, "riftcaster-.log"),
                 rollingInterval: RollingInterval.Day,
-                retainedFileCountLimit: 7,
+                retainedFileCountLimit: LogFolder.RetainedFiles,
                 outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
             .CreateLogger();
 
