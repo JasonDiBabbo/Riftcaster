@@ -42,13 +42,13 @@ public class LogDetailSourceTests
     {
         var source = LogDetailSource.AddTo(_configuration);
         source.Attach(_settings);
-        var signalled = false;
-        using var _ = ChangeToken.OnChange(((IConfiguration)_configuration).GetReloadToken, () => signalled = true);
+        var signaled = false;
+        using var _ = ChangeToken.OnChange(((IConfiguration)_configuration).GetReloadToken, () => signaled = true);
 
         SetDetail(_settings, LogDetail.WarningsOnly);
 
         Assert.Equal("Warning", _configuration[Key]);
-        Assert.True(signalled);
+        Assert.True(signaled);
     }
 
     [Fact]
