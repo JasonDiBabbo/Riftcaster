@@ -118,7 +118,7 @@ Start `Riftcaster.exe` for the tray icon, or `Riftcaster.Server.exe` for the ser
 A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
-- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalog and the access code. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
+- **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalog, the access code and the Settings page's settings. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
 - **Logs go in a `logs` folder inside it:** a file a day, such as `riftcaster-20261005.log`, with the last 7 kept. They have everything the console shows, which is the only record when Riftcaster runs without one.
 - **The access code's encryption keys** are kept in the Windows user's profile too, so on another server or user the saved code can't be read. Riftcaster then generates a new one in its place and logs that it did: **Show** it in the network panel to give to operators, or set your own.
 - **If the overlays are missing,** the Live dashboard's header shows **Overlay files missing** in red where it normally counts connected overlays, and the console says where it looked.
@@ -246,6 +246,7 @@ Everything the web interface does, except network access and the access code, ca
 | Show a saved lower third | `POST /api/lower-third/messages/{id}/show` (ids are in `GET /api/lower-third`) |
 | Hide the lower third | `POST /api/lower-third/hide` |
 | Feature a card | `PUT /api/featured-card` with `{ "cardId": "..." }` (ids are in `GET /api/cards?search=jinx`) |
+| Log more detail | `PATCH /api/settings` with `{ "logging": { "detail": "Detailed" } }` (or `WarningsOnly`, `Normal`) |
 
 Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the web interface. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
 

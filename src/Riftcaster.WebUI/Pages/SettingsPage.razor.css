@@ -1,0 +1,18 @@
+/* A form, not a dashboard: its sections straight on the page, one under the other, each as wide as
+   the page allows up to a limit, so a form never stretches across an ultrawide screen (a setting's
+   text and its control would end up far apart). The limit is the grid's one column, not a rule for
+   the sections: they're other components', which this page's scoped CSS can't reach. */
+.settings {
+  display: grid;
+  grid-template-columns: minmax(0, 860px);
+  align-content: start;
+  gap: 36px;
+  padding: 24px 28px 32px;
+}
+
+@media (width < 760px) {
+  .settings {
+    gap: 28px;
+    padding: 16px;
+  }
+}
