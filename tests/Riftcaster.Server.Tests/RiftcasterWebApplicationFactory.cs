@@ -10,6 +10,7 @@ using Riftcaster.Core.LowerThird;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Players;
+using Riftcaster.Core.Settings;
 
 namespace Riftcaster.Server.Tests;
 
@@ -62,6 +63,9 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
 
             services.RemoveAll<IPlayersStore>();
             services.AddSingleton<IPlayersStore, InMemoryPlayersStore>();
+
+            services.RemoveAll<IAppSettingsStore>();
+            services.AddSingleton<IAppSettingsStore, InMemoryAppSettingsStore>();
 
             services.RemoveAll<ICardStore>();
             services.AddSingleton<ICardStore, InMemoryCardStore>();

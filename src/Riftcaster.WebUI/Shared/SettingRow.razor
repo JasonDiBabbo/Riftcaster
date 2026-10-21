@@ -1,0 +1,43 @@
+<div class="row">
+    <div class="label">
+        <span class="title">@Title</span>
+        @if (Description is not null)
+        {
+            @* On a phone the note joins the description (the control has no room beside it); see the CSS. *@
+            <span class="description">@Description@if (Note is not null){<span class="note-inline">@(Note).</span>}</span>
+        }
+    </div>
+    <div class="control">
+        @ChildContent
+        @if (Note is not null)
+        {
+            <p class="note @(Description is not null ? "has-description" : "")">@Note</p>
+        }
+    </div>
+</div>
+
+@code {
+    /// <summary>
+    /// What the setting is called.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// What the setting does, in a line or two, under its title.
+    /// </summary>
+    [Parameter]
+    public string? Description { get; set; }
+
+    /// <summary>
+    /// A short remark under the control, such as when a change takes effect.
+    /// </summary>
+    [Parameter]
+    public string? Note { get; set; }
+
+    /// <summary>
+    /// The control.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

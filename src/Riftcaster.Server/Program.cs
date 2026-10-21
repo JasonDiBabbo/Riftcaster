@@ -10,6 +10,7 @@ using Riftcaster.Core.Match;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
+using Riftcaster.Core.Settings;
 using Riftcaster.Core.Timer;
 using Riftcaster.Server.Api;
 
@@ -50,6 +51,9 @@ public partial class Program
             ApplicationName = typeof(Program).Assembly.GetName().Name,
         });
 
+        // First, before anything else is added to the configuration (see LogDetailSource.AddTo).
+        var logDetail = LogDetailSource.AddTo(builder.Configuration);
+
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = ShutdownTimeout);
 
         // Network access: off unless started with --network on (see NetworkAccess).
@@ -75,6 +79,12 @@ public partial class Program
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         builder.Logging.AddLogFiles(dataDirectory);
+
+        // The Settings page's settings. Created by the container, which has the logger the store needs.
+        builder.Services.AddSingleton<IAppSettingsStore>(services => new JsonFileAppSettingsStore(
+            Path.Combine(dataDirectory, "settings.json"),
+            services.GetRequiredService<ILogger<JsonFileAppSettingsStore>>()));
+        builder.Services.AddSingleton<AppSettingsService>();
 
         // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
         // so they still work if the app's folder moves.
@@ -139,6 +149,9 @@ public partial class Program
 
         var app = builder.Build();
 
+        // Applies the saved log detail, before anything else is logged, and follows its changes.
+        logDetail.Attach(app.Services.GetRequiredService<AppSettingsService>());
+
         // Say where other devices can reach the server: at startup, and whenever the switch changes.
         var accessCode = app.Services.GetRequiredService<AccessCode>();
         app.Lifetime.ApplicationStarted.Register(() => LogNetworkAccess(app.Logger, network, accessCode));
@@ -160,6 +173,7 @@ public partial class Program
         app.MapLowerThird();
         app.MapMatch();
         app.MapPlayers();
+        app.MapSettings();
         app.MapTimer();
         app.MapRestApiDocs();
         app.MapStaticAssets();

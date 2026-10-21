@@ -1,0 +1,31 @@
+@using Riftcaster.Core.Settings
+@implements IDisposable
+@inject AppSettingsService Service
+
+<FormSection Title="Logging">
+    <SettingRow Title="Log detail"
+                Description="@SettingsLabels.Describe(Service.Settings.Logging.Detail)"
+                Note="Applies immediately">
+        <SegmentedControl Label="Log detail"
+                          Options="SettingsLabels.LogDetailOptions"
+                          @bind-Value:get="Service.Settings.Logging.Detail"
+                          @bind-Value:set="value => Service.Update(settings => settings with { Logging = settings.Logging with { Detail = value } })" />
+    </SettingRow>
+</FormSection>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Service.Changed += OnSettingsChanged;
+    }
+
+    private void OnSettingsChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Service.Changed -= OnSettingsChanged;
+    }
+}
