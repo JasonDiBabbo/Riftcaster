@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Riftcaster.Contracts;
+using Riftcaster.Core.Diagnostics;
 
 namespace Riftcaster.Server.Tests;
 
@@ -10,6 +11,16 @@ namespace Riftcaster.Server.Tests;
 public class SettingsApiTests(RiftcasterWebApplicationFactory factory) : IClassFixture<RiftcasterWebApplicationFactory>
 {
     private readonly RestApiClient _api = new(factory.CreateClient());
+
+    // What the Settings page's Open folder button opens: the same folder the log files are written to.
+    [Fact]
+    public void LogFolderOpener_PointsAtTheLogsFolderInTheDataFolder()
+    {
+        var opener = factory.Services.GetRequiredService<LogFolderOpener>();
+
+        Assert.Equal(factory.Services.GetRequiredService<LogFolder>().Path, opener.FolderPath);
+        Assert.Equal(LogFiles.FolderName, Path.GetFileName(opener.FolderPath));
+    }
 
     [Fact]
     public async Task PatchSettings_ChangesTheLogDetail()

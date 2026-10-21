@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
 using Riftcaster.Server;
 using Velopack;

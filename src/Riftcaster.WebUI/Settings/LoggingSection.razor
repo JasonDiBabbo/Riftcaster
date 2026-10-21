@@ -1,6 +1,8 @@
+@using Riftcaster.Core.Diagnostics
 @using Riftcaster.Core.Settings
 @implements IDisposable
 @inject AppSettingsService Service
+@inject LogFolderOpener Opener
 
 <FormSection Title="Logging">
     <SettingRow Title="Log detail"
@@ -11,12 +13,50 @@
                           @bind-Value:get="Service.Settings.Logging.Detail"
                           @bind-Value:set="value => Service.Update(settings => settings with { Logging = settings.Logging with { Detail = value } })" />
     </SettingRow>
+
+    <div class="folder">
+        <span class="folder-title">Log folder</span>
+        <div class="folder-line">
+            <code class="folder-path">@Opener.FolderPath</code>
+            @if (!Session.IsLocal)
+            {
+                <button type="button" class="button-secondary" disabled>Open folder</button>
+            }
+            else if (Opener.CanOpen)
+            {
+                <button type="button" class="button-secondary" @onclick="OpenFolder">Open folder</button>
+            }
+        </div>
+        <p class="folder-note" role="status">@FolderNote</p>
+    </div>
 </FormSection>
 
 @code {
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    private bool _openFailed;
+
+    private string FolderNote =>
+        !Session.IsLocal ? "Opens on the computer running Riftcaster, and you're connected from another device. Use the path to find it there."
+        : _openFailed ? "Couldn't open the folder. The path above is where it is."
+        : !Opener.CanOpen ? "Riftcaster can't open folders on this computer: it has no desktop session. Use the path to find the folder."
+        : $"Only one log file is written per day. The {LogFolder.RetainedFiles} most recent log files are kept.";
+
     protected override void OnInitialized()
     {
         Service.Changed += OnSettingsChanged;
+    }
+
+    private void OpenFolder()
+    {
+        // The button is only drawn for a local session, but the handler is what the server runs.
+        if (!Session.IsLocal)
+        {
+            return;
+        }
+
+        _openFailed = Opener.Open() != FolderOpenResult.Opened;
     }
 
     private void OnSettingsChanged()
