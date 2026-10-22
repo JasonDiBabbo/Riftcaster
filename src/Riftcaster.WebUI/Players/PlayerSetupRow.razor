@@ -4,7 +4,7 @@
 @inject CardCatalog Catalog
 @inject PlayersService Players
 
-<div class="row" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
+<div class="row @(First ? "first" : "")" style="--player-hue: @PlayerLabels.Hue(Settings, Seat)">
     <div class="who">
         <span class="mark"></span>
         <span class="slot">@(Settings.IsTeamMode ? $"{PlayerLabels.TeamName(PlayerLabels.TeamOf(Seat))} · Player {Number}" : $"Player {Number}")</span>
@@ -62,6 +62,13 @@
     /// </summary>
     [Parameter, EditorRequired]
     public MatchState State { get; set; } = null!;
+
+    /// <summary>
+    /// Whether this is the first row, straight under the section's heading. Narrow, with no column
+    /// captions between them, its rule would sit right under the heading's own, so it goes without one.
+    /// </summary>
+    [Parameter]
+    public bool First { get; set; }
 
     // The "Swap with…" option's value. The select always shows it: picking a player swaps, then it resets.
     private const string NoSwap = "";

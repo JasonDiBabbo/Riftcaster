@@ -1,18 +1,19 @@
 /* A form, not a dashboard: two sections straight on the page, each as wide as the page allows (up to
    a limit, so a form never stretches across an ultrawide screen: the rest is left empty on the right). The page is the container the
    rows lay themselves out by, so they follow the width actually available, whether or not the side
-   navigation is open. */
+   navigation is open.
+
+   The limit is the grid's one column, not a rule for the sections: they are other components', which
+   this page's scoped CSS can't reach. It's above every width the rows lay themselves out by (980px at
+   most), so the container and the column always agree on which layout to use. */
 .setup {
   --setup-columns: 150px repeat(4, minmax(0, 1fr)) 170px;
   container: setup / inline-size;
   display: grid;
+  grid-template-columns: minmax(0, 1200px);
   align-content: start;
   gap: 36px;
   padding: 24px 28px 32px;
-}
-
-.setup > * {
-  max-width: 1200px;
 }
 
 .hint {

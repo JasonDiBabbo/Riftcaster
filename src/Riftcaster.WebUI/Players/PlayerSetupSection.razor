@@ -22,7 +22,7 @@
     </div>
     @foreach (var seat in Enumerable.Range(0, state.Settings.PlayerCount))
     {
-        <PlayerSetupRow @key="seat" Seat="seat" State="state" />
+        <PlayerSetupRow @key="seat" Seat="seat" State="state" First="seat == 0" />
     }
 </FormSection>
 

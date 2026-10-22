@@ -7,6 +7,7 @@ using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
+using Riftcaster.Core.Settings;
 
 namespace Riftcaster.WebUI.Tests;
 
@@ -17,12 +18,51 @@ public class MatchSetupTests : BunitContext
 
     private readonly PlayersService _players;
 
+    private readonly AppSettingsService _appSettings = new(new InMemoryAppSettingsStore());
+
     public MatchSetupTests()
     {
         _players = new PlayersService(new InMemoryPlayersStore(), _match);
         Services.AddSingleton(new CardCatalog(new InMemoryCardStore(), new InMemoryCardSource(), TimeProvider.System, NullLogger<CardCatalog>.Instance));
         Services.AddSingleton(_match);
         Services.AddSingleton(_players);
+        Services.AddSingleton(_appSettings);
+    }
+
+    [Fact]
+    public void ResetToDefaults_IsOffWhileTheMatchHasThem()
+    {
+        var settings = Render<MatchSettingsSection>();
+
+        Assert.True(settings.Find(".button-secondary").HasAttribute("disabled"));
+
+        _match.Update(match => match with { Mode = MatchMode.FreeForAll4 });
+
+        settings.WaitForAssertion(() => Assert.False(settings.Find(".button-secondary").HasAttribute("disabled")));
+    }
+
+    [Fact]
+    public void ResetToDefaults_GivesTheMatchTheDefaults()
+    {
+        _appSettings.Update(settings => settings with { MatchDefaults = MatchRules.Default with { Mode = MatchMode.TwoVsTwo, PointsToWin = 11 } });
+        _match.Update(match => match with { Mode = MatchMode.FreeForAll3, PointsToWin = 14 });
+        var settings = Render<MatchSettingsSection>();
+
+        settings.Find(".button-secondary").Click();
+
+        Assert.Equal(MatchRules.Default with { Mode = MatchMode.TwoVsTwo, PointsToWin = 11 }, _match.Settings);
+        settings.WaitForAssertion(() => Assert.True(settings.Find(".button-secondary").HasAttribute("disabled")));
+    }
+
+    [Fact]
+    public void ResetToDefaults_FollowsDefaultsChosenElsewhere()
+    {
+        var settings = Render<MatchSettingsSection>();
+        Assert.True(settings.Find(".button-secondary").HasAttribute("disabled"));
+
+        _appSettings.Update(current => current with { MatchDefaults = MatchRules.Default with { DurationMinutes = 30 } });
+
+        settings.WaitForAssertion(() => Assert.False(settings.Find(".button-secondary").HasAttribute("disabled")));
     }
 
     [Fact]
@@ -84,6 +124,18 @@ public class MatchSetupTests : BunitContext
         Assert.Equal(rows, section.FindAll(".row").Count);
         Assert.Equal($"{(mode == MatchMode.OneVsOne ? "1v1" : mode == MatchMode.FreeForAll3 ? "FFA 3" : "FFA 4")} · {rows} players", section.Find(".meta").TextContent);
         Assert.Equal(["Player 1", "Player 2"], section.FindAll(".slot").Take(2).Select(slot => slot.TextContent));
+    }
+
+    // The first row is the one under the section's heading, which the narrow layouts give no rule of its own.
+    [Fact]
+    public void Players_OnlyTheFirstRowIsMarkedFirst()
+    {
+        _match.Update(settings => settings with { Mode = MatchMode.FreeForAll4 });
+
+        var section = Render<PlayerSetupSection>();
+
+        var rows = section.FindAll(".row");
+        Assert.Equal([true, false, false, false], rows.Select(row => row.ClassList.Contains("first")));
     }
 
     [Fact]

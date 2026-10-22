@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Riftcaster.Contracts;
+using Riftcaster.Core.Match;
 using Riftcaster.Core.Settings;
 using Riftcaster.Server.Api;
 
@@ -23,14 +24,20 @@ public static class SettingsEndpoints
                     return ApiProblems.Invalid("logging.detail", "Use WarningsOnly, Normal or Detailed.");
                 }
 
+                if (change.MatchDefaults?.Validate("matchDefaults.") is { } problem)
+                {
+                    return problem;
+                }
+
                 service.Update(current => current with
                 {
                     Logging = current.Logging with { Detail = change.Logging?.Detail ?? current.Logging.Detail },
+                    MatchDefaults = change.MatchDefaults is { } rules ? rules.ApplyTo(current.MatchDefaults ?? MatchRules.Default) : current.MatchDefaults,
                 });
                 return TypedResults.Ok(service.Settings);
             })
             .WithSummary("Change the settings")
-            .WithDescription("Only the fields sent change. A new log detail applies to the log at once.");
+            .WithDescription("Only the fields sent change. A new log detail applies to the log at once. The match defaults only matter when the match settings are reset to them (POST /api/match/reset-to-defaults).");
 
         return app;
     }
@@ -40,7 +47,12 @@ public static class SettingsEndpoints
 /// Changes to the settings. Leave out a part or a field, or send null, to keep it as it is.
 /// </summary>
 /// <param name="Logging">Changes to the logging settings.</param>
-public record AppSettingsChange(LoggingSettingsChange? Logging = null);
+/// <param name="MatchDefaults">
+/// Changes to the match defaults, the rules that resetting the match settings gives it. The fields
+/// are those of <c>PATCH /api/match</c>, with the same limits. Only the fields sent change, from the
+/// design's defaults the first time.
+/// </param>
+public record AppSettingsChange(LoggingSettingsChange? Logging = null, MatchSettingsChange? MatchDefaults = null);
 
 /// <summary>
 /// Changes to the logging settings. Leave out a field, or send null, to keep it as it is.

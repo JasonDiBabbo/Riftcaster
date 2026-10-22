@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Riftcaster.Contracts;
+using Riftcaster.Core.Match;
 using Riftcaster.Core.Settings;
 
 namespace Riftcaster.Core.Tests;
@@ -65,11 +66,39 @@ public sealed class JsonFileAppSettingsStoreTests : IDisposable
         Assert.True(File.Exists(_path));
     }
 
+    [Fact]
+    public void SaveThenLoad_RoundTripsTheMatchDefaults()
+    {
+        var settings = new AppSettings { MatchDefaults = MatchRules.Default with { Mode = MatchMode.TwoVsTwo, Format = MatchFormat.BestOf1, DurationMinutes = 30 } };
+        _store.Save(settings);
+
+        var loaded = CreateStore().Load();
+
+        Assert.Equal(settings, loaded);
+    }
+
+    // Until someone chooses them the defaults are the design's, which a file says by not having them.
+    [Theory]
+    [InlineData("""{"logging":{"detail":"Normal"}}""")]
+    [InlineData("""{"logging":{"detail":"Normal"},"matchDefaults":null}""")]
+    public void Load_FileWithoutMatchDefaults_HasNone(string contents)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(_path)!);
+        File.WriteAllText(_path, contents);
+
+        var settings = _store.Load();
+
+        Assert.NotNull(settings);
+        Assert.Null(settings.MatchDefaults);
+    }
+
     [Theory]
     [InlineData("not json")]
     [InlineData("null")]
     [InlineData("""{"logging":null}""")]
     [InlineData("""{"logging":{"detail":"Chatty"}}""")]
+    [InlineData("""{"matchDefaults":{"pointsToWin":8,"format":"BestOf5","mode":"OneVsOne","durationMinutes":50,"allowOvertime":true}}""")]
+    [InlineData("""{"matchDefaults":{"pointsToWin":8}}""")]
     public void Load_InvalidFile_ReturnsNullAndKeepsBackup(string contents)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(_path)!);

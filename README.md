@@ -247,6 +247,7 @@ Everything the web interface does, except network access, the access code and op
 | Hide the lower third | `POST /api/lower-third/hide` |
 | Feature a card | `PUT /api/featured-card` with `{ "cardId": "..." }` (ids are in `GET /api/cards?search=jinx`) |
 | Log more detail | `PATCH /api/settings` with `{ "logging": { "detail": "Detailed" } }` (or `WarningsOnly`, `Normal`) |
+| Back to the usual match rules | `POST /api/match/reset-to-defaults` (the defaults are chosen on the Settings page, or `PATCH /api/settings` with `{ "matchDefaults": { ... } }`) |
 
 Bodies are JSON, sent with `Content-Type: application/json`. Seats are numbered 1 to 4 and teams are `a` and `b`, as in the web interface. Changes answer with the new state, so a button can show it. Invalid requests get a 400 that names each problem field, and unknown seats and ids get a 404.
 

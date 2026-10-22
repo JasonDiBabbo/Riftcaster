@@ -1,6 +1,8 @@
 ﻿@using Riftcaster.Core.Match
+@using Riftcaster.Core.Settings
 @implements IDisposable
 @inject MatchService Match
+@inject AppSettingsService AppSettings
 
 <FormSection Title="Match">
     <div class="fields">
@@ -48,22 +50,29 @@
                     @bind-Value:set="value => Match.Update(settings => settings with { AllowOvertime = value })" />
         </div>
       </div>
+      <div class="reset">
+          @* About the whole form, not one of its fields, so it's under them. Nothing to do while the match
+             already has the defaults, which are chosen on the Settings page. *@
+          <button type="button" class="button-secondary" disabled="@(Match.Settings == AppSettings.MatchDefaults)" @onclick="() => Match.ResetToDefaults(AppSettings)">Reset to defaults</button>
+      </div>
     </div>
 </FormSection>
 
 @code {
     protected override void OnInitialized()
     {
-        Match.Changed += OnMatchChanged;
+        Match.Changed += OnChanged;
+        AppSettings.Changed += OnChanged; // The defaults, which the button compares with
     }
 
-    private void OnMatchChanged()
+    private void OnChanged()
     {
         _ = InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        Match.Changed -= OnMatchChanged;
+        Match.Changed -= OnChanged;
+        AppSettings.Changed -= OnChanged;
     }
 }

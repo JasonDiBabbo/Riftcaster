@@ -1,4 +1,5 @@
 using Riftcaster.Contracts;
+using Riftcaster.Core.Match;
 
 namespace Riftcaster.Core.Settings;
 
@@ -22,6 +23,12 @@ public sealed class AppSettingsService(IAppSettingsStore store)
     /// The current settings.
     /// </summary>
     public AppSettings Settings => _settings;
+
+    /// <summary>
+    /// The rules Reset to defaults gives the current match: the ones chosen on the Settings page, or the
+    /// design's defaults (<see cref="MatchRules.Default"/>) until some are.
+    /// </summary>
+    public MatchSettings MatchDefaults => _settings.MatchDefaults ?? MatchRules.Default;
 
     /// <summary>
     /// Raised after the settings change.
@@ -62,5 +69,15 @@ public sealed class AppSettingsService(IAppSettingsStore store)
     private static AppSettings Normalize(AppSettings settings) => settings with
     {
         Logging = Enum.IsDefined(settings.Logging.Detail) ? settings.Logging : settings.Logging with { Detail = LogDetail.Normal },
+        MatchDefaults = settings.MatchDefaults is { } rules ? NormalizeMatch(rules) : null,
     };
+
+    // The same limits as the current match's, and the mode and format put back to the design's if they
+    // aren't one of the known ones (the JSON accepts numbers): a mode nobody knows would break the match
+    // the moment it was applied.
+    private static MatchSettings NormalizeMatch(MatchSettings rules) => MatchService.Normalize(rules with
+    {
+        Format = Enum.IsDefined(rules.Format) ? rules.Format : MatchRules.Default.Format,
+        Mode = Enum.IsDefined(rules.Mode) ? rules.Mode : MatchRules.Default.Mode,
+    });
 }

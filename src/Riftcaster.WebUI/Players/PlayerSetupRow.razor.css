@@ -87,6 +87,16 @@
   }
 }
 
+/* Narrower than the wide layout there are no column captions between the section's heading, which has a
+   rule under it, and the first row, so the first row's own rule would make two in a row. The row's
+   padding goes too: the section's gap under its heading is already there. */
+@container setup (max-width: 979px) {
+  .row.first {
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
 /* Wide: one line per player, captioned once above the rows (see PlayerSetupSection). */
 @container setup (min-width: 980px) {
   .row {

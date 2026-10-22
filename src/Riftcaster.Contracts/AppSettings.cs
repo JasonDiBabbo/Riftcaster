@@ -17,4 +17,11 @@ public record AppSettings
 {
     /// <summary>How much the server writes to its log.</summary>
     public LoggingSettings Logging { get; init; } = new();
+
+    /// <summary>
+    /// The rules that Reset to defaults on the Match setup page gives the current match. Null until
+    /// someone changes them: the design's defaults then apply (see MatchRules.Default), so a copy that
+    /// never customized them follows any change to those.
+    /// </summary>
+    public MatchSettings? MatchDefaults { get; init; }
 }
