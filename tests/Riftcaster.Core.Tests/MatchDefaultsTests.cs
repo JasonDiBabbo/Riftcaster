@@ -50,7 +50,7 @@ public class MatchDefaultsTests
     }
 
     [Fact]
-    public void MatchDefaults_AreKeptWithinTheMatchsLimits()
+    public void MatchDefaults_AreKeptWithinTheMatchLimits()
     {
         _settings.Update(settings => settings with { MatchDefaults = MatchRules.Default with { PointsToWin = 0, DurationMinutes = 999 } });
 
