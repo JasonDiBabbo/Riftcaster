@@ -22,6 +22,75 @@ public class SettingsApiTests(RiftcasterWebApplicationFactory factory) : IClassF
         Assert.Equal(LogFiles.FolderName, Path.GetFileName(opener.FolderPath));
     }
 
+    // The match defaults: the first change starts from the design's, and only the fields sent change.
+    [Fact]
+    public async Task PatchSettings_ChangesOnlyTheMatchDefaultsFieldsSent()
+    {
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "matchDefaults": { "mode": "OneVsOne", "format": "BestOf3", "pointsToWin": 8, "durationMinutes": 50, "allowOvertime": true } }""");
+
+        var settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "matchDefaults": { "mode": "TwoVsTwo", "pointsToWin": 11 } }""");
+
+        var defaults = settings.MatchDefaults!;
+        Assert.Equal(MatchMode.TwoVsTwo, defaults.Mode);
+        Assert.Equal(11, defaults.PointsToWin);
+        Assert.Equal(MatchFormat.BestOf3, defaults.Format); // Not sent, so kept
+        Assert.Equal(50, defaults.DurationMinutes);
+        Assert.True(defaults.AllowOvertime);
+        Assert.Equal(settings, await _api.GetAsync<AppSettings>("/api/settings"));
+    }
+
+    [Theory]
+    [InlineData("""{ "matchDefaults": { "mode": 9 } }""", "matchDefaults.mode")]
+    [InlineData("""{ "matchDefaults": { "format": 5 } }""", "matchDefaults.format")]
+    [InlineData("""{ "matchDefaults": { "pointsToWin": 7 } }""", "pointsToWin")]
+    [InlineData("""{ "matchDefaults": { "durationMinutes": 181 } }""", "durationMinutes")]
+    public async Task PatchSettings_InvalidMatchDefault_Is400(string body, string field)
+    {
+        var errors = await _api.InvalidAsync(HttpMethod.Patch, "/api/settings", body);
+
+        Assert.Contains(errors.Keys, key => key.EndsWith(field, StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public async Task PatchSettings_UnknownMatchDefaultModeName_Is400()
+    {
+        var response = await _api.SendRawAsync(HttpMethod.Patch, "/api/settings", """{ "matchDefaults": { "mode": "OneVsTen" } }""");
+
+        Assert.Equal(400, (int)response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PatchSettings_WithoutMatchDefaults_KeepsThem()
+    {
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "matchDefaults": { "pointsToWin": 12 } }""");
+
+        var settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "logging": { "detail": "Normal" } }""");
+
+        Assert.Equal(12, settings.MatchDefaults!.PointsToWin);
+    }
+
+    // Resetting the match gives it the chosen defaults and keeps what isn't a rule: the players.
+    [Fact]
+    public async Task ResetMatchToDefaults_GivesTheMatchTheChosenDefaults()
+    {
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "matchDefaults": { "mode": "FreeForAll3", "format": "BestOf1", "pointsToWin": 11, "durationMinutes": 35, "allowOvertime": false } }""");
+        await _api.SendAsync<MatchSettings>(HttpMethod.Patch, "/api/match", """{ "mode": "OneVsOne", "format": "BestOf3", "pointsToWin": 8, "durationMinutes": 50, "allowOvertime": true }""");
+
+        var match = await _api.SendAsync<MatchSettings>(HttpMethod.Post, "/api/match/reset-to-defaults");
+
+        Assert.Equal(new MatchSettings(11, MatchFormat.BestOf1, MatchMode.FreeForAll3, 35, false), match);
+        Assert.Equal(match, await _api.GetAsync<MatchSettings>("/api/match"));
+    }
+
+    [Fact]
+    public async Task PatchMatch_StillRejectsAnInvalidMode()
+    {
+        // The match's own validation, now shared with the match defaults'.
+        var errors = await _api.InvalidAsync(HttpMethod.Patch, "/api/match", """{ "mode": 9 }""");
+
+        Assert.Contains("mode", errors.Keys);
+    }
+
     [Fact]
     public async Task PatchSettings_ChangesTheLogDetail()
     {

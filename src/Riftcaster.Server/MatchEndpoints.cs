@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Match;
 using Riftcaster.Core.Players;
+using Riftcaster.Core.Settings;
 using Riftcaster.Server.Api;
 
 namespace Riftcaster.Server;
@@ -24,29 +25,24 @@ public static class MatchEndpoints
 
         match.MapPatch("/", Results<Ok<MatchSettings>, ValidationProblem> (MatchSettingsChange change, MatchService service) =>
             {
-                // The enums' JSON also accepts numbers, so a number that isn't one of them gets this far.
-                if (change.Format is { } format && !Enum.IsDefined(format))
+                if (change.Validate() is { } problem)
                 {
-                    return ApiProblems.Invalid("format", "Use BestOf1 or BestOf3.");
+                    return problem;
                 }
 
-                if (change.Mode is { } mode && !Enum.IsDefined(mode))
-                {
-                    return ApiProblems.Invalid("mode", "Use OneVsOne, TwoVsTwo, FreeForAll3 or FreeForAll4.");
-                }
-
-                service.Update(settings => settings with
-                {
-                    PointsToWin = change.PointsToWin ?? settings.PointsToWin,
-                    Format = change.Format ?? settings.Format,
-                    Mode = change.Mode ?? settings.Mode,
-                    DurationMinutes = change.DurationMinutes ?? settings.DurationMinutes,
-                    AllowOvertime = change.AllowOvertime ?? settings.AllowOvertime,
-                });
+                service.Update(change.ApplyTo);
                 return TypedResults.Ok(service.Settings);
             })
             .WithSummary("Change the match settings")
             .WithDescription("Only the fields sent change. Scores above new limits are lowered to them, and an untouched timer follows a new duration.");
+
+        match.MapPost("/reset-to-defaults", (MatchService service, AppSettingsService settings) =>
+            {
+                service.ResetToDefaults(settings);
+                return TypedResults.Ok(service.Settings);
+            })
+            .WithSummary("Reset the match settings to the defaults")
+            .WithDescription("Gives the match the defaults chosen on the Settings page (the design's until some are chosen). Scores, names and cards are kept; scores above the new limits are lowered to them.");
 
         return app;
     }
@@ -65,4 +61,40 @@ public record MatchSettingsChange(
     MatchFormat? Format = null,
     MatchMode? Mode = null,
     [property: Range(MatchService.MinDurationMinutes, MatchService.MaxDurationMinutes)] int? DurationMinutes = null,
-    bool? AllowOvertime = null);
+    bool? AllowOvertime = null)
+{
+    /// <summary>
+    /// Makes these changes to a set of match settings.
+    /// </summary>
+    /// <param name="settings">The settings to change.</param>
+    /// <returns>The settings, with the fields that were sent changed.</returns>
+    internal MatchSettings ApplyTo(MatchSettings settings) => settings with
+    {
+        PointsToWin = PointsToWin ?? settings.PointsToWin,
+        Format = Format ?? settings.Format,
+        Mode = Mode ?? settings.Mode,
+        DurationMinutes = DurationMinutes ?? settings.DurationMinutes,
+        AllowOvertime = AllowOvertime ?? settings.AllowOvertime,
+    };
+
+    /// <summary>
+    /// Checks the fields the validation attributes can't: the enums' JSON also accepts numbers, so a
+    /// number that isn't one of them gets this far.
+    /// </summary>
+    /// <param name="prefix">Goes before the field's name in the error, such as "matchDefaults." for a part of the settings.</param>
+    /// <returns>A 400 naming the field, or null if the changes are valid.</returns>
+    internal ValidationProblem? Validate(string prefix = "")
+    {
+        if (Format is { } format && !Enum.IsDefined(format))
+        {
+            return ApiProblems.Invalid(prefix + "format", "Use BestOf1 or BestOf3.");
+        }
+
+        if (Mode is { } mode && !Enum.IsDefined(mode))
+        {
+            return ApiProblems.Invalid(prefix + "mode", "Use OneVsOne, TwoVsTwo, FreeForAll3 or FreeForAll4.");
+        }
+
+        return null;
+    }
+}

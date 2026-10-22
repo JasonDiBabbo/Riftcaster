@@ -1,7 +1,8 @@
 ﻿<button type="button"
-        class="toggle @(Value ? "on" : "")"
+        class="toggle @(Value ? "on" : "") @(Bare ? "bare" : "")"
         role="switch"
         aria-checked="@(Value ? "true" : "false")"
+        aria-label="@(Bare ? Label : null)"
         @onclick="() => ValueChanged.InvokeAsync(!Value)">
     <span class="label">@Label</span>
     <span class="track" aria-hidden="true">
@@ -27,4 +28,11 @@
     /// </summary>
     [Parameter, EditorRequired]
     public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Draws just the switch, with no box or visible label, for a place that already says what it is
+    /// (a row of the Settings page). The label is still what a screen reader hears.
+    /// </summary>
+    [Parameter]
+    public bool Bare { get; set; }
 }

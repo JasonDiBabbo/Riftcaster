@@ -1,0 +1,61 @@
+@using Riftcaster.Core.Match
+@using Riftcaster.Core.Settings
+@implements IDisposable
+@inject AppSettingsService Service
+
+<FormSection Title="Match defaults">
+    <SettingRow Title="Mode">
+        <SegmentedControl Label="Default mode"
+                          Options="MatchLabels.ModeOptions"
+                          @bind-Value:get="Service.MatchDefaults.Mode"
+                          @bind-Value:set="value => Change(rules => rules with { Mode = value })" />
+    </SettingRow>
+    <SettingRow Title="Format">
+        <SegmentedControl Label="Default format"
+                          Options="MatchLabels.FormatOptions"
+                          @bind-Value:get="Service.MatchDefaults.Format"
+                          @bind-Value:set="value => Change(rules => rules with { Format = value })" />
+    </SettingRow>
+    <SettingRow Title="Points to win" Description="@($"{MatchService.MinPointsToWin} to {MatchService.MaxPointsToWin}")">
+        <Stepper Label="Default points to win"
+                 Min="MatchService.MinPointsToWin"
+                 Max="MatchService.MaxPointsToWin"
+                 @bind-Value:get="Service.MatchDefaults.PointsToWin"
+                 @bind-Value:set="value => Change(rules => rules with { PointsToWin = value })" />
+    </SettingRow>
+    <SettingRow Title="Duration" Description="Minutes on the match timer">
+        <Stepper Label="Default duration in minutes"
+                 Min="MatchService.MinDurationMinutes"
+                 Max="MatchService.MaxDurationMinutes"
+                 Step="5"
+                 @bind-Value:get="Service.MatchDefaults.DurationMinutes"
+                 @bind-Value:set="value => Change(rules => rules with { DurationMinutes = value })" />
+    </SettingRow>
+    <SettingRow Title="Allow overtime" Description="The timer keeps counting up after it reaches zero.">
+        <Toggle Bare
+                Label="Allow overtime by default"
+                @bind-Value:get="Service.MatchDefaults.AllowOvertime"
+                @bind-Value:set="value => Change(rules => rules with { AllowOvertime = value })" />
+    </SettingRow>
+</FormSection>
+
+@code {
+    // The first change starts from the design's defaults, and from then on the chosen ones are kept.
+    private void Change(Func<MatchSettings, MatchSettings> change) =>
+        Service.Update(settings => settings with { MatchDefaults = change(settings.MatchDefaults ?? MatchRules.Default) });
+
+    protected override void OnInitialized()
+    {
+        Service.Changed += OnSettingsChanged;
+    }
+
+    private void OnSettingsChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Service.Changed -= OnSettingsChanged;
+    }
+}

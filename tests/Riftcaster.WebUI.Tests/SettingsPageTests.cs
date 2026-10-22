@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Diagnostics;
+using Riftcaster.Core.Match;
 using Riftcaster.Core.Settings;
 using Riftcaster.WebUI.Layout;
 using Riftcaster.WebUI.Settings;
@@ -96,6 +97,81 @@ public class SettingsPageTests : BunitContext
 
         // Would throw if the removed section still tried to render.
         _settings.Update(settings => settings with { Logging = new LoggingSettings { Detail = LogDetail.Detailed } });
+    }
+
+    private IRenderedComponent<MatchDefaultsSection> RenderDefaults() => Render<MatchDefaultsSection>();
+
+    [Fact]
+    public void MatchDefaults_ShowTheDesignsUntilChosen()
+    {
+        var section = RenderDefaults();
+
+        Assert.Equal("1v1", section.Find("[aria-label='Default mode'] button[aria-pressed='true']").TextContent.Trim());
+        Assert.Equal("Best of 3", section.Find("[aria-label='Default format'] button[aria-pressed='true']").TextContent.Trim());
+        Assert.Equal("8", section.Find("input[aria-label='Default points to win']").GetAttribute("value"));
+        Assert.Equal("50", section.Find("input[aria-label='Default duration in minutes']").GetAttribute("value"));
+        Assert.Equal("true", section.Find("button[aria-label='Allow overtime by default']").GetAttribute("aria-checked"));
+        Assert.Null(_settings.Settings.MatchDefaults); // Looking changes nothing
+    }
+
+    [Fact]
+    public void MatchDefaults_ChooseTheModeAndFormat()
+    {
+        var section = RenderDefaults();
+
+        section.FindAll("[aria-label='Default mode'] button").Single(button => button.TextContent.Trim() == "2v2").Click();
+        section.FindAll("[aria-label='Default format'] button").Single(button => button.TextContent.Trim() == "Best of 1").Click();
+
+        Assert.Equal(MatchMode.TwoVsTwo, _settings.MatchDefaults.Mode);
+        Assert.Equal(MatchFormat.BestOf1, _settings.MatchDefaults.Format);
+    }
+
+    [Fact]
+    public void MatchDefaults_ChangeThePointsDurationAndOvertime()
+    {
+        var section = RenderDefaults();
+
+        section.Find("button[aria-label='Increase Default points to win']").Click();
+        section.Find("button[aria-label='Increase Default duration in minutes']").Click();
+        section.Find("button[aria-label='Allow overtime by default']").Click();
+
+        Assert.Equal(MatchService.MinPointsToWin + 1, _settings.MatchDefaults.PointsToWin);
+        Assert.Equal(55, _settings.MatchDefaults.DurationMinutes); // In steps of 5
+        Assert.False(_settings.MatchDefaults.AllowOvertime);
+    }
+
+    [Fact]
+    public void MatchDefaults_ChangingOneKeepsTheOthers()
+    {
+        var section = RenderDefaults();
+        section.FindAll("[aria-label='Default mode'] button").Single(button => button.TextContent.Trim() == "FFA 4").Click();
+
+        section.Find("button[aria-label='Increase Default points to win']").Click();
+
+        Assert.Equal(MatchMode.FreeForAll4, _settings.MatchDefaults.Mode);
+        Assert.Equal(MatchService.MinPointsToWin + 1, _settings.MatchDefaults.PointsToWin);
+    }
+
+    [Fact]
+    public void MatchDefaults_FollowChangesMadeElsewhere()
+    {
+        var section = RenderDefaults();
+
+        _settings.Update(settings => settings with { MatchDefaults = MatchRules.Default with { Mode = MatchMode.FreeForAll3 } });
+
+        section.WaitForAssertion(() =>
+            Assert.Equal("FFA 3", section.Find("[aria-label='Default mode'] button[aria-pressed='true']").TextContent.Trim()));
+    }
+
+    [Fact]
+    public void MatchDefaults_StopListeningWhenRemoved()
+    {
+        var section = RenderDefaults();
+
+        section.Dispose();
+
+        // Would throw if the removed section still tried to render.
+        _settings.Update(settings => settings with { MatchDefaults = MatchRules.Default with { Mode = MatchMode.FreeForAll3 } });
     }
 
     [Fact]

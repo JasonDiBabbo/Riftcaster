@@ -79,7 +79,12 @@ public class MatchService(IMatchStore store)
         Changed?.Invoke();
     }
 
-    private static MatchSettings Normalize(MatchSettings settings) => settings with
+    /// <summary>
+    /// Raises values below the minimums to them, and above the maximums to those.
+    /// </summary>
+    /// <param name="settings">The settings to bring within the limits.</param>
+    /// <returns>The settings, with the points to win and the duration within their limits.</returns>
+    public static MatchSettings Normalize(MatchSettings settings) => settings with
     {
         PointsToWin = Math.Clamp(settings.PointsToWin, MinPointsToWin, MaxPointsToWin),
         DurationMinutes = Math.Clamp(settings.DurationMinutes, MinDurationMinutes, MaxDurationMinutes),

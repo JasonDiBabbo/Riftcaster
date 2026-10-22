@@ -21,6 +21,19 @@
   }
 }
 
+/* Just the switch: no box, and no label (its row names it). */
+.toggle.bare {
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.toggle.bare .label {
+  display: none;
+}
+
 .track {
   flex: none;
   display: flex;

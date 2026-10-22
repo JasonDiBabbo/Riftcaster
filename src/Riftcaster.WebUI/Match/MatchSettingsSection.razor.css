@@ -31,6 +31,17 @@
   flex: 0 1 200px;
 }
 
+/* Under the fields, on a line of its own: it acts on all of them. */
+.reset {
+  display: flex;
+}
+
+.reset button {
+  height: 36px;
+  padding: 0 14px;
+  font-size: var(--fs-small);
+}
+
 /* Phone: the controls are taller to touch. */
 @media (width < 760px) {
   .fields {
@@ -49,6 +60,11 @@
   }
 
   .fields ::deep .toggle {
+    height: 44px;
+  }
+
+  .reset button {
+    width: 100%;
     height: 44px;
   }
 }
