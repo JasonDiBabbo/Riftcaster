@@ -23,13 +23,6 @@ public static class PortProbe
     /// </param>
     public static bool IsFree(int port, bool allInterfaces)
     {
-        // Binding doesn't see everything: Windows lets the server bind localhost on a port another program
-        // holds on every interface, and then the two share it, unpredictably. Who's listening is asked directly.
-        if (IsListenedOn(port, allInterfaces))
-        {
-            return false;
-        }
-
         foreach (var address in Addresses(allInterfaces))
         {
             try
@@ -38,37 +31,28 @@ public static class PortProbe
                 listener.Start();
                 listener.Stop();
             }
-            catch (SocketException exception) when (exception.SocketErrorCode is SocketError.AddressAlreadyInUse or SocketError.AccessDenied)
+            catch (SocketException)
             {
                 // Taken, or one Windows keeps for itself: the server couldn't have it either.
                 return false;
             }
-            catch (SocketException)
-            {
-                // This address can't be tried here (no IPv6, say): nothing to say about the port.
-            }
         }
 
-        return true;
+        // Binding doesn't see everything: Windows lets the server bind localhost on a port another program
+        // holds on every interface, and then the two share it, unpredictably. Who's listening is asked directly.
+        return !IsListenedOn(port, allInterfaces);
     }
 
     // Whether a program listens on the port on an address the server would use, or on every interface. Listening
     // on another interface's address alone only matters when the server listens there too.
     private static bool IsListenedOn(int port, bool allInterfaces)
     {
-        try
-        {
-            return IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Any(endpoint =>
-                endpoint.Port == port
-                && (allInterfaces
-                    || IPAddress.IsLoopback(endpoint.Address)
-                    || endpoint.Address.Equals(IPAddress.Any)
-                    || endpoint.Address.Equals(IPAddress.IPv6Any)));
-        }
-        catch (Exception exception) when (exception is NetworkInformationException or PlatformNotSupportedException)
-        {
-            return false; // Can't be asked here: binding is the only check
-        }
+        return IPGlobalProperties.GetIPGlobalProperties().GetActiveTcpListeners().Any(endpoint =>
+            endpoint.Port == port
+            && (allInterfaces
+                || IPAddress.IsLoopback(endpoint.Address)
+                || endpoint.Address.Equals(IPAddress.Any)
+                || endpoint.Address.Equals(IPAddress.IPv6Any)));
     }
 
     private static IEnumerable<IPAddress> Addresses(bool allInterfaces)
