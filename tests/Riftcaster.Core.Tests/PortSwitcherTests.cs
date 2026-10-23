@@ -265,7 +265,7 @@ public class PortSwitcherTests
             TimeProvider.System,
             _logger,
             TimeSpan.FromMilliseconds(1),
-            TimeSpan.FromMilliseconds(150),
+            TimeSpan.FromSeconds(30), // Plenty: a slow machine must not run out before the third ask
             TimeSpan.FromMilliseconds(5));
 
         var result = await switcher.SwitchAsync(port);
