@@ -68,7 +68,7 @@ public class PortMoveNoticeTests : BunitContext
     }
 
     [Fact]
-    public void WhenRiftcasterMoves_SaysSoAndWhereTheNewAddressIs()
+    public async Task WhenRiftcasterMoves_SaysSoAndWhereTheNewAddressIs()
     {
         var port = FreePort();
         var release = new TaskCompletionSource<bool>();
@@ -85,16 +85,16 @@ public class PortMoveNoticeTests : BunitContext
         Assert.Contains("a few seconds", notice.Find(".moving").TextContent);
         Assert.Equal("status", notice.Find(".moving").GetAttribute("role"));
         release.SetResult(true);
-        moving.GetAwaiter().GetResult();
+        await moving;
     }
 
     [Fact]
-    public void ItsScriptIsToldToFollow_WithTheServersOwnStartTime()
+    public async Task ItsScriptIsToldToFollow_WithTheServersOwnStartTime()
     {
         var port = FreePort();
         var notice = Render<PortMoveNotice>();
 
-        _switcher.SwitchAsync(port).GetAwaiter().GetResult();
+        await _switcher.SwitchAsync(port);
 
         notice.WaitForAssertion(() =>
         {
@@ -107,12 +107,12 @@ public class PortMoveNoticeTests : BunitContext
 
     // Moved, so it stays: the page is on its way to the new address, and shouldn't flicker back to normal.
     [Fact]
-    public void WhenItHasMoved_TheNoticeStays()
+    public async Task WhenItHasMoved_TheNoticeStays()
     {
         var port = FreePort();
         var notice = Render<PortMoveNotice>();
 
-        _switcher.SwitchAsync(port).GetAwaiter().GetResult();
+        await _switcher.SwitchAsync(port);
 
         Assert.NotEmpty(notice.FindAll(".moving"));
         Assert.Equal(0, Calls("cancel"));
@@ -120,13 +120,13 @@ public class PortMoveNoticeTests : BunitContext
 
     // It couldn't, and is back where it was: the page stays, and its script stops waiting for a port that isn't coming.
     [Fact]
-    public void WhenItCouldntMove_TheNoticeGoesAndTheScriptStops()
+    public async Task WhenItCouldntMove_TheNoticeGoesAndTheScriptStops()
     {
         var port = FreePort();
         var notice = Render<PortMoveNotice>();
         _answers = asked => Task.FromResult(asked == 5062 && _network.ListenUrls[0].Port == 5062);
 
-        var result = _switcher.SwitchAsync(port).GetAwaiter().GetResult();
+        var result = await _switcher.SwitchAsync(port);
 
         Assert.False(result.Switched);
         notice.WaitForAssertion(() =>
@@ -137,12 +137,12 @@ public class PortMoveNoticeTests : BunitContext
     }
 
     [Fact]
-    public void AnAddressThatIsRefused_ShowsNothing()
+    public async Task AnAddressThatIsRefused_ShowsNothing()
     {
         var notice = Render<PortMoveNotice>();
 
         // Refused before anyone is told to move: a port that can't be chosen.
-        var result = _switcher.SwitchAsync(80).GetAwaiter().GetResult();
+        var result = await _switcher.SwitchAsync(80);
 
         Assert.False(result.Switched);
         Assert.Empty(notice.FindAll(".moving"));
@@ -157,19 +157,19 @@ public class PortMoveNoticeTests : BunitContext
         await DisposeComponentsAsync();
 
         // Would throw if the removed notice still tried to render, or to call its script.
-        _switcher.SwitchAsync(FreePort()).GetAwaiter().GetResult();
+        await _switcher.SwitchAsync(FreePort());
         Assert.Equal(0, Calls("follow"));
     }
 
     [Fact]
-    public void ASwitchOfAnotherCircuit_IsHeardByEveryOpenPage()
+    public async Task ASwitchOfAnotherCircuit_IsHeardByEveryOpenPage()
     {
         // Every open page of the web interface, whoever's, is told: each is its own notice.
         var first = Render<PortMoveNotice>();
         var second = Render<PortMoveNotice>();
         var port = FreePort();
 
-        _switcher.SwitchAsync(port).GetAwaiter().GetResult();
+        await _switcher.SwitchAsync(port);
 
         first.WaitForAssertion(() => Assert.NotEmpty(first.FindAll(".moving")));
         second.WaitForAssertion(() => Assert.NotEmpty(second.FindAll(".moving")));
