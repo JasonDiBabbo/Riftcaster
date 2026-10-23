@@ -76,6 +76,23 @@
   display: none;
 }
 
+/* Moving to another port: nothing to retry or wait for (see ReconnectModal.razor.js), only the way there. */
+.move {
+  margin: 0;
+  color: var(--text-secondary);
+  font: 400 var(--fs-small) / 1.45 var(--font);
+}
+
+.move a {
+  color: var(--acc);
+}
+
+.move[hidden],
+.reconnect.moving .note,
+.reconnect.moving .actions {
+  display: none;
+}
+
 /* Buttons only for the states that need one: Try again and Reload once Blazor has given up,
    Resume when the server paused the session, Reload when resuming failed. */
 .actions {

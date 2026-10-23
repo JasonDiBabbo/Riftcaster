@@ -21,6 +21,8 @@ public sealed class NetworkAccess
 
     private int _enabled;
 
+    private volatile IReadOnlyList<Uri> _listenUrls;
+
     /// <summary>
     /// Creates the switch.
     /// </summary>
@@ -32,7 +34,7 @@ public sealed class NetworkAccess
     public NetworkAccess(bool enabled, IReadOnlyList<Uri> listenUrls)
     {
         _enabled = enabled ? 1 : 0;
-        ListenUrls = listenUrls;
+        _listenUrls = listenUrls;
     }
 
     /// <summary>
@@ -41,9 +43,10 @@ public sealed class NetworkAccess
     public bool Enabled => Volatile.Read(ref _enabled) == 1;
 
     /// <summary>
-    /// The addresses the server listens on (their scheme and port; see the constructor).
+    /// The addresses the server listens on (their scheme and port; see the constructor). They change
+    /// while the server runs only through <see cref="SetPort"/>.
     /// </summary>
-    public IReadOnlyList<Uri> ListenUrls { get; }
+    public IReadOnlyList<Uri> ListenUrls => _listenUrls;
 
     /// <summary>
     /// Raised after <see cref="Enabled"/> changes. Handlers read <see cref="Enabled"/> for the new value.
@@ -52,6 +55,37 @@ public sealed class NetworkAccess
     /// May be raised on any thread.
     /// </remarks>
     public event Action? Changed;
+
+    /// <summary>
+    /// Raised after <see cref="SetPort"/> changes the addresses the server is to listen on. Handlers read
+    /// <see cref="ListenUrls"/> for the new ones. The server follows by closing the old port and binding
+    /// the new, which takes a moment, and can fail.
+    /// </summary>
+    /// <remarks>
+    /// May be raised on any thread.
+    /// </remarks>
+    public event Action? PortChanged;
+
+    /// <summary>
+    /// Moves every listen address to another port, keeping its scheme. Does nothing if they're all on
+    /// it already.
+    /// </summary>
+    /// <remarks>
+    /// This only says where the server is to listen: it doesn't wait for it to, or know if it could. Whatever
+    /// asks should check afterwards that the server answers on the new port (see <see cref="PortSwitcher"/>).
+    /// </remarks>
+    /// <param name="port">The port to listen on.</param>
+    public void SetPort(int port)
+    {
+        var current = _listenUrls;
+        if (current.All(url => url.Port == port))
+        {
+            return;
+        }
+
+        _listenUrls = [.. current.Select(url => new UriBuilder(url) { Port = port }.Uri)];
+        PortChanged?.Invoke();
+    }
 
     /// <summary>
     /// Turns network access on or off. Does nothing if it's already that way.

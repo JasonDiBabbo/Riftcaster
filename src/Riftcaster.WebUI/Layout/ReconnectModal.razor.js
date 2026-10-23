@@ -8,6 +8,10 @@ const countdown = document.getElementById('reconnect-countdown');
 const retryButton = document.getElementById('reconnect-retry');
 const resumeButton = document.getElementById('reconnect-resume');
 const reloadButton = document.getElementById('reconnect-reload');
+const title = document.getElementById('reconnect-title');
+const move = document.getElementById('reconnect-move');
+const moveLink = document.getElementById('reconnect-move-link');
+const connectionLost = title.textContent;
 
 const messages = {
   reconnecting: 'Reconnecting to the server…',
@@ -22,12 +26,22 @@ dialog.addEventListener('components-reconnect-state-changed', (event) => {
   const { state, currentAttempt, secondsToNextAttempt } = event.detail;
 
   if (state === 'hide') {
+    // Reconnected: Riftcaster is where it was, so it didn't move (or hasn't yet), and the page stays.
+    document.dispatchEvent(new Event('riftcaster-move-cancel'));
+    showConnectionLost();
     dialog.close();
     return;
   }
 
   if (!dialog.open) {
     dialog.showModal();
+  }
+
+  // Riftcaster is moving to another port (PortMoveNotice.razor.js): reconnecting to this address can't work,
+  // and the page is on its way to the new one, so say that, not that it's trying to reconnect.
+  if (document.documentElement.dataset.movingTo) {
+    showMoving(document.documentElement.dataset.movingTo, document.documentElement.dataset.movingAddress);
+    return;
   }
 
   switch (state) {
@@ -71,6 +85,21 @@ dialog.addEventListener('components-reconnect-state-changed', (event) => {
 retryButton.addEventListener('click', retry);
 resumeButton.addEventListener('click', resume);
 reloadButton.addEventListener('click', () => location.reload());
+
+function showMoving(port, address) {
+  dialog.classList.add('moving');
+  title.textContent = `Riftcaster is moving to port ${port}`;
+  setStatus('Taking you to the new address. This takes a few seconds.');
+  countdown.textContent = '';
+  moveLink.href = address;
+  move.hidden = false;
+}
+
+function showConnectionLost() {
+  dialog.classList.remove('moving');
+  title.textContent = connectionLost;
+  move.hidden = true;
+}
 
 // Only when the words change, so the alert is announced once per state, not on every update.
 function setStatus(text) {

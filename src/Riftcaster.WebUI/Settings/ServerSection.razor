@@ -1,0 +1,195 @@
+@using Riftcaster.Core.Network
+@using Riftcaster.Core.Settings
+@implements IDisposable
+@inject AppSettingsService Service
+@inject PortSwitcher Switcher
+@inject PortOrigin Origin
+@inject NetworkAccess Network
+
+<FormSection Title="Server">
+    @* Alone in its own container, so it has no rule under it: a row only goes without one when it's the last. *@
+    <div>
+        <SettingRow Title="Server port"
+                    Description="The port Riftcaster serves the web interface, the overlays and the API on. Your streaming software's Browser Sources use it in their address. A --urls launch option overrides it."
+                    Note="Applies when you switch, or at the next start">
+            <input class="port"
+                   type="text"
+                   inputmode="numeric"
+                   aria-label="Server port"
+                   aria-invalid="@(_problem is not null && !Switching ? "true" : null)"
+                   value="@_text"
+                   disabled="@(!CanChange)"
+                   @onchange="OnPortTyped" />
+        </SettingRow>
+    </div>
+
+    @if (_problem is not null && !Switching)
+    {
+        <p class="problem" role="status">@_problem</p>
+    }
+
+    @if (Explanation is not null)
+    {
+        <div class="explanation" role="status">@Explanation</div>
+    }
+
+    @if (Switching)
+    {
+        <div class="notice" role="status">
+            <div class="text">
+                <b>Switching to port @Switcher.SwitchingTo…</b>
+                This takes a few seconds. This page moves with Riftcaster to the new address.
+            </div>
+        </div>
+    }
+    else if (SwitchDue)
+    {
+        <div class="notice" role="status">
+            <div class="text">
+                <b>Switch Riftcaster to port @Service.ChosenPort?</b>
+                Riftcaster keeps using port @Running until it restarts.@(Session.IsLocal ? $" Switch now to move to port {Service.ChosenPort} without waiting." : "") Your streaming software's Browser Sources are still using port @Running. Change them to http://localhost:@Service.ChosenPort once Riftcaster is on that port.
+            </div>
+            @if (Session.IsLocal)
+            {
+                <div class="actions">
+                    <button type="button" class="button-secondary" @onclick="Undo">Undo</button>
+                    <button type="button" class="switch" @onclick="SwitchNow">Switch now</button>
+                </div>
+            }
+        </div>
+    }
+</FormSection>
+
+@code {
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    // What the field shows: what was typed, until the settings change.
+    private string _text = "";
+
+    // What's wrong, if something is: what was typed, a port someone else has, or a switch that didn't work.
+    private string? _problem;
+
+    // The HTTP port Riftcaster is listening on now, which a switch changes. Null if it listens only on https.
+    private int? Running => Switcher.RunningPort;
+
+    // Started with --urls: that decides the port for the whole run, so there's nothing to choose.
+    private bool Overridden => Origin.Source == PortSource.LaunchOption;
+
+    private bool Switching => Switcher.SwitchingTo is not null;
+
+    // Only the computer running Riftcaster can change it, as with network access: a device that
+    // changed it could lose its own connection, and nobody at the server would know why.
+    private bool CanChange => Session.IsLocal && !Overridden && Running is not null && !Switching;
+
+    // The chosen port isn't the one in use, and nothing overrides it: it's used at the next start, or now if asked.
+    private bool SwitchDue => !Overridden && Running is { } running && Service.ChosenPort != running;
+
+    // What the field shows when it isn't being typed in: the port in use, if a launch option decides it
+    // (empty if that gave only https addresses, which a developer's setup might), else the one chosen.
+    private string ShownPort => Overridden ? Running?.ToString() ?? "" : Service.ChosenPort.ToString();
+
+    // Why the field can't be changed, when it can't.
+    private string? Explanation =>
+        !Session.IsLocal ? "Only the computer running Riftcaster can change the port."
+        : Overridden ? OverriddenExplanation
+        : null;
+
+    // A saved port is only mentioned if there is one: the default isn't something anyone saved.
+    private string OverriddenExplanation =>
+        Running is null ? "This run was started with --urls with only https addresses, so it has no web interface port to set here."
+        : Service.Settings.Server.Port is { } saved ? $"This run was started with --urls, so the saved port ({saved}) is ignored. Remove the option to use it."
+        : "This run was started with --urls, which sets the port. Remove the option to choose one here.";
+
+    protected override void OnInitialized()
+    {
+        _text = ShownPort;
+        Service.Changed += OnSettingsChanged;
+        Switcher.Changed += OnSwitcherChanged;
+    }
+
+    private void OnPortTyped(ChangeEventArgs args)
+    {
+        // The field is only enabled for this, but the handler is what the server runs.
+        if (!CanChange)
+        {
+            return;
+        }
+
+        _text = args.Value?.ToString() ?? "";
+        _problem = null;
+        if (!ListenPort.TryParse(_text, out var port))
+        {
+            _problem = $"Use a port from {ListenPort.Min} to {ListenPort.Max}.";
+            return;
+        }
+
+        _text = port.ToString();
+
+        // Said now, not at the switch or the next start, when it would be harder to put right. Trying a port takes
+        // a moment, nothing to wait for.
+        if (port != Running && !PortProbe.IsFree(port, Network.Enabled))
+        {
+            _problem = $"Port {port} is in use by another program.";
+            return;
+        }
+
+        Choose(port);
+    }
+
+    // Back to the port in use: choosing the default is choosing none, so a copy that never picked one
+    // follows the default.
+    private void Undo()
+    {
+        if (Session.IsLocal && Running is { } running)
+        {
+            _problem = null;
+            Choose(running);
+        }
+    }
+
+    private async Task SwitchNow()
+    {
+        if (!Session.IsLocal || !SwitchDue)
+        {
+            return;
+        }
+
+        _problem = null;
+
+        // Not tied to this page's connection, which closes with the old port: it carries on without it, and this
+        // only gets to say why when it didn't work, which is when the page is still here.
+        var result = await Switcher.SwitchAsync(Service.ChosenPort);
+        if (!result.Switched)
+        {
+            _problem = result.Problem;
+        }
+    }
+
+    private void Choose(int port) =>
+        Service.Update(settings => settings with { Server = new ServerSettings { Port = port == ListenPort.Default ? null : port } });
+
+    private void OnSettingsChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            _text = ShownPort;
+            StateHasChanged();
+        });
+    }
+
+    private void OnSwitcherChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            _text = ShownPort;
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        Service.Changed -= OnSettingsChanged;
+        Switcher.Changed -= OnSwitcherChanged;
+    }
+}

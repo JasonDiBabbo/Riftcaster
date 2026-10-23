@@ -22,6 +22,18 @@ public class SettingsApiTests(RiftcasterWebApplicationFactory factory) : IClassF
         Assert.Equal(LogFiles.FolderName, Path.GetFileName(opener.FolderPath));
     }
 
+    // The port is chosen on the Settings page, on the computer running Riftcaster: like network access, not over HTTP.
+    [Fact]
+    public async Task PatchSettings_DoesNotChangeThePort()
+    {
+        var before = await _api.GetAsync<AppSettings>("/api/settings");
+
+        var settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "server": { "port": 6000 } }""");
+
+        Assert.Equal(before.Server.Port, settings.Server.Port);
+        Assert.NotEqual(6000, (await _api.GetAsync<AppSettings>("/api/settings")).Server.Port);
+    }
+
     // The match defaults: the first change starts from the design's, and only the fields sent change.
     [Fact]
     public async Task PatchSettings_ChangesOnlyTheMatchDefaultsFieldsSent()

@@ -18,6 +18,10 @@
     @* Not part of the alert: it counts down every second. *@
     <p id="reconnect-countdown" class="countdown"></p>
 
+    @* Only while Riftcaster is moving to another port (PortMoveNotice): the page can't reconnect to the old address,
+       so it goes to the new one, and says how to if it can't. *@
+    <p id="reconnect-move" class="move" hidden>If this page doesn't move by itself, <a id="reconnect-move-link" href="#">open the new address</a>.</p>
+
     <p class="note">Overlays will continue showing their most recent information and will automatically reconnect when possible.</p>
 
     <div class="actions">
