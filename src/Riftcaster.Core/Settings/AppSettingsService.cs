@@ -47,6 +47,14 @@ public sealed class AppSettingsService(IAppSettingsStore store)
     public event Action? Changed;
 
     /// <summary>
+    /// Chooses the port the server listens on from the next start. Choosing the default is choosing none,
+    /// so a copy that never picked one follows the default.
+    /// </summary>
+    /// <param name="port">The port.</param>
+    public void ChoosePort(int port) =>
+        Update(settings => settings with { Server = new ServerSettings { Port = port == ListenPort.Default ? null : port } });
+
+    /// <summary>
     /// Changes the settings, for example <c>Update(settings => settings with { Logging = new() { Detail = LogDetail.Detailed } })</c>.
     /// A value outside the allowed ones is put back to its default.
     /// </summary>
