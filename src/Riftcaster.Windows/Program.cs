@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
+using Riftcaster.Core.Settings;
 using Riftcaster.Server;
 using Velopack;
 
@@ -45,7 +46,7 @@ static class Program
             return 1;
         }
 
-        using (server)
+        try
         {
             // With network access on, the server accepts connections from other devices too, but the
             // launcher always opens Riftcaster through localhost, on this computer.
@@ -64,15 +65,12 @@ static class Program
                 return 0;
             }
 
-            try
+            if (!StartServer(ref server, args))
             {
-                server.Start();
-            }
-            catch (Exception exception)
-            {
-                ShowStartupError(exception, logFolder); // The server has logged it, with the details
                 return 1;
             }
+
+            network = server.Services.GetRequiredService<NetworkAccess>(); // Another server if it started on another port
 
             var configuration = server.Services.GetRequiredService<IConfiguration>();
             using var updates = new Updates(
@@ -98,8 +96,68 @@ static class Program
             // the one from before the update is usually still open.
             updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenWebUISetting}=false"]);
         }
+        finally
+        {
+            ((IDisposable)server).Dispose();
+        }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Starts the server. If its port is taken by another program, asks which port to use instead, and
+    /// starts a new server on it.
+    /// </summary>
+    /// <param name="server">The server to start, and the one that started: another, if the port changed.</param>
+    /// <param name="args">The arguments it was created with.</param>
+    /// <returns>Whether a server is running. If not, why has been shown.</returns>
+    private static bool StartServer(ref WebApplication server, string[] args)
+    {
+        while (true)
+        {
+            var logFolder = server.Services.GetRequiredService<LogFolder>().Path;
+            var network = server.Services.GetRequiredService<NetworkAccess>();
+            var origin = server.Services.GetRequiredService<PortOrigin>();
+            try
+            {
+                server.Start();
+                return true;
+            }
+            catch (Exception exception)
+            {
+                // A --urls option is the port someone asked for, so Riftcaster doesn't pick another for them.
+                if (!PortConflict.IsPortInUse(exception)
+                    || ListenPort.HttpPort(network.ListenUrls) is not { } taken
+                    || origin.Source == PortSource.LaunchOption)
+                {
+                    ShowStartupError(exception, logFolder); // The server has logged it, with the details
+                    return false;
+                }
+
+                using var dialog = new PortInUseDialog(taken, ListenPort.NextFree(taken, network.Enabled), network.Enabled);
+                if (dialog.ShowDialog() != DialogResult.OK)
+                {
+                    return false;
+                }
+
+                ((IDisposable)server).Dispose();
+                try
+                {
+                    // For this run only, which Remember turns into the port to use from now on once it's running.
+                    server = Server.Program.CreateApp([.. args, $"--{Server.Program.PortSetting}={dialog.Port}"]);
+                }
+                catch (Exception creating)
+                {
+                    ShowStartupError(creating, logFolder: null);
+                    return false;
+                }
+
+                if (dialog.Remember)
+                {
+                    server.Services.GetRequiredService<AppSettingsService>().ChoosePort(dialog.Port);
+                }
+            }
+        }
     }
 
     /// <summary>

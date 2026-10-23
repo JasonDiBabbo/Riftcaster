@@ -37,6 +37,44 @@ public class ListenPortTests
         Assert.Equal(expected, port);
     }
 
+    // Where it starts looking is the port after the one that's taken.
+    [Fact]
+    public void NextFree_IsAFreePortAfterTheOneTaken()
+    {
+        var next = ListenPort.NextFree(40000, allInterfaces: false);
+
+        Assert.NotNull(next);
+        Assert.True(next > 40000);
+        Assert.True(PortProbe.IsFree(next.Value, allInterfaces: false));
+    }
+
+    [Fact]
+    public void NextFree_SkipsAPortSomeoneHolds()
+    {
+        using var holder = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+        holder.Start();
+        var held = ((System.Net.IPEndPoint)holder.LocalEndpoint).Port;
+
+        var next = ListenPort.NextFree(held - 1, allInterfaces: false);
+
+        Assert.NotEqual(held, next);
+        Assert.True(next > held - 1);
+    }
+
+    [Fact]
+    public void NextFree_FromBelowTheLowestPort_StartsAtIt()
+    {
+        var next = ListenPort.NextFree(80, allInterfaces: false);
+
+        Assert.True(next >= ListenPort.Min);
+    }
+
+    [Fact]
+    public void NextFree_AfterTheHighestPort_IsNone()
+    {
+        Assert.Null(ListenPort.NextFree(ListenPort.Max, allInterfaces: false));
+    }
+
     [Fact]
     public void HttpPort_IsThePortOfTheFirstHttpAddress()
     {

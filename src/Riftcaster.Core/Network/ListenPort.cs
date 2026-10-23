@@ -41,6 +41,25 @@ public static class ListenPort
         int.TryParse(text?.Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out port) && IsValid(port);
 
     /// <summary>
+    /// The first port after another that nothing is using: what to suggest when the one wanted is taken.
+    /// </summary>
+    /// <param name="taken">The port that's in use.</param>
+    /// <param name="allInterfaces">Whether the server listens on every network interface (see <see cref="PortProbe.IsFree"/>).</param>
+    /// <returns>The port, or null if every one above is in use too.</returns>
+    public static int? NextFree(int taken, bool allInterfaces)
+    {
+        for (var port = Math.Max(taken + 1, Min); port <= Max; port++)
+        {
+            if (PortProbe.IsFree(port, allInterfaces))
+            {
+                return port;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// The port the server serves HTTP on, from the addresses it listens on: the first http one.
     /// </summary>
     /// <param name="listenUrls">The addresses (see <see cref="NetworkAccess.ListenUrls"/>).</param>

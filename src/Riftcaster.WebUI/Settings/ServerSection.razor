@@ -166,8 +166,7 @@
         }
     }
 
-    private void Choose(int port) =>
-        Service.Update(settings => settings with { Server = new ServerSettings { Port = port == ListenPort.Default ? null : port } });
+    private void Choose(int port) => Service.ChoosePort(port);
 
     private void OnSettingsChanged()
     {

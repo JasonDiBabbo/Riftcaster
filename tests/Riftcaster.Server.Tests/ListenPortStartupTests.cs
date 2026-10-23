@@ -12,9 +12,12 @@ public class ListenPortStartupTests
     {
         private readonly string? _urls;
 
-        public PortFactory(string? savedSettings = null, string? urls = null)
+        private readonly string? _thisRunsPort;
+
+        public PortFactory(string? savedSettings = null, string? urls = null, string? thisRunsPort = null)
         {
             _urls = urls;
+            _thisRunsPort = thisRunsPort;
             if (savedSettings is not null)
             {
                 File.WriteAllText(Path.Combine(DataDirectory, "settings.json"), savedSettings);
@@ -28,12 +31,17 @@ public class ListenPortStartupTests
             {
                 builder.UseSetting("urls", _urls);
             }
+
+            if (_thisRunsPort is not null)
+            {
+                builder.UseSetting(Program.PortSetting, _thisRunsPort);
+            }
         }
     }
 
-    private static (PortSource Source, int? HttpPort, int ListeningOn) Start(string? savedSettings = null, string? urls = null)
+    private static (PortSource Source, int? HttpPort, int ListeningOn) Start(string? savedSettings = null, string? urls = null, string? thisRunsPort = null)
     {
-        using var factory = new PortFactory(savedSettings, urls);
+        using var factory = new PortFactory(savedSettings, urls, thisRunsPort);
         var origin = factory.Services.GetRequiredService<PortOrigin>();
         var network = factory.Services.GetRequiredService<NetworkAccess>();
         return (origin.Source, ListenPort.HttpPort(network.ListenUrls), network.ListenUrls[0].Port);
@@ -57,6 +65,35 @@ public class ListenPortStartupTests
         Assert.Equal(PortSource.Saved, source);
         Assert.Equal(5070, http);
         Assert.Equal(5070, listeningOn);
+    }
+
+    // The Windows launcher's choice when the port was in use: for this run, over the one in Settings, which
+    // Remember saves separately once it's running.
+    [Fact]
+    public void WithAPortForThisRun_ListensOnItInsteadOfTheChosenOne()
+    {
+        var (source, http, listeningOn) = Start("""{"server":{"port":5070}}""", thisRunsPort: "5075");
+
+        Assert.Equal(PortSource.Default, source);
+        Assert.Equal(5075, http);
+        Assert.Equal(5075, listeningOn);
+    }
+
+    [Fact]
+    public void WithAPortForThisRunAndALaunchOption_TheLaunchOptionWins()
+    {
+        var (source, http, _) = Start(urls: "http://localhost:5099", thisRunsPort: "5075");
+
+        Assert.Equal(PortSource.LaunchOption, source);
+        Assert.Equal(5099, http);
+    }
+
+    [Fact]
+    public void WithAPortForThisRunThatCantBeUsed_ItIsIgnored()
+    {
+        var (_, http, _) = Start("""{"server":{"port":5070}}""", thisRunsPort: "80");
+
+        Assert.Equal(5070, http);
     }
 
     [Fact]

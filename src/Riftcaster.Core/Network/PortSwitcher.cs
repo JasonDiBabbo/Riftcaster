@@ -211,8 +211,7 @@ public sealed class PortSwitcher
     }
 
     // The chosen port follows the one in use, so a restart comes back to it.
-    private void ChoosePort(int port) =>
-        _settings.Update(settings => settings with { Server = new ServerSettings { Port = port == ListenPort.Default ? null : port } });
+    private void ChoosePort(int port) => _settings.ChoosePort(port);
 
     private async Task<bool> WaitUntilServingAsync(int port, CancellationToken cancellationToken)
     {

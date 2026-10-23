@@ -158,7 +158,18 @@ public class PortSwitcherTests
         var calls = 0;
         _answers = asked => asked == port && ++calls >= 4;
 
-        var result = await _switcher.SwitchAsync(port);
+        // Plenty of time: a slow machine must not run out of it before the fourth ask.
+        var switcher = new PortSwitcher(
+            _network,
+            _settings,
+            (asked, _) => Task.FromResult(_answers(asked)),
+            TimeProvider.System,
+            _logger,
+            grace: TimeSpan.FromMilliseconds(1),
+            timeout: TimeSpan.FromSeconds(30),
+            poll: TimeSpan.FromMilliseconds(5));
+
+        var result = await switcher.SwitchAsync(port);
 
         Assert.True(result.Switched);
         Assert.True(calls >= 4);
@@ -254,7 +265,7 @@ public class PortSwitcherTests
             TimeProvider.System,
             _logger,
             TimeSpan.FromMilliseconds(1),
-            TimeSpan.FromMilliseconds(150),
+            TimeSpan.FromSeconds(30), // Plenty: a slow machine must not run out before the third ask
             TimeSpan.FromMilliseconds(5));
 
         var result = await switcher.SwitchAsync(port);

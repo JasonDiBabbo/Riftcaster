@@ -29,7 +29,34 @@ public partial class Program
     /// </summary>
     internal static readonly TimeSpan ShutdownTimeout = TimeSpan.FromSeconds(3);
 
-    private static void Main(string[] args) => CreateApp(args).Run();
+    /// <summary>
+    /// The setting that starts Riftcaster on a port for this run only, which the Windows launcher uses when
+    /// the port is in use and the person chose another. A <c>--urls</c> option wins over it, and it over the
+    /// port chosen on the Settings page.
+    /// </summary>
+    public const string PortSetting = "Launcher:Port";
+
+    private static int Main(string[] args)
+    {
+        var app = CreateApp(args);
+
+        // Taken now: running disposes the services, and a failure to start has to be explained after it.
+        var network = app.Services.GetRequiredService<NetworkAccess>();
+        var origin = app.Services.GetRequiredService<PortOrigin>();
+        try
+        {
+            app.Run();
+            return 0;
+        }
+        catch (Exception exception) when (PortConflict.IsPortInUse(exception))
+        {
+            // After the server's own report of it, what to do about it, with a port to try.
+            var port = ListenPort.HttpPort(network.ListenUrls) ?? network.ListenUrls[0].Port;
+            Console.Error.WriteLine();
+            Console.Error.WriteLine(PortConflict.ConsoleMessage(port, origin.Source, ListenPort.NextFree(port, network.Enabled)));
+            return 1;
+        }
+    }
 
     /// <summary>
     /// Creates the server, with all its services, middleware and endpoints, ready to run. The console
@@ -67,11 +94,16 @@ public partial class Program
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         // The port: --urls (or ASPNETCORE_URLS) if the server was started with one, which always wins.
-        // Otherwise the one chosen on the Settings page, which only takes effect on starting.
+        // Otherwise the port for this run only (PortSetting), then the one chosen on the Settings page,
+        // which only takes effect on starting.
         var portSource = PortSource.Default;
         if (!string.IsNullOrWhiteSpace(builder.Configuration["urls"]))
         {
             portSource = PortSource.LaunchOption;
+        }
+        else if (ListenPort.TryParse(builder.Configuration[PortSetting], out var thisRunsPort))
+        {
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["urls"] = $"http://localhost:{thisRunsPort}" });
         }
         else if (SavedPort.Read(Path.Combine(dataDirectory, "settings.json")) is { } savedPort)
         {
@@ -89,6 +121,7 @@ public partial class Program
         builder.Services.AddSingleton(network);
         builder.Services.AddSingleton(new PortOrigin(portSource));
         builder.Configuration.Sources.Add(new NetworkEndpointsSource(network));
+        builder.Services.AddHostedService<PortCheck>();
 
         builder.AddOverlays();
         builder.AddRestApi();

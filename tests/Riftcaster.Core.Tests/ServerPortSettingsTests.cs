@@ -34,6 +34,26 @@ public sealed class ServerPortSettingsTests : IDisposable
     }
 
     [Fact]
+    public void ChoosePort_SavesIt()
+    {
+        _settings.ChoosePort(5070);
+
+        Assert.Equal(5070, _settings.ChosenPort);
+        Assert.Equal(5070, _store.Settings!.Server.Port);
+    }
+
+    // The default is none, so a copy that never picked one follows the default.
+    [Fact]
+    public void ChoosePort_TheDefault_ChoosesNone()
+    {
+        _settings.ChoosePort(5070);
+
+        _settings.ChoosePort(ListenPort.Default);
+
+        Assert.Null(_settings.Settings.Server.Port);
+    }
+
+    [Fact]
     public void ChosenPort_IsTheOneChosen_AndSaved()
     {
         _settings.Update(settings => settings with { Server = new ServerSettings { Port = 5070 } });
