@@ -25,6 +25,11 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
     private readonly string _dataDirectory = Directory.CreateTempSubdirectory("riftcaster-tests-").FullName;
 
     /// <summary>
+    /// The server's data folder, for a test that needs a file in it before the server starts.
+    /// </summary>
+    protected string DataDirectory => _dataDirectory;
+
+    /// <summary>
     /// Disposes the server and its log file, then deletes the temporary data folder.
     /// </summary>
     public override async ValueTask DisposeAsync()

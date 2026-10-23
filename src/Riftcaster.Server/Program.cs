@@ -58,6 +58,27 @@ public partial class Program
 
         builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = ShutdownTimeout);
 
+        // Saved state: the user's app-data folder in a published build, a data folder of its own in a
+        // portable copy, the project's data folder in Development (see DataFolder). Found this early
+        // because the port, saved with the rest, decides what the server listens on.
+        var dataDirectory = DataFolder.Resolve(
+            builder.Configuration[DataFolder.Setting],
+            builder.Environment,
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
+
+        // The port: --urls (or ASPNETCORE_URLS) if the server was started with one, which always wins.
+        // Otherwise the one chosen on the Settings page, which only takes effect on starting.
+        var portSource = PortSource.Default;
+        if (!string.IsNullOrWhiteSpace(builder.Configuration["urls"]))
+        {
+            portSource = PortSource.LaunchOption;
+        }
+        else if (SavedPort.Read(Path.Combine(dataDirectory, "settings.json")) is { } savedPort)
+        {
+            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> { ["urls"] = $"http://localhost:{savedPort}" });
+            portSource = PortSource.Saved;
+        }
+
         // Network access: off unless started with --network on (see NetworkAccess).
         if (!NetworkAccess.TryParseOption(builder.Configuration["network"], out var networkOn))
         {
@@ -66,19 +87,13 @@ public partial class Program
 
         var network = new NetworkAccess(networkOn, NetworkAccess.ParseUrls(builder.Configuration["urls"]));
         builder.Services.AddSingleton(network);
+        builder.Services.AddSingleton(new PortOrigin(portSource));
         builder.Configuration.Sources.Add(new NetworkEndpointsSource(network));
 
         builder.AddOverlays();
         builder.AddRestApi();
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddSingleton(new ServerIdentity("Riftcaster Server", AppVersion(), DateTimeOffset.Now));
-
-        // Saved state: the user's app-data folder in a published build, a data folder of its own in a
-        // portable copy, the project's data folder in Development (see DataFolder).
-        var dataDirectory = DataFolder.Resolve(
-            builder.Configuration[DataFolder.Setting],
-            builder.Environment,
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData));
 
         builder.Logging.AddLogFiles(dataDirectory);
 
@@ -95,6 +110,21 @@ public partial class Program
             Path.Combine(dataDirectory, "settings.json"),
             services.GetRequiredService<ILogger<JsonFileAppSettingsStore>>()));
         builder.Services.AddSingleton<AppSettingsService>();
+
+        // Moves the server to another port while it runs. It checks that it worked by asking the new port who it is:
+        // /api/info's start time is this server's, and no other program's.
+        builder.Services.AddSingleton(services =>
+        {
+            var identity = services.GetRequiredService<ServerIdentity>();
+            var http = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+            return new PortSwitcher(
+                services.GetRequiredService<NetworkAccess>(),
+                services.GetRequiredService<AppSettingsService>(),
+                async (port, cancellationToken) =>
+                    (await http.GetFromJsonAsync<ServerIdentity>($"http://127.0.0.1:{port}/api/info", cancellationToken))?.StartTime == identity.StartTime,
+                TimeProvider.System,
+                services.GetRequiredService<ILogger<PortSwitcher>>());
+        });
 
         // Encrypts the saved access code and signs the sign-in cookie. A fixed application name,
         // so they still work if the app's folder moves.
@@ -176,7 +206,11 @@ public partial class Program
         app.UseOverlays();
         app.UseAntiforgery();
         app.UseWebSockets();
-        app.MapGet("/api/info", (ServerIdentity identity) => identity)
+        app.MapGet("/api/info", (HttpContext context, ServerIdentity identity) =>
+            {
+                SameHostCors.Allow(context);
+                return identity;
+            })
             .WithTags("Server").WithSummary("Get the server's name, version and start time");
         app.MapOperatorSignIn();
         app.MapFeaturedCard();

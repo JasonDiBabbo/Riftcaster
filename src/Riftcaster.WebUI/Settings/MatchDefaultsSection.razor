@@ -4,26 +4,26 @@
 @inject AppSettingsService Service
 
 <FormSection Title="Match defaults">
-    <SettingRow Title="Mode">
+    <SettingRow Title="Mode" Description="Which players take part, and whether they play as teams.">
         <SegmentedControl Label="Default mode"
                           Options="MatchLabels.ModeOptions"
                           @bind-Value:get="Service.MatchDefaults.Mode"
                           @bind-Value:set="value => Change(rules => rules with { Mode = value })" />
     </SettingRow>
-    <SettingRow Title="Format">
+    <SettingRow Title="Format" Description="How many game wins it takes to win the match.">
         <SegmentedControl Label="Default format"
                           Options="MatchLabels.FormatOptions"
                           @bind-Value:get="Service.MatchDefaults.Format"
                           @bind-Value:set="value => Change(rules => rules with { Format = value })" />
     </SettingRow>
-    <SettingRow Title="Points to win" Description="@($"{MatchService.MinPointsToWin} to {MatchService.MaxPointsToWin}")">
+    <SettingRow Title="Points to win" Description="@($"Points a player, or a team in 2v2, needs to win a game, from {MatchService.MinPointsToWin} to {MatchService.MaxPointsToWin}.")">
         <Stepper Label="Default points to win"
                  Min="MatchService.MinPointsToWin"
                  Max="MatchService.MaxPointsToWin"
                  @bind-Value:get="Service.MatchDefaults.PointsToWin"
                  @bind-Value:set="value => Change(rules => rules with { PointsToWin = value })" />
     </SettingRow>
-    <SettingRow Title="Duration" Description="Minutes on the match timer">
+    <SettingRow Title="Duration" Description="How long the match timer runs, in minutes.">
         <Stepper Label="Default duration in minutes"
                  Min="MatchService.MinDurationMinutes"
                  Max="MatchService.MaxDurationMinutes"

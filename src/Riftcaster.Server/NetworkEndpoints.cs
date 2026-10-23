@@ -30,12 +30,15 @@ internal sealed class NetworkEndpointsProvider : ConfigurationProvider
     {
         _network = network;
 
-        // Lives as long as the app, like the switch, so the handler never needs removing.
-        _network.Changed += () =>
-        {
-            Load();
-            OnReload(); // Kestrel watches its configuration section, and rebinds when it changes
-        };
+        // Lives as long as the app, like the switch, so the handlers never need removing.
+        _network.Changed += Reload;
+        _network.PortChanged += Reload;
+    }
+
+    private void Reload()
+    {
+        Load();
+        OnReload(); // Kestrel watches its configuration section, and rebinds when it changes
     }
 
     public override void Load()

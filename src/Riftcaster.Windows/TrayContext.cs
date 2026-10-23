@@ -9,7 +9,7 @@ namespace Riftcaster.Windows;
 /// </summary>
 internal sealed class TrayContext : ApplicationContext
 {
-    private readonly Uri _webUI;
+    private readonly Func<Uri> _webUI;
 
     private readonly NotifyIcon _icon;
 
@@ -23,10 +23,13 @@ internal sealed class TrayContext : ApplicationContext
     /// <summary>
     /// Shows the icon.
     /// </summary>
-    /// <param name="webUI">The web interface's address, on this computer.</param>
+    /// <param name="webUI">
+    /// The web interface's address, on this computer. Asked each time, not once: the port can be switched
+    /// while Riftcaster runs.
+    /// </param>
     /// <param name="logFolder">The folder where log files are stored.</param>
     /// <param name="updates">Updates, for the menu to offer one once it's downloaded.</param>
-    public TrayContext(Uri webUI, string logFolder, Updates updates)
+    public TrayContext(Func<Uri> webUI, string logFolder, Updates updates)
     {
         _webUI = webUI;
         _updates = updates;
@@ -37,7 +40,7 @@ internal sealed class TrayContext : ApplicationContext
         var menu = new ContextMenuStrip();
         menu.Items.Add(new ToolStripMenuItem($"Riftcaster {Updates.RunningVersion}") { Enabled = false });
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Open Riftcaster", null, (_, _) => OpenWebUI(_webUI));
+        menu.Items.Add("Open Riftcaster", null, (_, _) => OpenWebUI(_webUI()));
         menu.Items.Add("Open log folder", null, (_, _) => Open(logFolder));
         menu.Items.Add(_restartToUpdate);
         menu.Items.Add(new ToolStripSeparator());
@@ -51,7 +54,7 @@ internal sealed class TrayContext : ApplicationContext
             ContextMenuStrip = menu,
         };
 
-        _icon.DoubleClick += (_, _) => OpenWebUI(_webUI);
+        _icon.DoubleClick += (_, _) => OpenWebUI(_webUI());
         _updates.ReadyChanged += (_, _) => ShowUpdateReady();
     }
 

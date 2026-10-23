@@ -115,7 +115,7 @@ dotnet publish src/Riftcaster.Windows --configuration Release --runtime win-x64 
 
 Start `Riftcaster.exe` for the tray icon, or `Riftcaster.Server.exe` for the server in a console window. `UseAppHost=true` is needed because development builds don't make an `.exe` (see "Windows development notes").
 
-A published build runs as Production, on http://localhost:5062 (change it with `--urls`, for example `--urls http://localhost:5070`), with the same options as in development, such as `--network on`.
+A published build runs as Production, on http://localhost:5062, with the same options as in development, such as `--network on`. To use another port, choose one in **Settings**, **Server**, on the computer running Riftcaster. It checks that nothing else is using the port, and uses it from the next start. **Switch now** moves Riftcaster to it straight away, without restarting: the page you're on, and any other open web interface page, go to the new address by themselves, but the Browser Sources in your streaming software stop until you give them the new address. If Riftcaster can't start on the new port, it goes back to the old one. Or start it with `--urls`, for example `--urls http://localhost:5070`, which wins over the one in Settings.
 
 - **Settings and overlays live in the folder,** wherever the server is started from (`appsettings.json`, `overlays/`).
 - **Saved state lives in your user profile, not the folder:** `%APPDATA%\Riftcaster` on Windows. That's players, lower thirds, match settings, the featured card, the card catalog, the access code and the Settings page's settings. So replacing the folder with a new version keeps it, and a new server or Windows user starts fresh. A portable copy keeps it in a `data` folder of its own instead (see "Downloading a release"). To keep it somewhere else, start the server with `--Storage:DataDirectory <folder>`. The console says where it is on every start. When you run from the source code, it's `src/Riftcaster.Server/data` instead.
@@ -233,7 +233,7 @@ The connection is plain HTTP, so the code stops casual tampering by others on th
 
 ## The REST API
 
-Everything the web interface does, except network access, the access code and opening the log folder (which opens on the server's own screen), can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
+Everything the web interface does, except network access, the access code, the port and opening the log folder (which opens on the server's own screen), can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
 
 **[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
 

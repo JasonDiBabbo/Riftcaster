@@ -49,8 +49,10 @@ static class Program
         {
             // With network access on, the server accepts connections from other devices too, but the
             // launcher always opens Riftcaster through localhost, on this computer.
-            var listenUrl = server.Services.GetRequiredService<NetworkAccess>().ListenUrls[0];
-            var webUI = new UriBuilder(listenUrl) { Host = "localhost" }.Uri;
+            // The address is worked out each time it's used: the port can be switched from the web interface
+            // while Riftcaster runs.
+            var network = server.Services.GetRequiredService<NetworkAccess>();
+            Uri webUI() => new UriBuilder(network.ListenUrls[0]) { Host = "localhost" }.Uri;
             var logFolder = server.Services.GetRequiredService<LogFolder>().Path;
 
             // One copy at a time (#68): started again, it opens the running copy's web interface instead of
@@ -58,7 +60,7 @@ static class Program
             using var instance = new Mutex(initiallyOwned: true, "Riftcaster", out var firstCopy);
             if (!firstCopy)
             {
-                TrayContext.OpenWebUI(webUI);
+                TrayContext.OpenWebUI(webUI());
                 return 0;
             }
 
@@ -81,8 +83,12 @@ static class Program
 
             if (configuration.GetValue(OpenWebUISetting, defaultValue: true))
             {
-                TrayContext.OpenWebUI(webUI);
+                TrayContext.OpenWebUI(webUI());
             }
+
+            // Ctrl+C in the console that started it (or a shutdown signal) stops the server, which would
+            // otherwise leave the tray running with nothing behind it, until Quit.
+            using var stopping = server.Lifetime.ApplicationStopping.Register(Application.Exit);
 
             Application.Run(tray);
 

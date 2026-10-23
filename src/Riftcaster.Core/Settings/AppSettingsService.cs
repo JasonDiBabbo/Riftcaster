@@ -1,5 +1,6 @@
 using Riftcaster.Contracts;
 using Riftcaster.Core.Match;
+using Riftcaster.Core.Network;
 
 namespace Riftcaster.Core.Settings;
 
@@ -29,6 +30,12 @@ public sealed class AppSettingsService(IAppSettingsStore store)
     /// design's defaults (<see cref="MatchRules.Default"/>) until some are.
     /// </summary>
     public MatchSettings MatchDefaults => _settings.MatchDefaults ?? MatchRules.Default;
+
+    /// <summary>
+    /// The port the server will listen on the next time it starts, unless started with <c>--urls</c>:
+    /// the one chosen on the Settings page, or the default until one is.
+    /// </summary>
+    public int ChosenPort => _settings.Server.Port ?? ListenPort.Default;
 
     /// <summary>
     /// Raised after the settings change.
@@ -70,6 +77,10 @@ public sealed class AppSettingsService(IAppSettingsStore store)
     {
         Logging = Enum.IsDefined(settings.Logging.Detail) ? settings.Logging : settings.Logging with { Detail = LogDetail.Normal },
         MatchDefaults = settings.MatchDefaults is { } rules ? NormalizeMatch(rules) : null,
+
+        // A port that can't be chosen (a hand-edited file) is none: the default applies, as at the start,
+        // when the server ignored it too.
+        Server = settings.Server.Port is { } port && !ListenPort.IsValid(port) ? settings.Server with { Port = null } : settings.Server,
     };
 
     // The same limits as the current match's, and the mode and format put back to the design's if they

@@ -24,4 +24,7 @@ public record AppSettings
     /// never customized them follows any change to those.
     /// </summary>
     public MatchSettings? MatchDefaults { get; init; }
+
+    /// <summary>The port the server listens on from the next start.</summary>
+    public ServerSettings Server { get; init; } = new();
 }
