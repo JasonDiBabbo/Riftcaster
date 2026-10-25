@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Diagnostics;
+using Riftcaster.Core.Updates;
 
 namespace Riftcaster.Server.Tests;
 
@@ -32,6 +33,44 @@ public class SettingsApiTests(RiftcasterWebApplicationFactory factory) : IClassF
 
         Assert.Equal(before.Server.Port, settings.Server.Port);
         Assert.NotEqual(6000, (await _api.GetAsync<AppSettings>("/api/settings")).Server.Port);
+    }
+
+    // What Riftcaster does about newer versions: changed from any device, and at once.
+    [Fact]
+    public async Task PatchSettings_ChangesTheUpdates_AndOnlyTheFieldsSent()
+    {
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "updates": { "mode": "Automatic", "channel": "Stable" } }""");
+
+        var settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "updates": { "mode": "AskFirst" } }""");
+
+        Assert.Equal(UpdateMode.AskFirst, settings.Updates.Mode);
+        Assert.Equal(UpdateChannel.Stable, settings.Updates.Channel); // Not sent, so kept
+        Assert.Equal(UpdateMode.AskFirst, factory.Services.GetRequiredService<UpdateService>().Mode);
+
+        settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "updates": { "channel": "PreRelease" } }""");
+
+        Assert.Equal(UpdateMode.AskFirst, settings.Updates.Mode);
+        Assert.Equal(UpdateChannel.PreRelease, settings.Updates.Channel);
+        Assert.Equal(settings, await _api.GetAsync<AppSettings>("/api/settings"));
+    }
+
+    [Theory]
+    [InlineData("""{ "updates": { "mode": 9 } }""", "updates.mode")]
+    [InlineData("""{ "updates": { "channel": 7 } }""", "updates.channel")]
+    public async Task PatchSettings_UnknownUpdateChoice_Is400(string body, string field)
+    {
+        var errors = await _api.InvalidAsync(HttpMethod.Patch, "/api/settings", body);
+
+        Assert.Contains(field, errors.Keys);
+    }
+
+    [Fact]
+    public void ARunningServer_FromSource_CantUpdate()
+    {
+        var updates = factory.Services.GetRequiredService<UpdateService>();
+
+        Assert.Equal(UpdateAvailability.FromSource, updates.Availability);
+        Assert.False(string.IsNullOrEmpty(updates.RunningVersion));
     }
 
     // The match defaults: the first change starts from the design's, and only the fields sent change.

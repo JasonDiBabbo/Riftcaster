@@ -1,0 +1,128 @@
+@using Riftcaster.Contracts
+@using Riftcaster.Core.Settings
+@using Riftcaster.Core.Updates
+@implements IDisposable
+@inject AppSettingsService Service
+@inject UpdateService Updates
+@inject TimeProvider Time
+
+<FormSection Title="Updates">
+    @if (Updates.Availability != UpdateAvailability.Updatable)
+    {
+        @* Nothing to choose: a copy that can't update says why, in place of settings that would do nothing. *@
+        <SettingRow Title="@NotUpdatableTitle" Description="@NotUpdatableReason" />
+    }
+    else
+    {
+        <SettingRow Title="Updates"
+                    Description="@SettingsLabels.Describe(Updates.Mode)"
+                    Note="Applies immediately">
+            <SegmentedControl Label="Updates"
+                              Options="SettingsLabels.UpdateModeOptions"
+                              @bind-Value:get="Updates.Mode"
+                              @bind-Value:set="value => Service.Update(settings => settings with { Updates = settings.Updates with { Mode = value } })" />
+        </SettingRow>
+
+        <SettingRow Title="Update channel"
+                    Description="@SettingsLabels.Describe(Updates.Channel)"
+                    Note="Applies to the next check">
+            <SegmentedControl Label="Update channel"
+                              Options="SettingsLabels.UpdateChannelOptions"
+                              @bind-Value:get="Updates.Channel"
+                              @bind-Value:set="value => Service.Update(settings => settings with { Updates = settings.Updates with { Channel = value } })" />
+        </SettingRow>
+
+        <SettingRow Title="@($"Riftcaster {Updates.RunningVersion}")" Description="@StatusLine">
+            <button type="button" class="button-secondary check" disabled="@(!Updates.CanCheck)" @onclick="Check">Check now</button>
+        </SettingRow>
+
+        @if (Updates.Status.ReadyVersion is { } ready)
+        {
+            <div class="@(Updates.Mode == UpdateMode.Off ? "box" : "box ready")" role="status">
+                <div class="text">
+                    @if (Updates.Mode == UpdateMode.Off)
+                    {
+                        <b>Version @ready won't be installed</b>
+                        <span>It was downloaded before updates were turned off. Switch to Ask first to install it, or leave Updates off to stay on @Updates.RunningVersion.</span>
+                    }
+                    else if (Updates.Mode == UpdateMode.AskFirst)
+                    {
+                        <b>Version @ready is ready</b>
+                        <span>Quitting Riftcaster leaves @Updates.RunningVersion in place. Install it when you're ready.</span>
+                    }
+                    else
+                    {
+                        <b>Ready to install</b>
+                        <span>It installs when Riftcaster quits. Restarting now interrupts any overlays currently on air.</span>
+                    }
+                </div>
+                @if (Updates.CanRestartToUpdate && Session.IsLocal)
+                {
+                    <div class="actions">
+                        <button type="button" class="restart" @onclick="Restart">Restart to update</button>
+                    </div>
+                }
+            </div>
+        }
+    }
+</FormSection>
+
+@code {
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    private string NotUpdatableTitle => Updates.Availability == UpdateAvailability.FromSource
+        ? $"Riftcaster {Updates.RunningVersion} (development build)"
+        : $"Riftcaster {Updates.RunningVersion}";
+
+    private string NotUpdatableReason => Updates.Availability switch
+    {
+        UpdateAvailability.FromSource => "This copy is running from source. Update it with git.",
+        UpdateAvailability.ConsoleInInstalledFolder => "Updates are handled by the tray app. Start Riftcaster.exe to get them.",
+        _ => "Updates are turned off in this copy's configuration (Updates:Source is empty).",
+    };
+
+    private string StatusLine
+    {
+        get
+        {
+            var status = Updates.Status;
+            return Updates.Mode == UpdateMode.Off ? "Updates are off. Staying on this version."
+                : status.Phase switch
+                {
+                    UpdatePhase.Checking => "Checking for updates…",
+                    UpdatePhase.Failed => "Couldn't check for updates. This is often just no internet, as at a venue. Check the log for details.",
+                    UpdatePhase.Ready => $"Version {status.ReadyVersion} is downloaded and ready.",
+                    UpdatePhase.UpToDate => $"You're up to date. Last checked {SettingsLabels.Ago(status.CheckedAt!.Value, Time.GetUtcNow())}.",
+                    _ => "Riftcaster looks for updates soon after starting, then every few hours.",
+                };
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        Updates.Changed += OnChanged;
+    }
+
+    private async Task Check() => await Updates.CheckAsync();
+
+    private void Restart()
+    {
+        // The button is only drawn for the computer running Riftcaster, but the handler is what the server runs:
+        // a device that restarted it could lose its own connection, and nobody at the server would know why.
+        if (Session.IsLocal)
+        {
+            Updates.RestartToUpdate();
+        }
+    }
+
+    private void OnChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Updates.Changed -= OnChanged;
+    }
+}

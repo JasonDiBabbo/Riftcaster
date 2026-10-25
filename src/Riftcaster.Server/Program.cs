@@ -14,6 +14,7 @@ using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
 using Riftcaster.Core.Settings;
 using Riftcaster.Core.Timer;
+using Riftcaster.Core.Updates;
 using Riftcaster.Server.Api;
 
 namespace Riftcaster.Server;
@@ -135,7 +136,13 @@ public partial class Program
         builder.Services.AddSingleton(services => new LogFolderOpener(
             services.GetRequiredService<LogFolder>(),
             () => DesktopSession.Current,
-            path => Process.Start(new ProcessStartInfo(path) { UseShellExecute = true })?.Dispose(),
+            // Not from the server's own folder: what's opened could keep running with it as its working
+            // directory, and an update can't replace a folder something is working in.
+            path => Process.Start(new ProcessStartInfo(path)
+            {
+                UseShellExecute = true,
+                WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            })?.Dispose(),
             services.GetRequiredService<ILogger<LogFolderOpener>>()));
 
         // The Settings page's settings. Created by the container, which has the logger the store needs.
@@ -143,6 +150,15 @@ public partial class Program
             Path.Combine(dataDirectory, "settings.json"),
             services.GetRequiredService<ILogger<JsonFileAppSettingsStore>>()));
         builder.Services.AddSingleton<AppSettingsService>();
+
+        // What the Settings page says about updating. The Windows app attaches the updater that does it; a copy
+        // without one can't update, and says why: from an installed folder it's the console server, else source.
+        builder.Services.AddSingleton(services => new UpdateService(
+            services.GetRequiredService<AppSettingsService>(),
+            services.GetRequiredService<ServerIdentity>().Version,
+            InstalledFolder.HasUpdater(AppContext.BaseDirectory) ? UpdateAvailability.ConsoleInInstalledFolder : UpdateAvailability.FromSource,
+            TimeProvider.System,
+            services.GetRequiredService<ILogger<UpdateService>>()));
 
         // Moves the server to another port while it runs. It checks that it worked by asking the new port who it is:
         // /api/info's start time is this server's, and no other program's.

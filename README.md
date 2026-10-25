@@ -91,7 +91,7 @@ Riftcaster runs in the tray, by the clock, not in a window. Starting it opens Ri
 
 Releases after 0.1.0 are signed: Windows names the publisher, and **Smart App Control** lets them run. While a new release is still building its reputation, Windows may show **Windows protected your PC** on first run: click **More info**, then **Run anyway**. 0.1.0 isn't signed, so Smart App Control blocks it.
 
-**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. It never restarts by itself: it says the update is ready, and installs it when you quit. To install it straight away, choose **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another web interface tab. A pre-release, such as 0.3.0-beta.1, also updates to newer pre-releases; a release only updates to releases.
+**Updates.** Riftcaster looks for a newer release when it starts and every four hours after, and downloads it in the background. What it does with it is chosen in **Settings**, **Updates**: **Automatic** (the default) installs it when you quit, never in the middle of a show; **Ask first** installs it only when you choose **Restart to update**; **Off** never checks or installs. It never restarts by itself. To install an update straight away, choose **Restart to update** on that page (on the computer running Riftcaster) or **Restart to update to …** in the tray menu; the overlays stop for a few seconds while it restarts, and it doesn't open another web interface tab. **Check now** looks straight away. The channel there is **Stable** (releases only) or **Pre-release**; until one is chosen, a pre-release such as 0.3.0-beta.1 follows pre-releases and a release follows releases. A copy running from source, or the console server (`Riftcaster.Server.exe`), has nothing to update, and the page says so.
 
 **Uninstalling.** Remove Riftcaster in **Settings**, **Apps**, **Installed apps**. Saved state isn't in the app's folder (see below), so it stays; delete `%APPDATA%\Riftcaster` as well to remove everything.
 
@@ -233,7 +233,7 @@ The connection is plain HTTP, so the code stops casual tampering by others on th
 
 ## The REST API
 
-Everything the web interface does, except network access, the access code, the port and opening the log folder (which opens on the server's own screen), can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
+Everything the web interface does, except network access, the access code, the port, checking for and restarting into an update, and opening the log folder (which opens on the server's own screen), can also be done over HTTP, for buttons on a Stream Deck or [Bitfocus Companion](https://bitfocus.io/companion), or scripts. The endpoints call the same services as the web interface, so it and the overlays update together.
 
 **[http://localhost:5062/api/docs](http://localhost:5062/api/docs)** lists every endpoint, with its fields and limits, and can send requests. It's built from the OpenAPI document at `/openapi/v1.json`, and loads nothing from the internet. Some examples:
 

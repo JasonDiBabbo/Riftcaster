@@ -88,6 +88,13 @@ public sealed class AppSettingsService(IAppSettingsStore store)
 
         // A port that can't be chosen (a hand-edited file) is none: the default applies, as at the start,
         // when the server ignored it too.
+        // A mode or channel nobody knows (the JSON accepts numbers) is the default, as the settings page would show it.
+        Updates = settings.Updates with
+        {
+            Mode = Enum.IsDefined(settings.Updates.Mode) ? settings.Updates.Mode : UpdateMode.Automatic,
+            Channel = settings.Updates.Channel is { } channel && Enum.IsDefined(channel) ? channel : null,
+        },
+
         Server = settings.Server.Port is { } port && !ListenPort.IsValid(port) ? settings.Server with { Port = null } : settings.Server,
     };
 
