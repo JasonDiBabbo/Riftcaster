@@ -101,7 +101,7 @@ static class Program
 
             // Restarted with the same arguments, such as --urls, but without another browser tab:
             // the one from before the update is usually still open.
-            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenWebUISetting}=false"]);
+            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: RestartArguments(args));
         }
         finally
         {
@@ -109,6 +109,38 @@ static class Program
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// The arguments to start Riftcaster again with after an update: the ones it was started with, but not opening
+    /// another web interface tab, since the one from before the update is usually still open.
+    /// </summary>
+    /// <remarks>
+    /// Any <see cref="OpenWebUISetting"/> it was started with is replaced, not added to: the restarted copy gets these
+    /// same arguments for its own restart, and each would otherwise add one more.
+    /// </remarks>
+    /// <param name="args">The arguments Riftcaster was started with.</param>
+    private static string[] RestartArguments(string[] args)
+    {
+        var option = $"--{OpenWebUISetting}";
+        var kept = new List<string>();
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i].StartsWith($"{option}=", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (args[i].Equals(option, StringComparison.OrdinalIgnoreCase))
+            {
+                i++; // Given as two arguments: the value follows
+                continue;
+            }
+
+            kept.Add(args[i]);
+        }
+
+        return [.. kept, $"{option}=false"];
     }
 
     /// <summary>
