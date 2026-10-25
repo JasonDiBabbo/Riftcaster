@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Settings;
+using Riftcaster.Core.Updates;
 using Riftcaster.Server;
 using Velopack;
 
@@ -31,7 +32,11 @@ static class Program
     {
         // First of all: installing, updating and uninstalling (#62) run this exe with arguments of
         // their own, which this handles, then exits, before a server or tray is started.
-        VelopackApp.Build().Run();
+        //
+        // Not applying a downloaded update on the next start, which Velopack does by default: whether it's
+        // installed is the updates setting's to say (see Updates.InstallOnExit), and Ask first and Off would
+        // otherwise be overridden by simply starting Riftcaster again.
+        VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
 
         ApplicationConfiguration.Initialize(); // Before any window, the error message included
 
@@ -73,11 +78,13 @@ static class Program
             network = server.Services.GetRequiredService<NetworkAccess>(); // Another server if it started on another port
 
             var configuration = server.Services.GetRequiredService<IConfiguration>();
+            var updateService = server.Services.GetRequiredService<UpdateService>();
             using var updates = new Updates(
                 configuration[Updates.Setting],
+                updateService,
                 server.Services.GetRequiredService<ILoggerFactory>().CreateLogger<Updates>());
-            using var tray = new TrayContext(webUI, logFolder, updates);
-            updates.Start();
+            using var tray = new TrayContext(webUI, logFolder, updateService);
+            updates.Start(tray.RestartToUpdate);
 
             if (configuration.GetValue(OpenWebUISetting, defaultValue: true))
             {
@@ -94,7 +101,7 @@ static class Program
 
             // Restarted with the same arguments, such as --urls, but without another browser tab:
             // the one from before the update is usually still open.
-            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: [.. args, $"--{OpenWebUISetting}=false"]);
+            updates.InstallOnExit(restart: tray.RestartRequested, restartArgs: RestartArguments(args));
         }
         finally
         {
@@ -102,6 +109,38 @@ static class Program
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// The arguments to start Riftcaster again with after an update: the ones it was started with, but not opening
+    /// another web interface tab, since the one from before the update is usually still open.
+    /// </summary>
+    /// <remarks>
+    /// Any <see cref="OpenWebUISetting"/> it was started with is replaced, not added to: the restarted copy gets these
+    /// same arguments for its own restart, and each would otherwise add one more.
+    /// </remarks>
+    /// <param name="args">The arguments Riftcaster was started with.</param>
+    private static string[] RestartArguments(string[] args)
+    {
+        var option = $"--{OpenWebUISetting}";
+        var kept = new List<string>();
+        for (var i = 0; i < args.Length; i++)
+        {
+            if (args[i].StartsWith($"{option}=", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            if (args[i].Equals(option, StringComparison.OrdinalIgnoreCase))
+            {
+                i++; // Given as two arguments: the value follows
+                continue;
+            }
+
+            kept.Add(args[i]);
+        }
+
+        return [.. kept, $"{option}=false"];
     }
 
     /// <summary>

@@ -27,4 +27,7 @@ public record AppSettings
 
     /// <summary>The port the server listens on from the next start.</summary>
     public ServerSettings Server { get; init; } = new();
+
+    /// <summary>What Riftcaster does about a newer version, and which ones it looks for.</summary>
+    public UpdateSettings Updates { get; init; } = new();
 }

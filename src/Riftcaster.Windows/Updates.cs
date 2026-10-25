@@ -1,21 +1,23 @@
 using System.Reflection;
 using Microsoft.Extensions.Logging;
+using Riftcaster.Contracts;
+using Riftcaster.Core.Updates;
 using Velopack;
 using Velopack.Sources;
 
 namespace Riftcaster.Windows;
 
 /// <summary>
-/// Keeps an installed copy up to date from GitHub Releases (#62). It checks shortly after starting
-/// and every few hours, and downloads a newer release quietly. A downloaded update waits: it's
-/// installed when Riftcaster quits, or straight away if the tray's Restart to update is chosen,
-/// never in the middle of a show.
+/// Keeps an installed copy up to date from GitHub Releases (#62), as the Settings page's updates section
+/// says (see <see cref="UpdateService"/>). It checks shortly after starting and every few hours, and
+/// downloads a newer release quietly. A downloaded update waits: it's installed when Riftcaster quits
+/// (in Automatic), or straight away if Restart to update is chosen, never in the middle of a show.
 /// </summary>
 /// <remarks>
 /// Does nothing in a copy that wasn't installed by Setup.exe or unzipped from the portable zip,
 /// such as development's dotnet run, since there's nothing to update.
 /// </remarks>
-internal sealed class Updates : IDisposable
+internal sealed class Updates : IUpdateFetcher, IDisposable
 {
     /// <summary>
     /// The setting for where releases come from: the GitHub repository, another address, or a
@@ -33,49 +35,39 @@ internal sealed class Updates : IDisposable
 
     private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(4);
 
+    private readonly string _source;
+
+    private readonly UpdateService _service;
+
     private readonly ILogger _logger;
 
-    private readonly UpdateManager? _manager;
+    private readonly bool _installed;
+
+    private readonly Dictionary<UpdateChannel, UpdateManager> _managers = [];
 
     private readonly System.Windows.Forms.Timer _timer = new();
 
-    private bool _checking;
+    private VelopackAsset? _ready;
 
     /// <summary>
     /// Sets up updates. Call <see cref="Start"/> once the tray is showing.
     /// </summary>
     /// <param name="source">The <see cref="Setting"/>, or null for <see cref="DefaultSource"/>.</param>
+    /// <param name="service">What the Settings page and the tray know about updating.</param>
     /// <param name="logger">Where to log what was found, downloaded or failed.</param>
-    public Updates(string? source, ILogger logger)
+    public Updates(string? source, UpdateService service, ILogger logger)
     {
+        _source = source ?? DefaultSource;
+        _service = service;
         _logger = logger;
-        source ??= DefaultSource;
 
-        if (string.IsNullOrWhiteSpace(source))
+        // Whether this copy is installed doesn't depend on where releases come from, which may be empty.
+        _installed = new UpdateManager(DefaultSource).IsInstalled;
+        if (_installed && string.IsNullOrWhiteSpace(_source))
         {
             _logger.LogInformation("Updates are turned off ({Setting} is empty).", Setting);
-            return;
+            _service.Unavailable(UpdateAvailability.TurnedOffInConfiguration);
         }
-
-        var manager = source.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase)
-            ? new UpdateManager(new GithubSource(source, accessToken: null, prerelease: RunningVersion.Contains('-')))
-            : new UpdateManager(source);
-
-        if (!manager.IsInstalled)
-        {
-            return;
-        }
-
-        _manager = manager;
-
-        // Downloaded last time but never installed, if Riftcaster stopped without quitting.
-        Ready = manager.UpdatePendingRestart;
-
-        _timer.Tick += async (_, _) =>
-        {
-            _timer.Interval = (int)CheckInterval.TotalMilliseconds;
-            await CheckAsync();
-        };
     }
 
     /// <summary>
@@ -84,87 +76,80 @@ internal sealed class Updates : IDisposable
     public static string RunningVersion { get; } =
         (typeof(Updates).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0").Split('+')[0];
 
-    /// <summary>
-    /// The downloaded update, waiting to be installed; null until there is one.
-    /// </summary>
-    public VelopackAsset? Ready { get; private set; }
+    /// <inheritdoc />
+    public string? DownloadedVersion => _ready?.Version.ToString();
 
     /// <summary>
-    /// Raised, on the tray's thread, when an update has been downloaded.
+    /// Starts checking: soon, then every few hours, as the updates settings allow.
     /// </summary>
-    public event EventHandler? ReadyChanged;
-
-    /// <summary>
-    /// Starts checking: soon, then every few hours.
-    /// </summary>
-    public void Start()
+    /// <param name="restartToUpdate">Quits Riftcaster so that the downloaded update installs, and starts it again.</param>
+    public void Start(Action restartToUpdate)
     {
-        if (_manager is null)
+        if (!_installed || string.IsNullOrWhiteSpace(_source))
         {
             return;
         }
 
-        if (Ready is not null)
-        {
-            ReadyChanged?.Invoke(this, EventArgs.Empty);
-            return; // Nothing newer is fetched until this one is installed
-        }
+        // Downloaded last time but never installed, if Riftcaster stopped without quitting.
+        _ready = Manager(UpdateChannel.Stable).UpdatePendingRestart;
+        _service.Attach(this, restartToUpdate);
 
+        _timer.Tick += async (_, _) =>
+        {
+            _timer.Interval = (int)CheckInterval.TotalMilliseconds;
+            await _service.CheckAsync();
+        };
         _timer.Interval = (int)FirstCheck.TotalMilliseconds;
         _timer.Start();
     }
 
+    /// <inheritdoc />
+    public async Task<string?> CheckAndDownloadAsync(UpdateChannel channel, CancellationToken cancellationToken)
+    {
+        var manager = Manager(channel);
+        var update = await manager.CheckForUpdatesAsync();
+        if (update is null)
+        {
+            return null;
+        }
+
+        _logger.LogInformation("Downloading Riftcaster {Version}.", update.TargetFullRelease.Version);
+        await manager.DownloadUpdatesAsync(update, cancelToken: cancellationToken);
+        _ready = update.TargetFullRelease;
+        return _ready.Version.ToString();
+    }
+
     /// <summary>
-    /// Installs the downloaded update, if there is one, once Riftcaster has exited. Call it last,
-    /// after the server has stopped: the updater waits for this process to end.
+    /// Installs the downloaded update, if there is one and it's to be installed, once Riftcaster has
+    /// exited. Call it last, after the server has stopped: the updater waits for this process to end.
     /// </summary>
-    /// <param name="restart">Start Riftcaster again afterwards, showing the update's progress.</param>
+    /// <param name="restart">Start Riftcaster again afterwards, showing the update's progress. It was asked for, so install.</param>
     /// <param name="restartArgs">The arguments to start it again with.</param>
     public void InstallOnExit(bool restart, string[] restartArgs)
     {
-        if (_manager is null || Ready is null)
+        // Quitting installs it only in Automatic; Ask first waits for Restart to update, and Off never installs.
+        if (_ready is null || !(restart || _service.InstallsOnQuit))
         {
             return;
         }
 
-        _logger.LogInformation("Installing Riftcaster {Version} as it exits.", Ready.Version);
-        _manager.WaitExitThenApplyUpdates(Ready, silent: !restart, restart, restartArgs);
+        _logger.LogInformation("Installing Riftcaster {Version} as it exits.", _ready.Version);
+        Manager(UpdateChannel.Stable).WaitExitThenApplyUpdates(_ready, silent: !restart, restart, restartArgs);
     }
 
     public void Dispose() => _timer.Dispose();
 
-    private async Task CheckAsync()
+    // One per channel: the channel is part of how the release list is read, and can change while running.
+    private UpdateManager Manager(UpdateChannel channel)
     {
-        if (_manager is null || _checking || Ready is not null)
+        if (!_managers.TryGetValue(channel, out var manager))
         {
-            return;
+            manager = _source.StartsWith("https://github.com/", StringComparison.OrdinalIgnoreCase)
+                ? new UpdateManager(new GithubSource(_source, accessToken: null, prerelease: channel == UpdateChannel.PreRelease))
+                : new UpdateManager(_source);
+            _managers[channel] = manager;
         }
 
-        _checking = true;
-        try
-        {
-            var update = await _manager.CheckForUpdatesAsync();
-            if (update is null)
-            {
-                return;
-            }
-
-            _logger.LogInformation("Downloading Riftcaster {Version}.", update.TargetFullRelease.Version);
-            await _manager.DownloadUpdatesAsync(update);
-
-            Ready = update.TargetFullRelease;
-            _timer.Stop();
-            _logger.LogInformation("Riftcaster {Version} is ready to install.", Ready.Version);
-            ReadyChanged?.Invoke(this, EventArgs.Empty);
-        }
-        catch (Exception exception)
-        {
-            // Often just no internet, as at a venue; the next check tries again.
-            _logger.LogWarning(exception, "Couldn't check for or download an update.");
-        }
-        finally
-        {
-            _checking = false;
-        }
+        return manager;
     }
 }

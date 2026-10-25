@@ -1,9 +1,11 @@
 using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Riftcaster.Contracts;
 using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Settings;
+using Riftcaster.Core.Updates;
 using Riftcaster.WebUI.Layout;
 using Riftcaster.WebUI.Settings;
 
@@ -20,9 +22,20 @@ public class SettingsRowsTests : BunitContext
         var settings = new AppSettingsService(new InMemoryAppSettingsStore());
         Services.AddSingleton(settings);
         Services.AddSingleton(network);
+        var updates = new UpdateService(settings, "0.2.0", UpdateAvailability.FromSource, TimeProvider.System, NullLogger<UpdateService>.Instance);
+        updates.Attach(new NoUpdates(), () => { });
+        Services.AddSingleton(updates);
+        Services.AddSingleton(TimeProvider.System);
         Services.AddSingleton(new PortOrigin(PortSource.Default));
         Services.AddSingleton(new PortSwitcher(network, settings, (_, _) => Task.FromResult(true), TimeProvider.System, NullLogger<PortSwitcher>.Instance));
         Services.AddSingleton(new LogFolderOpener(new LogFolder(Path.GetTempPath()), () => true, _ => { }, NullLogger<LogFolderOpener>.Instance));
+    }
+
+    private sealed class NoUpdates : IUpdateFetcher
+    {
+        public string? DownloadedVersion => null;
+
+        public Task<string?> CheckAndDownloadAsync(UpdateChannel channel, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
     }
 
     private static Action<ComponentParameterCollectionBuilder<T>> AsLocal<T>() where T : Microsoft.AspNetCore.Components.IComponent =>
@@ -59,6 +72,15 @@ public class SettingsRowsTests : BunitContext
     }
 
     [Fact]
+    public void EveryUpdatesRowSaysWhatItDoes()
+    {
+        var rows = RowsOf<UpdatesSection>();
+
+        Assert.Equal(["Updates", "Update channel", "Riftcaster 0.2.0"], rows.Select(row => row.Title));
+        Assert.All(rows, row => Assert.False(string.IsNullOrWhiteSpace(row.Description), $"{row.Title} has no description"));
+    }
+
+    [Fact]
     public void EveryLoggingRowSaysWhatItDoes()
     {
         var rows = RowsOf<LoggingSection>();
@@ -71,7 +93,7 @@ public class SettingsRowsTests : BunitContext
     [Fact]
     public void NoDescriptionIsAboutWhenItApplies()
     {
-        var rows = RowsOf<MatchDefaultsSection>().Concat(RowsOf<ServerSection>()).Concat(RowsOf<LoggingSection>());
+        var rows = RowsOf<MatchDefaultsSection>().Concat(RowsOf<ServerSection>()).Concat(RowsOf<LoggingSection>()).Concat(RowsOf<UpdatesSection>());
 
         Assert.All(rows, row => Assert.DoesNotContain("Applies", row.Description!));
     }
@@ -89,6 +111,16 @@ public class SettingsRowsTests : BunitContext
         Assert.Contains("Browser Sources", description);
         Assert.Contains("--urls", description);
         Assert.Equal("Applies when you switch, or at the next start", section.Find(".control .note").TextContent.Trim());
+    }
+
+    [Fact]
+    public void TheUpdateChoicesSayWhenTheyApply()
+    {
+        var section = Render<UpdatesSection>(AsLocal<UpdatesSection>());
+
+        var notes = section.FindAll(".control .note").Select(note => note.TextContent.Trim());
+
+        Assert.Equal(["Applies immediately", "Applies to the next check"], notes);
     }
 
     [Fact]
