@@ -1,0 +1,1004 @@
+{
+ "fetched": "2026-10-19T18:10:54.276Z",
+ "source": "riftcodex.com",
+ "sets": [
+  {
+   "id": "UNL",
+   "name": "Unleashed",
+   "count": 306,
+   "released": "2026-05-08"
+  },
+  {
+   "id": "JDG",
+   "name": "Riftbound Judge Promotional Cards",
+   "count": 4,
+   "released": "2025-12-01"
+  },
+  {
+   "id": "VEN",
+   "name": "Vendetta",
+   "count": 243,
+   "released": "2026-07-31"
+  },
+  {
+   "id": "OGN",
+   "name": "Origins",
+   "count": 352,
+   "released": "2025-10-31"
+  },
+  {
+   "id": "OPP",
+   "name": "Riftbound Organized Play Promotional Cards",
+   "count": 213,
+   "released": "2025-10-31"
+  },
+  {
+   "id": "RAD",
+   "name": "Radiance",
+   "count": 235,
+   "released": "2026-10-23"
+  }
+ ],
+ "cards": [
+  {
+   "id": "69bc5bd4d308c64675ca87c8",
+   "riftboundId": "ogn-247-298",
+   "name": "Kai'Sa, Daughter of the Void",
+   "cleanName": "KaiSa Daughter of the Void",
+   "num": 247,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury",
+    "Mind"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Kai'Sa"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/a576472c7bb00f475882ac814e1d8f9be233b402-744x1040.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd4d308c64675ca87ca",
+   "riftboundId": "ogn-249-298",
+   "name": "Volibear, Relentless Storm",
+   "cleanName": "Volibear Relentless Storm",
+   "num": 249,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury",
+    "Body"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Volibear"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/f1842ef373434db3e8109d8959832f9d184866c3-744x1040.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd4d308c64675ca87cc",
+   "riftboundId": "ogn-251-298",
+   "name": "Jinx, Loose Cannon",
+   "cleanName": "Jinx Loose Cannon",
+   "num": 251,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Rare",
+   "domains": [
+    "Fury",
+    "Chaos"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Jinx"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/f57c14381b126e9f5a7b5bc4913151cb24c14fc3-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd5d308c64675ca87ce",
+   "riftboundId": "ogn-253-298",
+   "name": "Darius, Hand of Noxus",
+   "cleanName": "Darius Hand of Noxus",
+   "num": 253,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Rare",
+   "domains": [
+    "Fury",
+    "Order"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Darius"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/5b9a904048b7fb936377844ec2d31564b7fedf81-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86d1",
+   "riftboundId": "ogn-027-298",
+   "name": "Darius, Trifarian",
+   "cleanName": "Darius Trifarian",
+   "num": 27,
+   "energy": 5,
+   "might": 5,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Trifarian",
+    "Darius",
+    "Noxus"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/bf7a4900fd2296972c1305a4707c23860bb0522e-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86d3",
+   "riftboundId": "ogn-028-298",
+   "name": "Draven, Showboat",
+   "cleanName": "Draven Showboat",
+   "num": 28,
+   "energy": 5,
+   "might": 3,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Draven",
+    "Noxus"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/7600d6cea66e8146ea2202f72cb9035cb44608a3-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86d5",
+   "riftboundId": "ogn-030-298",
+   "name": "Jinx, Demolitionist",
+   "cleanName": "Jinx Demolitionist",
+   "num": 30,
+   "energy": 3,
+   "might": 4,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Jinx",
+    "Zaun"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/d6cac988aa7798945e550eba6841d3993868c4a4-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86da",
+   "riftboundId": "ogn-034-298",
+   "name": "Tryndamere, Barbarian",
+   "cleanName": "Tryndamere Barbarian",
+   "num": 34,
+   "energy": 7,
+   "might": 8,
+   "power": 2,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Rare",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Tryndamere",
+    "Freljord"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/124c93495c927be1baea03fdacf6c7b283cf8b6c-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86d2",
+   "riftboundId": "ogn-027a-298",
+   "name": "Darius, Trifarian (Alternate Art)",
+   "cleanName": "Darius Trifarian Alternate Art",
+   "num": 27,
+   "energy": 5,
+   "might": 5,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Showcase",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Trifarian",
+    "Darius",
+    "Noxus"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/df878ecc25160bb7e53b254a609ec243e133e8f1-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": true,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc8d308c64675ca86d6",
+   "riftboundId": "ogn-030a-298",
+   "name": "Jinx, Demolitionist (Alternate Art)",
+   "cleanName": "Jinx Demolitionist Alternate Art",
+   "num": 30,
+   "energy": 3,
+   "might": 4,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Showcase",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Jinx",
+    "Zaun"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/60ff1aec7ecb1b11ff89fdb620c6182897a8b402-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": true,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd7d308c64675ca87f9",
+   "riftboundId": "ogn-299*-298",
+   "name": "Kai'Sa, Daughter of the Void (Signature)",
+   "cleanName": "KaiSa Daughter of the Void Signature",
+   "num": 299,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Showcase",
+   "domains": [
+    "Fury",
+    "Mind"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Kai'Sa"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/ae8e68af43400f61f7391c0a6ee339fd718a7540-1488x2078.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": true,
+   "over": false
+  },
+  {
+   "id": "69bc5bd7d308c64675ca87fb",
+   "riftboundId": "ogn-300*-298",
+   "name": "Volibear, Relentless Storm (Signature)",
+   "cleanName": "Volibear Relentless Storm Signature",
+   "num": 300,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Showcase",
+   "domains": [
+    "Fury",
+    "Body"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Volibear"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/d5a629ce373a6add09bfacc4b584e509c6332334-1488x2078.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": true,
+   "over": false
+  },
+  {
+   "id": "69bc5bd7d308c64675ca87f8",
+   "riftboundId": "ogn-299-298",
+   "name": "Kai'Sa, Daughter of the Void (Overnumbered)",
+   "cleanName": "KaiSa Daughter of the Void Overnumbered",
+   "num": 299,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Showcase",
+   "domains": [
+    "Fury",
+    "Mind"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Kai'Sa"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/57e13462b8fea9a5cfa1b424d3ad3005f37b00ad-1488x2078.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": true
+  },
+  {
+   "id": "69bc5bd7d308c64675ca87fa",
+   "riftboundId": "ogn-300-298",
+   "name": "Volibear, Relentless Storm (Overnumbered)",
+   "cleanName": "Volibear Relentless Storm Overnumbered",
+   "num": 300,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Showcase",
+   "domains": [
+    "Fury",
+    "Body"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Volibear"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/34aa11c88735be28266dbc61486a557454fd6b4c-1488x2078.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": true
+  },
+  {
+   "id": "69bff35b58d0fbca04e93743",
+   "riftboundId": "opp-181-221",
+   "name": "Rumble, Mechanized Menace (Metal)",
+   "cleanName": "Rumble Mechanized Menace Metal",
+   "num": 181,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Legend",
+   "supertype": null,
+   "rarity": "Promo",
+   "domains": [
+    "Fury",
+    "Mind"
+   ],
+   "set": "OPP",
+   "setName": "Riftbound Organized Play Promotional Cards",
+   "tags": [
+    "Rumble"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/f311115e4c527ce82010596ce462d4050a9201b2-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd5d308c64675ca87e0",
+   "riftboundId": "ogn-275-298",
+   "name": "Altar to Unity",
+   "cleanName": "Altar to Unity",
+   "num": 275,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Battlefield",
+   "supertype": null,
+   "rarity": "Uncommon",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/2392529560dc9af72596c6fc65b4c0356bbc44d1-1038x744.png?accountingTag=RB",
+   "orientation": "landscape",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd5d308c64675ca87e1",
+   "riftboundId": "ogn-276-298",
+   "name": "Aspirant's Climb",
+   "cleanName": "Aspirants Climb",
+   "num": 276,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Battlefield",
+   "supertype": null,
+   "rarity": "Uncommon",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/9301593f3800e68427469d38181b578a672473c3-1038x744.png?accountingTag=RB",
+   "orientation": "landscape",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd6d308c64675ca87e2",
+   "riftboundId": "ogn-277-298",
+   "name": "Back-Alley Bar",
+   "cleanName": "Back Alley Bar",
+   "num": 277,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Battlefield",
+   "supertype": null,
+   "rarity": "Uncommon",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/3e9f659a32e390b45bc87a01bdd6af4a8a3565f7-1038x744.png?accountingTag=RB",
+   "orientation": "landscape",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc6d308c64675ca86bc",
+   "riftboundId": "ogn-007-298",
+   "name": "Fury Rune",
+   "cleanName": "Fury Rune",
+   "num": 7,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Rune",
+   "supertype": "Basic",
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/12bcd0cde5d9ff4640e82945001e9fef863530f1-744x1039.png",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc9d308c64675ca86e4",
+   "riftboundId": "ogn-042-298",
+   "name": "Calm Rune",
+   "cleanName": "Calm Rune",
+   "num": 42,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Rune",
+   "supertype": "Basic",
+   "rarity": "Common",
+   "domains": [
+    "Calm"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/0a0e8c3d16c2595e2f8efcc2b1466226539b506c-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd8d308c64675ca8812",
+   "riftboundId": "ogn-271-298",
+   "name": "Recruit (271) // Buff",
+   "cleanName": "Recruit 271 Buff",
+   "num": 271,
+   "energy": null,
+   "might": 1,
+   "power": null,
+   "type": "Unit",
+   "supertype": "Token",
+   "rarity": "Common",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Recruit"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/7c3362dc6e6e6fb724ef31b061a44d2976f5b01f-744x1039.png",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd8d308c64675ca8813",
+   "riftboundId": "ogn-272-298",
+   "name": "Recruit (272) // Buff",
+   "cleanName": "Recruit 272 Buff",
+   "num": 272,
+   "energy": null,
+   "might": 1,
+   "power": null,
+   "type": "Unit",
+   "supertype": "Token",
+   "rarity": "Common",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Recruit"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/c168ca334739090a060710dfc440982c3462ac8c-744x1039.png",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd4d308c64675ca87c9",
+   "riftboundId": "ogn-248-298",
+   "name": "Icathian Rain",
+   "cleanName": "Icathian Rain",
+   "num": 248,
+   "energy": 7,
+   "might": null,
+   "power": 3,
+   "type": "Spell",
+   "supertype": "Signature",
+   "rarity": "Epic",
+   "domains": [
+    "Fury",
+    "Mind"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Kai'Sa"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/8df37f633d3da734f3f2d85808a7cb9eadec1b04-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bd4d308c64675ca87cb",
+   "riftboundId": "ogn-250-298",
+   "name": "Stormbringer",
+   "cleanName": "Stormbringer",
+   "num": 250,
+   "energy": 6,
+   "might": null,
+   "power": 2,
+   "type": "Spell",
+   "supertype": "Signature",
+   "rarity": "Epic",
+   "domains": [
+    "Fury",
+    "Body"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [
+    "Volibear"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/d86c4137cc7f77f103cd7d6228125df8cb9a54e1-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bead308c64675ca896c",
+   "riftboundId": "unl-007-219",
+   "name": "Smite",
+   "cleanName": "Smite",
+   "num": 7,
+   "energy": 2,
+   "might": null,
+   "power": 1,
+   "type": "Spell",
+   "supertype": null,
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "UNL",
+   "setName": "Unleashed",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/f46252e8c65a2eb3f476ea51f214af7651d0622d-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bebd308c64675ca8973",
+   "riftboundId": "unl-009-219",
+   "name": "Upstage Comedy",
+   "cleanName": "Upstage Comedy",
+   "num": 9,
+   "energy": 2,
+   "might": null,
+   "power": null,
+   "type": "Spell",
+   "supertype": null,
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "UNL",
+   "setName": "Unleashed",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/4a636fcd682b32b41a4886c7383e781414139adb-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc7d308c64675ca86c7",
+   "riftboundId": "ogn-017-298",
+   "name": "Iron Ballista",
+   "cleanName": "Iron Ballista",
+   "num": 17,
+   "energy": 3,
+   "might": null,
+   "power": null,
+   "type": "Gear",
+   "supertype": null,
+   "rarity": "Uncommon",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/9b5cfe757b6067994e17e284eba46433880a1461-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bc7d308c64675ca86cb",
+   "riftboundId": "ogn-021-298",
+   "name": "Sun Disc",
+   "cleanName": "Sun Disc",
+   "num": 21,
+   "energy": 2,
+   "might": null,
+   "power": 1,
+   "type": "Gear",
+   "supertype": null,
+   "rarity": "Uncommon",
+   "domains": [
+    "Fury"
+   ],
+   "set": "OGN",
+   "setName": "Origins",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/146d7514f15e6674f471f3aa9c3fadf22c0b634b-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "6a5a92b3fe2355878c40cc84",
+   "riftboundId": "ven-001-166",
+   "name": "Baccai Sandspinner",
+   "cleanName": "Baccai Sandspinner",
+   "num": 1,
+   "energy": 6,
+   "might": 6,
+   "power": null,
+   "type": "Unit",
+   "supertype": null,
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "VEN",
+   "setName": "Vendetta",
+   "tags": [
+    "Shurima"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/d8abab7f0df7c8ec9fff8c8dfa71c732e1ce2e6a-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "6a56ab94ff602fd324f47601",
+   "riftboundId": "ven-002-166",
+   "name": "Blade Twirler",
+   "cleanName": "Blade Twirler",
+   "num": 2,
+   "energy": 4,
+   "might": 4,
+   "power": null,
+   "type": "Unit",
+   "supertype": null,
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "VEN",
+   "setName": "Vendetta",
+   "tags": [
+    "Yordle",
+    "Ionia"
+   ],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/b222082d5d38630c4d2542ed24c0442881e3de18-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "dotgg:RAD-T02",
+   "riftboundId": "rad-t02",
+   "name": "Bomb",
+   "cleanName": "Bomb",
+   "num": 2,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Gear",
+   "supertype": "Token",
+   "rarity": "Common",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "RAD",
+   "setName": "Radiance",
+   "tags": [
+    "Bomb"
+   ],
+   "imgUrl": "https://rifthunt.com/img/cards/rad-t02.webp",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "dotgg:RAD-T03",
+   "riftboundId": "rad-t03",
+   "name": "Buff // Recruit",
+   "cleanName": "Buff // Recruit",
+   "num": 3,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Unit",
+   "supertype": "Token",
+   "rarity": "Common",
+   "domains": [
+    "Colorless"
+   ],
+   "set": "RAD",
+   "setName": "Radiance",
+   "tags": [],
+   "imgUrl": "https://rifthunt.com/img/cards/rad-t03.webp",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "6a517603ad64d2d80a4f0371",
+   "riftboundId": "jdg-059-221",
+   "name": "Svellsongur",
+   "cleanName": "Svellsongur",
+   "num": 59,
+   "energy": 3,
+   "might": null,
+   "power": 1,
+   "type": "Gear",
+   "supertype": null,
+   "rarity": "Promo",
+   "domains": [
+    "Calm"
+   ],
+   "set": "JDG",
+   "setName": "Riftbound Judge Promotional Cards",
+   "tags": [
+    "Equipment"
+   ],
+   "imgUrl": "https://tcgplayer-cdn.tcgplayer.com/product/692372_in_1000x1000.jpg",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "6a517603ad64d2d80a4f0372",
+   "riftboundId": "jdg-087-219",
+   "name": "Blue Sentinel",
+   "cleanName": "Blue Sentinel",
+   "num": 87,
+   "energy": 4,
+   "might": 4,
+   "power": 1,
+   "type": "Unit",
+   "supertype": null,
+   "rarity": "Promo",
+   "domains": [
+    "Mind"
+   ],
+   "set": "JDG",
+   "setName": "Riftbound Judge Promotional Cards",
+   "tags": [
+    "Mount Targon"
+   ],
+   "imgUrl": "https://tcgplayer-cdn.tcgplayer.com/product/702632_in_1000x1000.jpg",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "69bc5bf4d308c64675ca8a26",
+   "riftboundId": "jdg-111-298",
+   "name": "Heimerdinger, Inventor",
+   "cleanName": "Heimerdinger Inventor",
+   "num": 111,
+   "energy": 3,
+   "might": 3,
+   "power": 1,
+   "type": "Unit",
+   "supertype": "Champion",
+   "rarity": "Promo",
+   "domains": [
+    "Mind"
+   ],
+   "set": "JDG",
+   "setName": "Riftbound Judge Promotional Cards",
+   "tags": [
+    "Yordle",
+    "Heimerdinger",
+    "Piltover"
+   ],
+   "imgUrl": "https://tcgplayer-cdn.tcgplayer.com/product/668439_in_1000x1000.jpg",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "rad-001-167",
+   "riftboundId": "rad-001-167",
+   "name": "Amateur Demolitionist",
+   "cleanName": "Amateur Demolitionist",
+   "num": 1,
+   "energy": 2,
+   "might": 1,
+   "power": null,
+   "type": "Unit",
+   "supertype": null,
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "RAD",
+   "setName": "Radiance",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/3dca5e04ff8dff983993f87d5a82a7fd56d7bc9c-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  },
+  {
+   "id": "rad-r01",
+   "riftboundId": "rad-r01",
+   "name": "Fury Rune",
+   "cleanName": "Fury Rune",
+   "num": 1,
+   "energy": null,
+   "might": null,
+   "power": null,
+   "type": "Rune",
+   "supertype": "Basic",
+   "rarity": "Common",
+   "domains": [
+    "Fury"
+   ],
+   "set": "RAD",
+   "setName": "Radiance",
+   "tags": [],
+   "imgUrl": "https://cmsassets.rgpub.io/sanity/images/dsfx7636/game_data_live/e0337944fa56c357ab3b9a822064a8f58ead8315-744x1039.png?accountingTag=RB",
+   "orientation": "portrait",
+   "alt": false,
+   "sig": false,
+   "over": false
+  }
+ ]
+}

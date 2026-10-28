@@ -30,4 +30,7 @@ public record AppSettings
 
     /// <summary>What Riftcaster does about a newer version, and which ones it looks for.</summary>
     public UpdateSettings Updates { get; init; } = new();
+
+    /// <summary>Which card database the catalog comes from.</summary>
+    public CardSettings Cards { get; init; } = new();
 }

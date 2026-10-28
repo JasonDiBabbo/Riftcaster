@@ -55,6 +55,13 @@ public sealed class AppSettingsService(IAppSettingsStore store)
         Update(settings => settings with { Server = new ServerSettings { Port = port == ListenPort.Default ? null : port } });
 
     /// <summary>
+    /// Records which card database the catalog is in use from.
+    /// </summary>
+    /// <param name="source">The source.</param>
+    public void ChooseCardSource(CardSourceKind source) =>
+        Update(settings => settings with { Cards = settings.Cards with { Source = source } });
+
+    /// <summary>
     /// Changes the settings, for example <c>Update(settings => settings with { Logging = new() { Detail = LogDetail.Detailed } })</c>.
     /// A value outside the allowed ones is put back to its default.
     /// </summary>
@@ -88,6 +95,9 @@ public sealed class AppSettingsService(IAppSettingsStore store)
 
         // A port that can't be chosen (a hand-edited file) is none: the default applies, as at the start,
         // when the server ignored it too.
+        // A source nobody knows (the JSON accepts numbers) is the default one.
+        Cards = Enum.IsDefined(settings.Cards.Source) ? settings.Cards : settings.Cards with { Source = CardSourceKind.Riftcodex },
+
         // A mode or channel nobody knows (the JSON accepts numbers) is the default, as the settings page would show it.
         Updates = settings.Updates with
         {

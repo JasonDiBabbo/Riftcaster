@@ -8,4 +8,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.12" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- A trimmed sample of RiftHunt's bulk card file, for Development (see RiftHuntSampleCardSource) and tests. -->
+    <EmbeddedResource Include="Cards\Fixtures\rifthunt-sample.json" LogicalName="rifthunt-sample.json" />
+  </ItemGroup>
+
 </Project>

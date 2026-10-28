@@ -66,6 +66,28 @@ public class FeaturedCardService(IFeaturedCardStore store, CardCatalog catalog)
     }
 
     /// <summary>
+    /// Swaps the featured card for the same card from another catalog, as its source changes: it's a copy of a card
+    /// with the old source's id, so this keeps it the catalog's own. Does nothing if nothing is featured.
+    /// </summary>
+    /// <param name="equivalent">Finds the same card in the new catalog, or <see langword="null"/> if there isn't one: the card stays as it was.</param>
+    public void ReplaceCard(Func<Card, Card?> equivalent)
+    {
+        ArgumentNullException.ThrowIfNull(equivalent);
+
+        lock (_lock)
+        {
+            if (_state.Card is not { } card || equivalent(card) is not { } found || found == card)
+            {
+                return;
+            }
+
+            Set(new FeaturedCardState(found));
+        }
+
+        Changed?.Invoke();
+    }
+
+    /// <summary>
     /// Takes the featured card off air. Does nothing if nothing is featured.
     /// </summary>
     public void Clear()

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
 using Riftcaster.Core.FeaturedCard;
 using Riftcaster.Core.LowerThird;
@@ -23,6 +24,16 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
 {
     // Its own data folder, for its log files (see LogFiles): not the project's, among the real ones.
     private readonly string _dataDirectory = Directory.CreateTempSubdirectory("riftcaster-tests-").FullName;
+
+    /// <summary>
+    /// The card source standing in for RiftHunt, whose answers a test controls.
+    /// </summary>
+    internal ControllableCardSource RiftHuntSource { get; } = new();
+
+    /// <summary>
+    /// Where the RiftHunt catalog is saved, which a test can fill to make a switch to it instant.
+    /// </summary>
+    internal InMemoryCardStore RiftHuntStore { get; } = new();
 
     /// <summary>
     /// The server's data folder, for a test that needs a file in it before the server starts.
@@ -72,11 +83,20 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IAppSettingsStore>();
             services.AddSingleton<IAppSettingsStore, InMemoryAppSettingsStore>();
 
+            // Both card sources, kept in memory: tests that fetch cards set the Riftcodex one's cards (it's also
+            // available as ICardSource), and neither ever calls a real card database.
+            var riftcodexSource = new InMemoryCardSource();
+            var riftcodexStore = new InMemoryCardStore();
             services.RemoveAll<ICardStore>();
-            services.AddSingleton<ICardStore, InMemoryCardStore>();
-
+            services.AddSingleton<ICardStore>(riftcodexStore);
             services.RemoveAll<ICardSource>();
-            services.AddSingleton<ICardSource, InMemoryCardSource>();
+            services.AddSingleton<ICardSource>(riftcodexSource);
+            services.RemoveAll<ICardFetchHistory>();
+            services.AddSingleton<ICardFetchHistory, InMemoryCardFetchHistory>();
+            services.RemoveAll<CardSourceSet>();
+            services.AddSingleton(new CardSourceSet(
+                (CardSourceKind.Riftcodex, riftcodexSource, riftcodexStore),
+                (CardSourceKind.RiftHunt, RiftHuntSource, RiftHuntStore)));
 
             services.RemoveAll<IFeaturedCardStore>();
             services.AddSingleton<IFeaturedCardStore, InMemoryFeaturedCardStore>();
@@ -87,5 +107,37 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
             // Keys that live only as long as the test server, never in the user's own key store.
             services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
         });
+    }
+}
+
+/// <summary>
+/// A card source whose answer a test decides: cards, or a failure, held back until the test opens a gate, and
+/// optionally limited in when it may be asked, as RiftHunt is.
+/// </summary>
+internal sealed class ControllableCardSource : ICardSource
+{
+    private int _fetchCount;
+
+    public IReadOnlyList<Card> Cards { get; set; } = [];
+
+    public Exception? Failure { get; set; }
+
+    public TaskCompletionSource? Gate { get; set; }
+
+    public DateTimeOffset? NotBefore { get; set; }
+
+    public bool IsSample { get; set; }
+
+    public int FetchCount => _fetchCount;
+
+    public async Task<IReadOnlyList<Card>> FetchAllAsync(IProgress<CardFetchProgress>? progress, CancellationToken cancellationToken)
+    {
+        Interlocked.Increment(ref _fetchCount);
+        if (Gate is not null)
+        {
+            await Gate.Task.WaitAsync(cancellationToken);
+        }
+
+        return Failure is null ? Cards : throw Failure;
     }
 }

@@ -15,7 +15,7 @@ public sealed class JsonFileCardStoreTests : IDisposable
     public JsonFileCardStoreTests()
     {
         // A subfolder that doesn't exist yet, to check that Save creates it
-        _path = Path.Combine(_directory.FullName, "data", "cards.json");
+        _path = Path.Combine(_directory.FullName, "data", "cards.riftcodex.json");
         _store = CreateStore();
     }
 

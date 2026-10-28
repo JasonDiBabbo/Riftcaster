@@ -1,0 +1,236 @@
+@using Riftcaster.Contracts
+@using Riftcaster.Core.Cards
+@implements IDisposable
+@inject CardCatalog Catalog
+@inject TimeProvider Time
+
+<FormSection Title="Card catalog">
+    @* Alone in its own container, so it has no rule under it: the note below belongs to it. *@
+    <div>
+        <SettingRow Title="Catalog source"
+                    Description="Each source keeps its own saved catalog, so switching back is instant. The current catalog stays in use until the new one has downloaded.">
+            <SegmentedControl Label="Catalog source"
+                              Options="SettingsLabels.CardSourceOptions"
+                              @bind-Value:get="Shown"
+                              @bind-Value:set="ChooseAsync" />
+        </SettingRow>
+    </div>
+
+    <div class="hint" role="note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5v.5" /></svg>
+        <p>@SettingsLabels.Describe(Shown)</p>
+    </div>
+
+    @if (Catalog.IsSample(Shown))
+    {
+        @* A box of its own: it's about this copy of Riftcaster, not about the source. *@
+        <div class="hint sample" role="note">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v6M12 7.5v.5" /></svg>
+            <p>Riftcaster is running in Development mode using a small built-in sample to simulate RiftHunt's real catalog. No real requests are made to RiftHunt. To work with real data from RiftHunt, start the process with <code>--CardSources:RiftHunt:Live true</code>.</p>
+        </div>
+    }
+
+    @* The facts of the saved catalog go under the row as a list, so the row has no rule under it. *@
+    <div>
+        <SettingRow Title="Saved catalog" Description="What is saved for the source in use." Note="Previously downloaded cards continue working while new downloads process.">
+            <button type="button" class="button-secondary refresh" disabled="@(!CanRefresh)" title="@RefreshTitle" @onclick="RefreshAsync">Refresh now</button>
+        </SettingRow>
+    </div>
+    <ul class="facts" aria-label="The saved catalog">
+        @foreach (var fact in Facts)
+        {
+            <li>@fact</li>
+        }
+    </ul>
+
+    @if (Catalog.Status.SwitchingTo is { } target)
+    {
+        <div class="box working" role="status">
+            <div class="text">
+                <b>Downloading the @target catalog</b>
+                <span>Still using @Catalog.ActiveSource (@Cards(Catalog.Cards.Count)) until this finishes. Nothing changes on air.@Progress</span>
+            </div>
+            <div class="actions">
+                <button type="button" class="button-secondary" @onclick="Cancel">Cancel</button>
+            </div>
+        </div>
+    }
+    else if (_message is not null)
+    {
+        <div class="box" role="status">
+            <div class="text">
+                <b>@_messageTitle</b>
+                <span>@_message</span>
+            </div>
+        </div>
+    }
+    else if (Catalog.Status.LastFailure is { Source: { } failed } failure)
+    {
+        <div class="box problem" role="status">
+            <div class="text" title="@failure.Reason">
+                <b>Couldn't reach @failed</b>
+                <span>The source is still @Catalog.ActiveSource: @Cards(Catalog.Cards.Count)@FetchedAgo. This is often just no internet, as at a venue. Check the log for details.</span>
+            </div>
+            <div class="actions">
+                <a class="button-secondary" href="/logs">Open the log</a>
+                <button type="button"
+                        class="try-again"
+                        disabled="@(Catalog.NotBeforeFor(failed) is not null)"
+                        title="@TryAgainTitle(failed)"
+                        @onclick="() => ChooseAsync(failed)">Try again</button>
+            </div>
+        </div>
+    }
+</FormSection>
+
+@code {
+    // Said under the section when a switch was refused, not failed: the catalog is as it was. Cleared by the next choice.
+    private string? _messageTitle;
+
+    private string? _message;
+
+    // Brings the section up to date when a source's wait is over, which nothing else announces.
+    private ITimer? _wake;
+
+    // The source the section shows as chosen: the one being switched to, once its fetch has begun, else the one in use.
+    private CardSourceKind Shown => Catalog.Status.SwitchingTo ?? Catalog.ActiveSource;
+
+    private bool Busy => Catalog.Status.Fetching;
+
+    // Only while a request would go through: not while one is running, not while the source says to wait, and not for
+    // a sample, which has nothing to download.
+    private bool CanRefresh => !Busy && Catalog.NotBefore is null && !Catalog.IsSample(Catalog.ActiveSource);
+
+    // Why it can't be used, when it can't, for whoever points at it.
+    private string? RefreshTitle =>
+        Catalog.IsSample(Catalog.ActiveSource) ? "This is a built-in sample for Development: there is nothing to download."
+        : Busy ? "The catalog is being fetched."
+        : Catalog.NotBefore is { } notBefore ? SettingsLabels.AvailableAgain(notBefore, Time.GetUtcNow())
+        : null;
+
+    // What the saved catalog is: how big, how long ago it was fetched (and when, with its time zone said, since it's
+    // the time of the computer running Riftcaster), and when it may next be.
+    private IReadOnlyList<string> Facts
+    {
+        get
+        {
+            var facts = new List<string>();
+            if (Catalog.Status is { Fetching: true, SwitchingTo: null } status)
+            {
+                facts.Add(status.Progress is { } progress ? $"Updating… page {progress.Page} of {progress.Pages}" : "Updating…");
+            }
+
+            if (Catalog.Cards.Count == 0 || Catalog.FetchedAt is not { } fetchedAt)
+            {
+                facts.Add("No cards yet.");
+            }
+            else
+            {
+                facts.Add($"Catalog size: {Cards(Catalog.Cards.Count)}");
+                facts.Add($"Last fetched: {SettingsLabels.Ago(fetchedAt, Time.GetUtcNow())} ({SettingsLabels.Timestamp(fetchedAt)})");
+            }
+
+            if (Catalog.NotBefore is { } notBefore)
+            {
+                facts.Add($"Next fetch allowed: {SettingsLabels.When(notBefore, Time.GetUtcNow())}");
+            }
+
+            return facts;
+        }
+    }
+
+    // How long ago the catalog was fetched, for the end of a sentence about it, or nothing if it never was.
+    private string FetchedAgo => Catalog.FetchedAt is { } fetchedAt && Catalog.Cards.Count > 0
+        ? $", fetched {SettingsLabels.Ago(fetchedAt, Time.GetUtcNow())}"
+        : "";
+
+    private string Progress => Catalog.Status.Progress is { } progress ? $" Page {progress.Page} of {progress.Pages}." : "";
+
+    private string? TryAgainTitle(CardSourceKind source) =>
+        Catalog.NotBeforeFor(source) is { } notBefore ? SettingsLabels.AvailableAgain(notBefore, Time.GetUtcNow()) : null;
+
+    private static string Cards(int count) => string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{count:N0} card{(count == 1 ? "" : "s")}");
+
+    protected override void OnInitialized()
+    {
+        Catalog.StatusChanged += OnCatalogChanged;
+        Catalog.SourceChanged += OnCatalogChanged;
+        ScheduleWake();
+    }
+
+    private async Task ChooseAsync(CardSourceKind source)
+    {
+        _message = null;
+
+        // Choosing the source in use while another is downloading takes the switch back.
+        if (Catalog.Status.SwitchingTo is not null)
+        {
+            if (source == Catalog.ActiveSource)
+            {
+                Catalog.CancelSwitch();
+            }
+
+            return;
+        }
+
+        var result = await Catalog.SwitchSourceAsync(source);
+        switch (result.Outcome)
+        {
+            case CardSwitchOutcome.Busy:
+                _messageTitle = "Not now";
+                _message = "The card catalog is being fetched. Try again when it's done.";
+                break;
+            case CardSwitchOutcome.TooSoon:
+                _messageTitle = $"{source} can't be asked yet";
+                _message = $"It asks to be fetched at most once a day, and Riftcaster keeps to that. {SettingsLabels.AvailableAgain(result.NotBefore!.Value, Time.GetUtcNow())}. The catalog stays {Catalog.ActiveSource}.";
+                break;
+        }
+
+        ScheduleWake();
+    }
+
+    private async Task RefreshAsync()
+    {
+        _message = null;
+        await Catalog.RefreshAsync(CancellationToken.None);
+        ScheduleWake();
+    }
+
+    private void Cancel() => Catalog.CancelSwitch();
+
+    // When the source in use says to wait, the buttons it dims come back at the moment the wait is over.
+    private void ScheduleWake()
+    {
+        _wake?.Dispose();
+        _wake = null;
+
+        if (Catalog.NotBefore is { } notBefore && notBefore > Time.GetUtcNow())
+        {
+            _wake = Time.CreateTimer(
+                _ => _ = InvokeAsync(() =>
+                {
+                    ScheduleWake();
+                    StateHasChanged();
+                }),
+                null,
+                notBefore - Time.GetUtcNow() + TimeSpan.FromSeconds(1),
+                Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private void OnCatalogChanged()
+    {
+        _ = InvokeAsync(() =>
+        {
+            ScheduleWake();
+            StateHasChanged();
+        });
+    }
+
+    public void Dispose()
+    {
+        Catalog.StatusChanged -= OnCatalogChanged;
+        Catalog.SourceChanged -= OnCatalogChanged;
+        _wake?.Dispose();
+    }
+}
