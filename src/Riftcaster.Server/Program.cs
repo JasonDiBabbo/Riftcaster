@@ -37,6 +37,19 @@ public partial class Program
     /// </summary>
     public const string PortSetting = "Launcher:Port";
 
+    /// <summary>
+    /// The setting that makes a copy being developed ask RiftHunt for its catalog, as any other does: otherwise
+    /// Development reads the sample built into Riftcaster, so that working on it sends RiftHunt no requests.
+    /// </summary>
+    public const string RiftHuntLiveSetting = "CardSources:RiftHunt:Live";
+
+    /// <summary>
+    /// Whether the catalog is fetched from RiftHunt itself: always, except in Development without the setting.
+    /// </summary>
+    /// <param name="development">Whether the app runs in the Development environment.</param>
+    /// <param name="liveSetting">Whether <see cref="RiftHuntLiveSetting"/> is on.</param>
+    internal static bool RiftHuntIsLive(bool development, bool liveSetting) => !development || liveSetting;
+
     private static int Main(string[] args)
     {
         var app = CreateApp(args);
@@ -206,29 +219,80 @@ public partial class Program
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<TimerService>();
 
-        builder.Services.AddSingleton<ICardStore>(services => new JsonFileCardStore(
-            Path.Combine(dataDirectory, "cards.json"),
-            services.GetRequiredService<ILogger<JsonFileCardStore>>()));
-        builder.Services.AddSingleton<ICardSource>(services => new RiftcodexCardSource(
-            new HttpClient(new SocketsHttpHandler
-            {
-                // The client lives as long as the app, so refresh its connections now and then
-                // to pick up DNS changes.
-                PooledConnectionLifetime = TimeSpan.FromMinutes(15),
-            })
-            {
-                BaseAddress = new Uri("https://api.riftcodex.com/"),
-                // Per request: one page of 100 cards can take half a minute.
-                Timeout = TimeSpan.FromMinutes(2),
-                // Riftcodex refuses requests without a User-Agent.
-                DefaultRequestHeaders =
-                {
-                    UserAgent = { new ProductInfoHeaderValue("Riftcaster", services.GetRequiredService<ServerIdentity>().Version) },
-                },
-            },
-            services.GetRequiredService<TimeProvider>(),
-            services.GetRequiredService<ILogger<RiftcodexCardSource>>()));
-        builder.Services.AddSingleton<CardCatalog>();
+        // The card databases the catalog can come from, each keeping its own saved catalog (cards.riftcodex.json and
+        // cards.rifthunt.json), and what each remembers about its fetches between runs (RiftHunt may only be asked once a day).
+        builder.Services.AddSingleton<ICardFetchHistory>(services => new JsonFileCardFetchHistory(
+            Path.Combine(dataDirectory, "cardSources.json"),
+            services.GetRequiredService<ILogger<JsonFileCardFetchHistory>>()));
+
+        // RiftHunt is only asked for its catalog by a copy that isn't being developed: in Development the sample built
+        // into Riftcaster is read instead, unless CardSources:RiftHunt:Live is on, so that running the server while
+        // working on it doesn't send RiftHunt requests.
+        var riftHuntLive = RiftHuntIsLive(builder.Environment.IsDevelopment(), builder.Configuration.GetValue<bool>(RiftHuntLiveSetting));
+
+        builder.Services.AddSingleton(services => new CardSourceSet(
+            (
+                CardSourceKind.Riftcodex,
+                new RiftcodexCardSource(
+                    new HttpClient(new SocketsHttpHandler
+                    {
+                        // The client lives as long as the app, so refresh its connections now and then
+                        // to pick up DNS changes.
+                        PooledConnectionLifetime = TimeSpan.FromMinutes(15),
+                    })
+                    {
+                        BaseAddress = new Uri("https://api.riftcodex.com/"),
+                        // Per request: one page of 100 cards can take half a minute.
+                        Timeout = TimeSpan.FromMinutes(2),
+                        // Riftcodex refuses requests without a User-Agent.
+                        DefaultRequestHeaders =
+                        {
+                            UserAgent = { new ProductInfoHeaderValue("Riftcaster", services.GetRequiredService<ServerIdentity>().Version) },
+                        },
+                    },
+                    services.GetRequiredService<TimeProvider>(),
+                    services.GetRequiredService<ILogger<RiftcodexCardSource>>()),
+                new JsonFileCardStore(
+                    CardCatalogFiles.RiftcodexPath(dataDirectory, services.GetRequiredService<ILogger<CardSourceSet>>()),
+                    services.GetRequiredService<ILogger<JsonFileCardStore>>())),
+            (
+                CardSourceKind.RiftHunt,
+                riftHuntLive
+                    ? new RiftHuntCardSource(
+                        new HttpClient(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(15) })
+                        {
+                            BaseAddress = new Uri("https://api.rifthunt.com/"),
+                            Timeout = TimeSpan.FromMinutes(1),
+                            // RiftHunt asks every client to say who it is: a project that behaves is written to, and
+                            // one that doesn't is blocked.
+                            DefaultRequestHeaders =
+                            {
+                                UserAgent =
+                                {
+                                    new ProductInfoHeaderValue("Riftcaster", services.GetRequiredService<ServerIdentity>().Version),
+                                    new ProductInfoHeaderValue("(+https://github.com/JasonDiBabbo/Riftcaster)"),
+                                },
+                            },
+                        },
+                        services.GetRequiredService<ICardFetchHistory>(),
+                        services.GetRequiredService<TimeProvider>(),
+                        services.GetRequiredService<ILogger<RiftHuntCardSource>>())
+                    : new RiftHuntSampleCardSource(services.GetRequiredService<ILogger<RiftHuntSampleCardSource>>()),
+                new JsonFileCardStore(
+                    // The sample's own file: its 34 cards must not be taken for RiftHunt's when it's asked for real.
+                    Path.Combine(dataDirectory, riftHuntLive ? CardCatalogFiles.RiftHunt : CardCatalogFiles.RiftHuntSample),
+                    services.GetRequiredService<ILogger<JsonFileCardStore>>()))));
+
+        // In use from the source chosen on the Settings page, which a switch to another changes once its catalog is there.
+        builder.Services.AddSingleton(services =>
+        {
+            return new CardCatalog(
+                services.GetRequiredService<CardSourceSet>(),
+                services.GetRequiredService<AppSettingsService>().Settings.Cards.Source,
+                services.GetRequiredService<TimeProvider>(),
+                services.GetRequiredService<ILogger<CardCatalog>>());
+        });
+        builder.Services.AddHostedService<CardSourceFollower>();
         builder.Services.AddHostedService<CardCatalogRefresher>();
 
         builder.Services.AddSingleton<IFeaturedCardStore>(services => new JsonFileFeaturedCardStore(
@@ -267,6 +331,7 @@ public partial class Program
         app.MapMatch();
         app.MapPlayers();
         app.MapSettings();
+        app.MapCardCatalog();
         app.MapTimer();
         app.MapRestApiDocs();
         app.MapStaticAssets();

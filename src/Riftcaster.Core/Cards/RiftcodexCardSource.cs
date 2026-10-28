@@ -175,7 +175,7 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
             return null;
         }
 
-        var cardType = ToType(type, unknown);
+        var cardType = CardFieldMapping.ToType(type, unknown);
         var (displayName, variant) = RiftcodexNames.Normalize(name, cardType, item.Tags);
 
         return new Card(
@@ -184,44 +184,12 @@ public sealed class RiftcodexCardSource(HttpClient http, TimeProvider time, ILog
             displayName,
             variant,
             cardType,
-            item.Classification.Supertype is { } supertype ? ToSupertype(supertype, unknown) : null,
+            item.Classification.Supertype is { } supertype ? CardFieldMapping.ToSupertype(supertype, unknown) : null,
             string.Join(" / ", item.Classification.Domain ?? []),
             item.Attributes?.Energy,
             set,
             imageUrl,
             Landscape: item.Orientation == "landscape");
-    }
-
-    // Riftcodex's names for types and supertypes, mapped explicitly rather than parsed, so ours don't
-    // have to match its spelling.
-    private static CardType ToType(string type, ISet<string> unknown)
-    {
-        switch (type)
-        {
-            case "Unit": return CardType.Unit;
-            case "Spell": return CardType.Spell;
-            case "Legend": return CardType.Legend;
-            case "Gear": return CardType.Gear;
-            case "Battlefield": return CardType.Battlefield;
-            case "Rune": return CardType.Rune;
-            default:
-                unknown.Add(type);
-                return CardType.Other;
-        }
-    }
-
-    private static CardSupertype ToSupertype(string supertype, ISet<string> unknown)
-    {
-        switch (supertype)
-        {
-            case "Champion": return CardSupertype.Champion;
-            case "Signature": return CardSupertype.Signature;
-            case "Basic": return CardSupertype.Basic;
-            case "Token": return CardSupertype.Token;
-            default:
-                unknown.Add(supertype);
-                return CardSupertype.Other;
-        }
     }
 
     // The parts of Riftcodex's response this uses. Everything is nullable, so a card missing a

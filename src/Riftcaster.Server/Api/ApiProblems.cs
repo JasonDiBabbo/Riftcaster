@@ -17,6 +17,13 @@ internal static class ApiProblems
         TypedResults.NotFound(new ProblemDetails { Status = StatusCodes.Status404NotFound, Title = "Not found", Detail = detail });
 
     /// <summary>
+    /// A 409 for a request that can't be done in the state things are in.
+    /// </summary>
+    /// <param name="detail">Why not, for example "The card catalog is already being fetched."</param>
+    public static Conflict<ProblemDetails> Conflict(string detail) =>
+        TypedResults.Conflict(new ProblemDetails { Status = StatusCodes.Status409Conflict, Title = "Conflict", Detail = detail });
+
+    /// <summary>
     /// A 400 for one invalid field, in the same shape as the validation of request bodies.
     /// </summary>
     /// <param name="field">The field's JSON name, for example "points".</param>

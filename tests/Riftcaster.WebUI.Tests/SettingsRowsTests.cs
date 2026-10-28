@@ -2,6 +2,7 @@ using Bunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Riftcaster.Contracts;
+using Riftcaster.Core.Cards;
 using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Settings;
@@ -26,6 +27,7 @@ public class SettingsRowsTests : BunitContext
         updates.Attach(new NoUpdates(), () => { });
         Services.AddSingleton(updates);
         Services.AddSingleton(TimeProvider.System);
+        Services.AddSingleton(new CardCatalog(new InMemoryCardStore(), new InMemoryCardSource(), TimeProvider.System, NullLogger<CardCatalog>.Instance));
         Services.AddSingleton(new PortOrigin(PortSource.Default));
         Services.AddSingleton(new PortSwitcher(network, settings, (_, _) => Task.FromResult(true), TimeProvider.System, NullLogger<PortSwitcher>.Instance));
         Services.AddSingleton(new LogFolderOpener(new LogFolder(Path.GetTempPath()), () => true, _ => { }, NullLogger<LogFolderOpener>.Instance));
@@ -51,6 +53,15 @@ public class SettingsRowsTests : BunitContext
             description?.QuerySelector(".note-inline")?.Remove();
             return (row.QuerySelector(".title")!.TextContent.Trim(), description?.TextContent.Trim());
         })];
+    }
+
+    [Fact]
+    public void EveryCardCatalogRowSaysWhatItDoes()
+    {
+        var rows = RowsOf<CardCatalogSection>();
+
+        Assert.Equal(["Catalog source", "Saved catalog"], rows.Select(row => row.Title));
+        Assert.All(rows, row => Assert.False(string.IsNullOrWhiteSpace(row.Description), $"{row.Title} has no description"));
     }
 
     [Fact]
@@ -93,7 +104,7 @@ public class SettingsRowsTests : BunitContext
     [Fact]
     public void NoDescriptionIsAboutWhenItApplies()
     {
-        var rows = RowsOf<MatchDefaultsSection>().Concat(RowsOf<ServerSection>()).Concat(RowsOf<LoggingSection>()).Concat(RowsOf<UpdatesSection>());
+        var rows = RowsOf<CardCatalogSection>().Concat(RowsOf<MatchDefaultsSection>()).Concat(RowsOf<ServerSection>()).Concat(RowsOf<LoggingSection>()).Concat(RowsOf<UpdatesSection>());
 
         Assert.All(rows, row => Assert.DoesNotContain("Applies", row.Description!));
     }
@@ -121,6 +132,14 @@ public class SettingsRowsTests : BunitContext
         var notes = section.FindAll(".control .note").Select(note => note.TextContent.Trim());
 
         Assert.Equal(["Applies immediately", "Applies to the next check"], notes);
+    }
+
+    [Fact]
+    public void TheCardCatalogRefreshSaysCardsKeepWorking()
+    {
+        var section = Render<CardCatalogSection>(AsLocal<CardCatalogSection>());
+
+        Assert.Equal("Previously downloaded cards continue working while new downloads process.", section.Find(".control .note").TextContent.Trim());
     }
 
     [Fact]

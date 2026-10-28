@@ -206,6 +206,28 @@ public class PlayersService
         }
     }
 
+    /// <summary>
+    /// Swaps each player's legend, champion and battlefield for the same card from another catalog, as its source
+    /// changes: the choices are copies of cards with the old source's ids, so this keeps them the catalog's own.
+    /// </summary>
+    /// <param name="equivalent">Finds the same card in the new catalog, or <see langword="null"/> if there isn't one: the card stays as it was.</param>
+    public void ReplaceCards(Func<Card, Card?> equivalent)
+    {
+        ArgumentNullException.ThrowIfNull(equivalent);
+
+        Card? Swap(Card? card) => card is not null && equivalent(card) is { } found ? found : card;
+
+        Apply(state => state with
+        {
+            Players = [.. state.Players.Select(player => player with
+            {
+                Legend = Swap(player.Legend),
+                Champion = Swap(player.Champion),
+                Battlefield = Swap(player.Battlefield),
+            })],
+        });
+    }
+
     private void Apply(Func<PlayersState, PlayersState> change)
     {
         lock (_lock)
