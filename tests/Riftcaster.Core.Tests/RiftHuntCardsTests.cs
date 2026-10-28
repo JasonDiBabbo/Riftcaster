@@ -43,6 +43,27 @@ public class RiftHuntCardsTests
         return await new RiftHuntCardSource(http, history, TimeProvider.System, logger ?? NullLogger<RiftHuntCardSource>.Instance).FetchAllAsync(null, CancellationToken.None);
     }
 
+    // So the web interface can say it's a stand-in, and dim what would download nothing.
+    [Fact]
+    public void TheSample_SaysItIsASample_AndTheRealSourceDoesNot()
+    {
+        ICardSource sample = new RiftHuntSampleCardSource(Quiet);
+        ICardSource real = new RiftHuntCardSource(new HttpClient(new ThrowingHandler()), new InMemoryCardFetchHistory(), TimeProvider.System, NullLogger<RiftHuntCardSource>.Instance);
+
+        Assert.True(sample.IsSample);
+        Assert.False(real.IsSample);
+        Assert.Null(sample.NotBefore);
+    }
+
+    [Fact]
+    public void TheSampleFile_IsTheOneTheSourceReads()
+    {
+        var json = RiftHuntSampleCardSource.SampleJson();
+
+        Assert.Contains("\"cards\"", json);
+        Assert.Contains("Kai'Sa, Daughter of the Void", json);
+    }
+
     [Fact]
     public async Task TheSample_HasTheCardsWithCardArt_AndNotTheThreeWithAProductPhoto()
     {

@@ -22,8 +22,8 @@ public sealed class RiftHuntSampleCardSource(ILogger<RiftHuntSampleCardSource> l
     /// </summary>
     public static string SampleJson()
     {
-        using var stream = typeof(RiftHuntSampleCardSource).Assembly.GetManifestResourceStream(ResourceName)
-            ?? throw new InvalidOperationException($"{ResourceName} isn't built into Riftcaster.Core.");
+        // Built into Riftcaster.Core (see its project file), so it's always there.
+        using var stream = typeof(RiftHuntSampleCardSource).Assembly.GetManifestResourceStream(ResourceName)!;
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
