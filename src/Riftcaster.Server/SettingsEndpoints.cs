@@ -47,6 +47,7 @@ public static class SettingsEndpoints
                         Mode = change.Updates?.Mode ?? current.Updates.Mode,
                         Channel = change.Updates?.Channel ?? current.Updates.Channel,
                     },
+                    Startup = current.Startup with { OpenWebUI = change.Startup?.OpenWebUI ?? current.Startup.OpenWebUI },
                     MatchDefaults = change.MatchDefaults is { } rules ? rules.ApplyTo(current.MatchDefaults ?? MatchRules.Default) : current.MatchDefaults,
                 });
                 return TypedResults.Ok(service.Settings);
@@ -63,12 +64,19 @@ public static class SettingsEndpoints
 /// </summary>
 /// <param name="Logging">Changes to the logging settings.</param>
 /// <param name="Updates">Changes to what Riftcaster does about newer versions.</param>
+/// <param name="Startup">Changes to what Riftcaster does when it starts.</param>
 /// <param name="MatchDefaults">
 /// Changes to the match defaults, the rules that resetting the match settings gives it. The fields
 /// are those of <c>PATCH /api/match</c>, with the same limits. Only the fields sent change, from the
 /// design's defaults the first time.
 /// </param>
-public record AppSettingsChange(LoggingSettingsChange? Logging = null, MatchSettingsChange? MatchDefaults = null, UpdateSettingsChange? Updates = null);
+public record AppSettingsChange(LoggingSettingsChange? Logging = null, MatchSettingsChange? MatchDefaults = null, UpdateSettingsChange? Updates = null, StartupSettingsChange? Startup = null);
+
+/// <summary>
+/// Changes to the startup settings. Leave out a field, or send null, to keep it as it is.
+/// </summary>
+/// <param name="OpenWebUI">Whether starting Riftcaster opens its web interface. Takes effect the next time it starts.</param>
+public record StartupSettingsChange(bool? OpenWebUI = null);
 
 /// <summary>
 /// Changes to the logging settings. Leave out a field, or send null, to keep it as it is.

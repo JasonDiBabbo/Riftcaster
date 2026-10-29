@@ -76,6 +76,11 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
     public static string RunningVersion { get; } =
         (typeof(Updates).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0").Split('+')[0];
 
+    /// <summary>
+    /// Whether this copy was installed by Setup.exe or unzipped from the portable zip, rather than run from a build folder.
+    /// </summary>
+    public bool IsInstalled => _installed;
+
     /// <inheritdoc />
     public string? DownloadedVersion => _ready?.Version.ToString();
 

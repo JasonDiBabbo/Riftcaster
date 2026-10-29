@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Diagnostics;
+using Riftcaster.Core.Startup;
 using Riftcaster.Core.Updates;
 
 namespace Riftcaster.Server.Tests;
@@ -33,6 +34,34 @@ public class SettingsApiTests(RiftcasterWebApplicationFactory factory) : IClassF
 
         Assert.Equal(before.Server.Port, settings.Server.Port);
         Assert.NotEqual(6000, (await _api.GetAsync<AppSettings>("/api/settings")).Server.Port);
+    }
+
+    // Whether starting Riftcaster opens the web interface: saved, for the Windows app to read when it starts.
+    [Fact]
+    public async Task PatchSettings_ChangesWhetherTheWebInterfaceOpensOnLaunch()
+    {
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "startup": { "openWebUI": true } }""");
+
+        var settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "startup": { "openWebUI": false } }""");
+
+        Assert.False(settings.Startup.OpenWebUI);
+        Assert.False(factory.Services.GetRequiredService<StartupService>().OpenWebUI);
+
+        settings = await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "logging": { "detail": "Normal" } }""");
+
+        Assert.False(settings.Startup.OpenWebUI); // Not sent, so kept
+
+        await _api.SendAsync<AppSettings>(HttpMethod.Patch, "/api/settings", """{ "startup": { "openWebUI": true } }""");
+    }
+
+    // The console server has no tray app to start with Windows: the Windows app attaches the entry, and without it the section is left out.
+    [Fact]
+    public void WithoutTheWindowsApp_TheServerCannotStartWithWindows()
+    {
+        var startup = factory.Services.GetRequiredService<StartupService>();
+
+        Assert.Equal(StartupAvailability.ConsoleServer, startup.Availability);
+        Assert.False(startup.StartsWithWindows);
     }
 
     // What Riftcaster does about newer versions: changed from any device, and at once.

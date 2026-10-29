@@ -33,4 +33,7 @@ public record AppSettings
 
     /// <summary>Which card database the catalog comes from.</summary>
     public CardSettings Cards { get; init; } = new();
+
+    /// <summary>What Riftcaster does when it starts.</summary>
+    public StartupSettings Startup { get; init; } = new();
 }
