@@ -389,7 +389,7 @@ public class PortSwitcherTests
     [Fact]
     public void TheDefaultTimings_AreLongEnoughForTheOldPortToClose()
     {
-        // Moving takes a few seconds while anything is connected, so it waits much longer than that.
+        // Moving takes about 5 seconds with the web interface open (3 of them the old port closing), so it waits twice that.
         Assert.True(PortSwitcher.DefaultTimeout >= TimeSpan.FromSeconds(10));
         Assert.True(PortSwitcher.DefaultGrace >= TimeSpan.FromMilliseconds(500));
         Assert.True(PortSwitcher.DefaultPoll <= TimeSpan.FromSeconds(1));

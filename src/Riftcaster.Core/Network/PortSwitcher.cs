@@ -43,10 +43,12 @@ public sealed class PortSwitcher
     public static readonly TimeSpan DefaultGrace = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// How long to wait for the server to answer on a port after moving to it. Moving takes a few seconds
-    /// while anything is connected: the old port is closed gracefully first.
+    /// How long to wait for the server to answer on a port after moving to it, before going back to the old
+    /// one: so also how long a switch that failed takes to be given up on. Moving takes about 5 seconds with the
+    /// web interface open (measured: the old port is closed gracefully first, which waits at most
+    /// <c>Program.ShutdownTimeout</c>, 3 seconds), so this is twice that.
     /// </summary>
-    public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
+    public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(10);
 
     /// <summary>
     /// How often to ask while waiting.
