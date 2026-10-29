@@ -18,6 +18,10 @@ namespace Riftcaster.Windows;
 /// Task Manager's Disable doesn't remove the Run value: it records in <c>StartupApproved</c> that Windows
 /// shouldn't run it. An entry that's disabled there counts as off here, and turning it on enables it again.
 /// </para>
+/// <para>
+/// There is one entry, whatever copy of Riftcaster made it, so it's this copy's only if it points at this
+/// exe: one that points elsewhere counts as off, turning it on takes it over, and removing leaves it be.
+/// </para>
 /// </remarks>
 internal sealed class RunEntry : IStartupEntry
 {
@@ -33,7 +37,7 @@ internal sealed class RunEntry : IStartupEntry
         get
         {
             using var run = Registry.CurrentUser.OpenSubKey(RunKey);
-            return run?.GetValue(ValueName) is string && !IsDisabled();
+            return PointsHere(run?.GetValue(ValueName)) && !IsDisabled();
         }
     }
 
@@ -62,11 +66,20 @@ internal sealed class RunEntry : IStartupEntry
     {
         using (var run = Registry.CurrentUser.OpenSubKey(RunKey, writable: true))
         {
-            run?.DeleteValue(ValueName, throwOnMissingValue: false);
+            if (!PointsHere(run?.GetValue(ValueName)))
+            {
+                return; // Another copy's, or none
+            }
+
+            run!.DeleteValue(ValueName, throwOnMissingValue: false);
         }
 
         ClearDisabled();
     }
+
+    // What Set writes: this exe's path in quotes.
+    private static bool PointsHere(object? value) =>
+        value is string command && string.Equals(command.Trim('"'), Environment.ProcessPath, StringComparison.OrdinalIgnoreCase);
 
     // Windows writes 12 bytes there: the first is 2 (or 6) for enabled and 3 for disabled.
     private static bool IsDisabled()

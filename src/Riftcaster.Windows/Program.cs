@@ -93,10 +93,14 @@ static class Program
             using var tray = new TrayContext(webUI, logFolder, updateService);
             updates.Start(tray.RestartToUpdate);
 
-            // An entry that starts Riftcaster at sign-in only makes sense for an installed copy: a build folder is
-            // replaced, and an unzipped one can be moved.
+            // An entry that starts Riftcaster at sign-in only makes sense for a copy installed by Setup.exe: a build
+            // folder is replaced, and a portable copy can be moved, and would take the installed copy's entry.
             var startup = server.Services.GetRequiredService<StartupService>();
-            if (updates.IsInstalled)
+            if (updates.IsPortable)
+            {
+                startup.Unavailable(StartupAvailability.Portable);
+            }
+            else if (updates.IsInstalled)
             {
                 startup.Attach(new RunEntry());
             }

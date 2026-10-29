@@ -53,9 +53,12 @@
     // Only the computer running Riftcaster, as with the port: this is a choice about that computer's own sign-in.
     private bool CanChangeWindows => Session.IsLocal && Startup.Availability == StartupAvailability.Available;
 
-    private string WindowsDescription => Startup.Availability == StartupAvailability.NotInstalled
-        ? "Starts in the tray when you sign in. Available once Riftcaster is installed with Setup.exe."
-        : "Starts in the tray when you sign in.";
+    private string WindowsDescription => Startup.Availability switch
+    {
+        StartupAvailability.NotInstalled => "Starts in the tray when you sign in. Available once Riftcaster is installed with Setup.exe.",
+        StartupAvailability.Portable => "Starts in the tray when you sign in. Not available in the portable copy, which can be moved: install Riftcaster with Setup.exe for this.",
+        _ => "Starts in the tray when you sign in.",
+    };
 
     private void SetStartsWithWindows(bool on)
     {
