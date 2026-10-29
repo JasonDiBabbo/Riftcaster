@@ -34,6 +34,11 @@
   display: none;
 }
 
+.toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .track {
   flex: none;
   display: flex;

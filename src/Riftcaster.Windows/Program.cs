@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Riftcaster.Core.Diagnostics;
 using Riftcaster.Core.Network;
 using Riftcaster.Core.Settings;
+using Riftcaster.Core.Startup;
 using Riftcaster.Core.Updates;
 using Riftcaster.Server;
 using Velopack;
@@ -16,8 +17,9 @@ namespace Riftcaster.Windows;
 static class Program
 {
     /// <summary>
-    /// The setting that opens the web interface on starting, true unless set: started from the Start
-    /// menu or after installing, Riftcaster shows its web interface rather than only an icon by the clock.
+    /// The launch option that decides whether the web interface opens on starting, for that run only. Without it, the
+    /// Settings page's choice does, which is to open it unless set: started from the Start menu or after installing,
+    /// Riftcaster shows its web interface rather than only an icon by the clock.
     /// </summary>
     public const string OpenWebUISetting = "Launcher:OpenWebUI";
 
@@ -36,7 +38,12 @@ static class Program
         // Not applying a downloaded update on the next start, which Velopack does by default: whether it's
         // installed is the updates setting's to say (see Updates.InstallOnExit), and Ask first and Off would
         // otherwise be overridden by simply starting Riftcaster again.
-        VelopackApp.Build().SetAutoApplyOnStartup(false).Run();
+        //
+        // Uninstalling also takes the sign-in entry (Start with Windows) with it, so nothing is left pointing at an exe that's gone.
+        VelopackApp.Build()
+            .SetAutoApplyOnStartup(false)
+            .OnBeforeUninstallFastCallback(_ => RunEntry.Remove())
+            .Run();
 
         ApplicationConfiguration.Initialize(); // Before any window, the error message included
 
@@ -86,7 +93,20 @@ static class Program
             using var tray = new TrayContext(webUI, logFolder, updateService);
             updates.Start(tray.RestartToUpdate);
 
-            if (configuration.GetValue(OpenWebUISetting, defaultValue: true))
+            // An entry that starts Riftcaster at sign-in only makes sense for an installed copy: a build folder is
+            // replaced, and an unzipped one can be moved.
+            var startup = server.Services.GetRequiredService<StartupService>();
+            if (updates.IsInstalled)
+            {
+                startup.Attach(new RunEntry());
+            }
+            else
+            {
+                startup.Unavailable(StartupAvailability.NotInstalled);
+            }
+
+            // A launch option decides for this run; otherwise the Settings page's choice does.
+            if (configuration.GetValue<bool?>(OpenWebUISetting) ?? startup.OpenWebUI)
             {
                 TrayContext.OpenWebUI(webUI());
             }

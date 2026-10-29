@@ -13,6 +13,7 @@ using Riftcaster.Core.Network;
 using Riftcaster.Core.Overlays;
 using Riftcaster.Core.Players;
 using Riftcaster.Core.Settings;
+using Riftcaster.Core.Startup;
 using Riftcaster.Core.Timer;
 using Riftcaster.Core.Updates;
 using Riftcaster.Server.Api;
@@ -172,6 +173,13 @@ public partial class Program
             InstalledFolder.HasUpdater(AppContext.BaseDirectory) ? UpdateAvailability.ConsoleInInstalledFolder : UpdateAvailability.FromSource,
             TimeProvider.System,
             services.GetRequiredService<ILogger<UpdateService>>()));
+
+        // What the Settings page says about starting with Windows. The Windows app attaches the entry that does it;
+        // the console server has none, and the page leaves the section out.
+        builder.Services.AddSingleton(services => new StartupService(
+            services.GetRequiredService<AppSettingsService>(),
+            StartupAvailability.ConsoleServer,
+            services.GetRequiredService<ILogger<StartupService>>()));
 
         // Moves the server to another port while it runs. It checks that it worked by asking the new port who it is:
         // /api/info's start time is this server's, and no other program's.

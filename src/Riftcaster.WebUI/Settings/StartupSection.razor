@@ -1,0 +1,89 @@
+@using Riftcaster.Core.Settings
+@using Riftcaster.Core.Startup
+@implements IDisposable
+@inject AppSettingsService Service
+@inject StartupService Startup
+
+@* The console server has no tray app to start, and nothing that opens a browser: the section is for the Windows app. *@
+@if (Startup.Availability != StartupAvailability.ConsoleServer)
+{
+    <FormSection Title="Startup">
+        <SettingRow Title="Start with Windows"
+                    Description="@WindowsDescription"
+                    Note="Applies immediately">
+            <Toggle Bare
+                    Label="Start with Windows"
+                    Disabled="!CanChangeWindows"
+                    @bind-Value:get="Startup.StartsWithWindows"
+                    @bind-Value:set="SetStartsWithWindows" />
+        </SettingRow>
+
+        @if (_problem is not null)
+        {
+            <p class="problem" role="status">@_problem</p>
+        }
+
+        @* Alone in its own container, so it has no rule under it: a row only goes without one when it's the last. *@
+        <div>
+            <SettingRow Title="Open the web interface on launch"
+                        Description="Opens a browser tab each time Riftcaster starts. A --Launcher:OpenWebUI launch option overrides it."
+                        Note="Applies at the next start">
+                <Toggle Bare
+                        Label="Open the web interface on launch"
+                        Disabled="!Session.IsLocal"
+                        @bind-Value:get="Startup.OpenWebUI"
+                        @bind-Value:set="value => Service.Update(settings => settings with { Startup = settings.Startup with { OpenWebUI = value } })" />
+            </SettingRow>
+        </div>
+
+        @if (!Session.IsLocal)
+        {
+            <div class="explanation" role="status">Only the computer running Riftcaster can change startup settings.</div>
+        }
+    </FormSection>
+}
+
+@code {
+    [CascadingParameter]
+    public OperatorSession Session { get; set; } = null!;
+
+    // Windows refused the change, such as a policy that locks the Run list.
+    private string? _problem;
+
+    // Only the computer running Riftcaster, as with the port: this is a choice about that computer's own sign-in.
+    private bool CanChangeWindows => Session.IsLocal && Startup.Availability == StartupAvailability.Available;
+
+    private string WindowsDescription => Startup.Availability == StartupAvailability.NotInstalled
+        ? "Starts in the tray when you sign in. Available once Riftcaster is installed with Setup.exe."
+        : "Starts in the tray when you sign in.";
+
+    private void SetStartsWithWindows(bool on)
+    {
+        // The toggle is disabled for other devices, but the handler is what the server runs.
+        if (!CanChangeWindows)
+        {
+            return;
+        }
+
+        _problem = Startup.SetStartsWithWindows(on)
+            ? null
+            : $"Windows wouldn't let Riftcaster {(on ? "add itself to" : "remove itself from")} the programs that start when you sign in. Check the log for details.";
+    }
+
+    protected override void OnInitialized()
+    {
+        Service.Changed += OnChanged;
+        Startup.Changed += OnChanged;
+    }
+
+    private void OnChanged()
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Service.Changed -= OnChanged;
+        Startup.Changed -= OnChanged;
+    }
+}
