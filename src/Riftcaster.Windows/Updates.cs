@@ -62,7 +62,9 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
         _logger = logger;
 
         // Whether this copy is installed doesn't depend on where releases come from, which may be empty.
-        _installed = new UpdateManager(DefaultSource).IsInstalled;
+        var manager = new UpdateManager(DefaultSource);
+        _installed = manager.IsInstalled;
+        IsPortable = manager.IsPortable;
         if (_installed && string.IsNullOrWhiteSpace(_source))
         {
             _logger.LogInformation("Updates are turned off ({Setting} is empty).", Setting);
@@ -80,6 +82,11 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
     /// Whether this copy was installed by Setup.exe or unzipped from the portable zip, rather than run from a build folder.
     /// </summary>
     public bool IsInstalled => _installed;
+
+    /// <summary>
+    /// Whether this copy was unzipped from the portable zip, which can be moved, rather than installed by Setup.exe.
+    /// </summary>
+    public bool IsPortable { get; }
 
     /// <inheritdoc />
     public string? DownloadedVersion => _ready?.Version.ToString();

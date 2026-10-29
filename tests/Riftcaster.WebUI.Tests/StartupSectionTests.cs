@@ -126,6 +126,21 @@ public class StartupSectionTests : BunitContext
         Assert.False(Switch(section, "Open the web interface on launch").HasAttribute("disabled")); // Still the launcher's, installed or not
     }
 
+    // It can be moved or taken off a USB stick, and its entry would replace the installed copy's.
+    [Fact]
+    public void ThePortableCopy_SaysItCannotStartWithWindows_ButStillOpensTheWebInterfaceAsChosen()
+    {
+        var section = RenderSection(StartupAvailability.Portable);
+
+        Assert.True(Switch(section, "Start with Windows").HasAttribute("disabled"));
+        Assert.Contains("Not available in the portable copy", section.Markup);
+        Assert.Contains("install Riftcaster with Setup.exe", section.Markup);
+
+        Switch(section, "Open the web interface on launch").Click();
+
+        Assert.False(_settings.Settings.Startup.OpenWebUI);
+    }
+
     [Fact]
     public void OpenTheWebInterface_IsOnUntilChosen_AndIsSaved()
     {
