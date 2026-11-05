@@ -165,6 +165,38 @@ public class CardCatalogSectionTests : BunitContext
     }
 
     [Fact]
+    public async Task WhileTheCatalogIsRefreshing_TheSourceCannotBeChosen_UntilItIsDone()
+    {
+        var section = RenderSection();
+        _codex.Gate = new TaskCompletionSource();
+
+        var refreshing = _catalog.RefreshAsync(CancellationToken.None);
+
+        section.WaitForAssertion(() =>
+        {
+            Assert.True(Segment(section, "Riftcodex").HasAttribute("disabled"));
+            Assert.True(Segment(section, "RiftHunt").HasAttribute("disabled"));
+        });
+        _codex.Gate.SetResult();
+        await refreshing;
+
+        section.WaitForAssertion(() => Assert.False(Segment(section, "RiftHunt").HasAttribute("disabled")));
+    }
+
+    [Fact]
+    public async Task WhileASwitchDownloads_TheSourceInUseCanStillBeChosen_ToTakeItBack()
+    {
+        var section = RenderSection();
+        _hunt.Gate = new TaskCompletionSource();
+
+        var switching = _catalog.SwitchSourceAsync(CardSourceKind.RiftHunt);
+
+        section.WaitForAssertion(() => Assert.False(Segment(section, "Riftcodex").HasAttribute("disabled")));
+        _hunt.Gate.SetResult();
+        await switching;
+    }
+
+    [Fact]
     public async Task ChoosingASourceWithASavedCatalog_SwitchesAtOnce()
     {
         _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow().AddHours(-2)));

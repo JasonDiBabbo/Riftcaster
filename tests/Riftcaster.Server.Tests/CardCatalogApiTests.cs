@@ -134,6 +134,27 @@ public class CardCatalogApiTests
         Assert.Equal(0, factory.RiftHuntSource.FetchCount);
     }
 
+    // The catalog fetches one source at a time, so a second request for a source is refused while the first is still downloading.
+    [Fact]
+    public async Task PutSource_WhileAFetchIsRunning_IsAConflict_AndNothingIsFetchedTwice()
+    {
+        await using var factory = await StartAsync(f =>
+        {
+            f.RiftHuntSource.Cards = [Jinx];
+            f.RiftHuntSource.Gate = new TaskCompletionSource();
+        });
+        var api = Api(factory);
+        await api.SendRawAsync(HttpMethod.Put, "/api/cards/catalog/source", """{ "source": "RiftHunt" }""");
+        await WaitUntilAsync(() => factory.Services.GetRequiredService<CardCatalog>().Status.Fetching);
+
+        var response = await api.SendRawAsync(HttpMethod.Put, "/api/cards/catalog/source", """{ "source": "RiftHunt" }""");
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Contains("being fetched", await response.Content.ReadAsStringAsync());
+        Assert.Equal(1, factory.RiftHuntSource.FetchCount);
+        factory.RiftHuntSource.Gate!.SetResult();
+    }
+
     // Its saved catalog is there, so there's nothing to ask for.
     [Fact]
     public async Task PutSource_OfASourceWithASavedCatalog_IsNotHeldUpByItsWait()

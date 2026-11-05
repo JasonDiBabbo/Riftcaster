@@ -11,6 +11,7 @@
                     Description="Each source keeps its own saved catalog, so switching back is instant. The current catalog stays in use until the new one has downloaded.">
             <SegmentedControl Label="Catalog source"
                               Options="SettingsLabels.CardSourceOptions"
+                              Disabled="Refreshing"
                               @bind-Value:get="Shown"
                               @bind-Value:set="ChooseAsync" />
         </SettingRow>
@@ -96,6 +97,10 @@
     private CardSourceKind Shown => Catalog.Status.SwitchingTo ?? Catalog.ActiveSource;
 
     private bool Busy => Catalog.Status.Fetching;
+
+    // A refresh and a switch can't run together, so while a refresh does the source can't be chosen. A switch leaves the
+    // choice open: choosing the source in use takes it back.
+    private bool Refreshing => Catalog.Status is { Fetching: true, SwitchingTo: null };
 
     // Only while a request would go through: not while one is running, not while the source says to wait, and not for
     // a sample, which has nothing to download.
