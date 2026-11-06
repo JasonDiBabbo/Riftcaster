@@ -37,6 +37,10 @@ public class SettingsRowsTests : BunitContext
     {
         public string? DownloadedVersion => null;
 
+        public void DiscardDownload()
+        {
+        }
+
         public Task<string?> CheckAndDownloadAsync(UpdateChannel channel, CancellationToken cancellationToken) => Task.FromResult<string?>(null);
     }
 

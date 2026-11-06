@@ -28,48 +28,99 @@
                     Note="Applies to the next check">
             <SegmentedControl Label="Update channel"
                               Options="SettingsLabels.UpdateChannelOptions"
-                              @bind-Value:get="Updates.Channel"
-                              @bind-Value:set="value => Service.Update(settings => settings with { Updates = settings.Updates with { Channel = value } })" />
+                              Disabled="_asking is not null"
+                              @bind-Value:get="_asking ?? Updates.Channel"
+                              @bind-Value:set="ChooseChannel" />
         </SettingRow>
 
-        <SettingRow Title="@($"Riftcaster {Updates.RunningVersion}")" Description="@StatusLine">
-            <button type="button" class="button-secondary check" disabled="@(!Updates.CanCheck)" @onclick="Check">Check now</button>
-        </SettingRow>
+        @* A download is from the channel it was found on, so leaving the channel deletes it: that's asked first, and nothing
+           on the page can be used until it's answered. *@
+        <ConfirmDialog Open="_asking is not null"
+                       Title="@($"Switch to the {ChannelName(_asking)} channel?")"
+                       ConfirmText="Switch and delete download"
+                       CancelText="@($"Keep {ChannelName(Updates.Channel)}")"
+                       OnConfirm="ConfirmChannel"
+                       OnCancel="KeepChannel">
+            Version @_askedAbout is downloaded and waiting to install. Switching channels will delete it. Riftcaster will look for the newest @(_asking == UpdateChannel.PreRelease ? "release, including betas," : "Stable release") instead.
+        </ConfirmDialog>
 
-        @if (Updates.Status.ReadyVersion is { } ready)
-        {
-            <div class="@(Updates.Mode == UpdateMode.Off ? "box" : "box ready")" role="status">
-                <div class="text">
-                    @if (Updates.Mode == UpdateMode.Off)
+        <div class="version">
+            <SettingRow Title="@($"Riftcaster {Updates.RunningVersion}")" Description="@StatusLine">
+                <button type="button" class="button-secondary check" disabled="@(!Updates.CanCheck)" @onclick="Check">Check now</button>
+            </SettingRow>
+
+            @if (Updates.Status.ReadyVersion is { } ready)
+            {
+                <div class="@(Updates.Mode == UpdateMode.Off ? "box" : "box ready")" role="status">
+                    <div class="text">
+                        @if (Updates.Mode == UpdateMode.Off)
+                        {
+                            <b>Version @ready won't be installed</b>
+                            <span>It was downloaded before updates were turned off. Switch to Ask first to install it, or leave Updates off to stay on @Updates.RunningVersion.</span>
+                        }
+                        else if (Updates.Mode == UpdateMode.AskFirst)
+                        {
+                            <b>Version @ready is ready</b>
+                            <span>Quitting Riftcaster leaves @Updates.RunningVersion in place. Install it when you're ready.</span>
+                        }
+                        else
+                        {
+                            <b>Ready to install</b>
+                            <span>It installs when Riftcaster quits. Restarting now interrupts any overlays currently on air.</span>
+                        }
+                    </div>
+                    @if (Updates.CanRestartToUpdate && Session.IsLocal)
                     {
-                        <b>Version @ready won't be installed</b>
-                        <span>It was downloaded before updates were turned off. Switch to Ask first to install it, or leave Updates off to stay on @Updates.RunningVersion.</span>
-                    }
-                    else if (Updates.Mode == UpdateMode.AskFirst)
-                    {
-                        <b>Version @ready is ready</b>
-                        <span>Quitting Riftcaster leaves @Updates.RunningVersion in place. Install it when you're ready.</span>
-                    }
-                    else
-                    {
-                        <b>Ready to install</b>
-                        <span>It installs when Riftcaster quits. Restarting now interrupts any overlays currently on air.</span>
+                        <div class="actions">
+                            <button type="button" class="restart" @onclick="Restart">Restart to update</button>
+                        </div>
                     }
                 </div>
-                @if (Updates.CanRestartToUpdate && Session.IsLocal)
-                {
-                    <div class="actions">
-                        <button type="button" class="restart" @onclick="Restart">Restart to update</button>
-                    </div>
-                }
-            </div>
-        }
+            }
+        </div>
     }
 </FormSection>
 
 @code {
     [CascadingParameter]
     public OperatorSession Session { get; set; } = null!;
+
+    // The channel being asked about, while the question is open: shown as chosen, out of reach, until it's answered.
+    // Leaving the page ends the question unanswered, and nothing was changed.
+    private UpdateChannel? _asking;
+
+    // The download that switching would delete, as it was when asked.
+    private string? _askedAbout;
+
+    // Drawn even while nothing is asked, with no channel then.
+    private static string ChannelName(UpdateChannel? channel) =>
+        SettingsLabels.UpdateChannelOptions.Where(option => option.Value == channel).Select(option => option.Label).FirstOrDefault() ?? "";
+
+    private void ChooseChannel(UpdateChannel channel)
+    {
+        if (channel != Updates.Channel && Updates.Status.ReadyVersion is { } ready)
+        {
+            _askedAbout = ready;
+            _asking = channel;
+            return;
+        }
+
+        SaveChannel(channel);
+    }
+
+    private void SaveChannel(UpdateChannel channel) =>
+        Service.Update(settings => settings with { Updates = settings.Updates with { Channel = channel } });
+
+    private void ConfirmChannel()
+    {
+        if (_asking is { } channel)
+        {
+            _asking = null;
+            SaveChannel(channel);
+        }
+    }
+
+    private void KeepChannel() => _asking = null;
 
     private string NotUpdatableTitle => Updates.Availability == UpdateAvailability.FromSource
         ? $"Riftcaster {Updates.RunningVersion} (development build)"

@@ -17,6 +17,14 @@ public class UpdatesSectionTests : BunitContext
     {
         public string? DownloadedVersion { get; set; }
 
+        public int Discards { get; private set; }
+
+        public void DiscardDownload()
+        {
+            Discards++;
+            DownloadedVersion = null;
+        }
+
         public string? Finds { get; set; }
 
         public Exception? Fails { get; set; }
@@ -39,6 +47,14 @@ public class UpdatesSectionTests : BunitContext
     private UpdateService _updates = null!;
 
     private int _restarts;
+
+    private readonly BunitJSModuleInterop _dialogScript;
+
+    public UpdatesSectionTests()
+    {
+        _dialogScript = JSInterop.SetupModule("./_content/Riftcaster.WebUI/Shared/ConfirmDialog.razor.js");
+        _dialogScript.Mode = JSRuntimeMode.Loose;
+    }
 
     private IRenderedComponent<UpdatesSection> RenderSection(
         UpdateAvailability availability = UpdateAvailability.Updatable,
@@ -277,5 +293,120 @@ public class UpdatesSectionTests : BunitContext
         // Would throw if the removed section still tried to render.
         Choose(UpdateMode.Off);
         Assert.NotNull(section);
+    }
+
+    private static UpdateChannel? SavedChannel(AppSettingsService settings) => settings.Settings.Updates.Channel;
+
+    [Fact]
+    public void ChoosingAChannel_WithNothingDownloaded_ChangesAtOnce()
+    {
+        var section = RenderSection();
+
+        Segment(section, "Update channel", "Pre-release").Click();
+
+        Assert.Equal(UpdateChannel.PreRelease, SavedChannel(_settings));
+        Assert.Empty(section.FindAll("dialog"));
+    }
+
+    [Fact]
+    public void ChoosingTheChannelInUse_WithADownload_DoesNotAsk()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var section = RenderSection();
+
+        Segment(section, "Update channel", "Stable").Click();
+
+        Assert.Empty(section.FindAll("dialog"));
+        Assert.Equal(0, _fetcher.Discards);
+    }
+
+    // A download is from the channel it was found on: leaving it deletes it, which is asked first, with nothing else usable.
+    [Fact]
+    public void ChoosingAnotherChannel_WithADownload_AsksFirst_AndChangesNothingYet()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var section = RenderSection();
+
+        Segment(section, "Update channel", "Pre-release").Click();
+
+        var dialog = section.Find("dialog[role='alertdialog']");
+        Assert.True(dialog.HasAttribute("open"));
+        Assert.Equal("Switch to the Pre-release channel?", dialog.QuerySelector(".title")!.TextContent);
+        Assert.Contains("Version 0.3.0 is downloaded and waiting to install. Switching channels will delete it.", dialog.QuerySelector(".text")!.TextContent);
+        Assert.Contains("the newest release, including betas, instead", dialog.QuerySelector(".text")!.TextContent);
+        Assert.Equal("Keep Stable", dialog.QuerySelector(".button-secondary")!.TextContent);
+        Assert.Equal("Switch and delete download", dialog.QuerySelector(".confirm-button")!.TextContent);
+        Assert.Null(SavedChannel(_settings));
+        Assert.Equal(0, _fetcher.Discards);
+
+        // The control behind it shows what was asked for, out of reach.
+        Assert.Equal("true", Segment(section, "Update channel", "Pre-release").GetAttribute("aria-pressed"));
+        Assert.True(Segment(section, "Update channel", "Pre-release").HasAttribute("disabled"));
+        Assert.True(Segment(section, "Update channel", "Stable").HasAttribute("disabled"));
+        Assert.Single(_dialogScript.Invocations["show"]); // Made modal
+    }
+
+    [Fact]
+    public void TheQuestionAndItsButtons_FollowTheDirection()
+    {
+        _fetcher.DownloadedVersion = "0.3.1-beta.2";
+        var section = RenderSection(version: "0.3.1-beta.1");
+
+        Segment(section, "Update channel", "Stable").Click();
+
+        var dialog = section.Find("dialog");
+        Assert.Equal("Switch to the Stable channel?", dialog.QuerySelector(".title")!.TextContent);
+        Assert.Contains("Version 0.3.1-beta.2 is downloaded", dialog.QuerySelector(".text")!.TextContent);
+        Assert.Contains("the newest Stable release instead", dialog.QuerySelector(".text")!.TextContent);
+        Assert.Equal("Keep Pre-release", dialog.QuerySelector(".button-secondary")!.TextContent);
+    }
+
+    [Fact]
+    public void Confirming_SwitchesTheChannel_AndDeletesTheDownload()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var section = RenderSection();
+        Segment(section, "Update channel", "Pre-release").Click();
+
+        section.Find("dialog .confirm-button").Click();
+
+        Assert.Equal(UpdateChannel.PreRelease, SavedChannel(_settings));
+        Assert.Equal(1, _fetcher.Discards);
+        Assert.Empty(section.FindAll("dialog"));
+        Assert.False(Segment(section, "Update channel", "Stable").HasAttribute("disabled"));
+        Assert.Equal("true", Segment(section, "Update channel", "Pre-release").GetAttribute("aria-pressed"));
+        Assert.Empty(section.FindAll(".box")); // Nothing is ready any more
+    }
+
+    [Fact]
+    public void Keeping_LeavesTheChannelAndTheDownloadAsTheyWere()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var section = RenderSection();
+        Segment(section, "Update channel", "Pre-release").Click();
+
+        section.Find("dialog .button-secondary").Click();
+
+        Assert.Null(SavedChannel(_settings));
+        Assert.Equal(0, _fetcher.Discards);
+        Assert.Empty(section.FindAll("dialog"));
+        Assert.Equal("true", Segment(section, "Update channel", "Stable").GetAttribute("aria-pressed"));
+        Assert.False(Segment(section, "Update channel", "Pre-release").HasAttribute("disabled"));
+        Assert.Contains("Ready to install", section.Markup);
+    }
+
+    // Going to another page disposes this one: the question goes unanswered, which changes nothing.
+    [Fact]
+    public async Task LeavingThePage_WhileItIsAsked_CancelsTheSwitch()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var section = RenderSection();
+        Segment(section, "Update channel", "Pre-release").Click();
+
+        await DisposeComponentsAsync();
+
+        Assert.Null(SavedChannel(_settings));
+        Assert.Equal(0, _fetcher.Discards);
+        Assert.Equal("0.3.0", _updates.Status.ReadyVersion);
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Updates;
 using Velopack;
+using Velopack.Locators;
 using Velopack.Sources;
 
 namespace Riftcaster.Windows;
@@ -90,6 +91,41 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
 
     /// <inheritdoc />
     public string? DownloadedVersion => _ready?.Version.ToString();
+
+    /// <inheritdoc />
+    public void DiscardDownload()
+    {
+        // Not installed by this run, even if a file can't be deleted below.
+        _ready = null;
+
+        var manager = Manager(UpdateChannel.Stable);
+        if (VelopackLocator.Current.PackagesDir is not { } folder)
+        {
+            return;
+        }
+
+        // What's waiting is the newest package newer than this version: delete it (and what it was made from), then look for another.
+        for (var attempts = 0; attempts < 10 && manager.UpdatePendingRestart is { } pending; attempts++)
+        {
+            var deleted = false;
+            foreach (var name in new[] { pending.FileName, $"{manager.AppId}-{pending.Version}-full.nupkg", $"{manager.AppId}-{pending.Version}-delta.nupkg" }.OfType<string>())
+            {
+                foreach (var file in new[] { Path.Combine(folder, name), Path.Combine(folder, name + ".partial") })
+                {
+                    if (File.Exists(file))
+                    {
+                        File.Delete(file);
+                        deleted = true;
+                    }
+                }
+            }
+
+            if (!deleted)
+            {
+                break;
+            }
+        }
+    }
 
     /// <summary>
     /// Starts checking: soon, then every few hours, as the updates settings allow.

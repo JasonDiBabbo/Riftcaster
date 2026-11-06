@@ -18,6 +18,10 @@ namespace Riftcaster.Core.Updates;
 /// A downloaded update stays downloaded when updates are turned off, but isn't installed: neither on
 /// quitting nor by restarting.
 /// </para>
+/// <para>
+/// A downloaded update belongs to the channel it came from. Changing the channel deletes it, so that quitting
+/// or restarting never installs a release from the channel that was just left.
+/// </para>
 /// </remarks>
 public sealed class UpdateService
 {
@@ -38,6 +42,8 @@ public sealed class UpdateService
     private volatile UpdateStatus _status = new(UpdatePhase.NotChecked, null, null);
 
     private UpdateMode _mode;
+
+    private UpdateChannel _channel;
 
     /// <summary>
     /// Creates the service.
@@ -60,6 +66,7 @@ public sealed class UpdateService
         _time = time;
         _logger = logger;
         _mode = settings.Settings.Updates.Mode;
+        _channel = Channel;
         settings.Changed += OnSettingsChanged;
     }
 
@@ -173,16 +180,29 @@ public sealed class UpdateService
 
         try
         {
-            _logger.LogInformation("Looking for a newer version than {Version} ({Channel}).", RunningVersion, Channel);
-            var version = await source.CheckAndDownloadAsync(Channel, cancellationToken);
+            var channel = Channel;
+            _logger.LogInformation("Looking for a newer version than {Version} ({Channel}).", RunningVersion, channel);
+            var version = await source.CheckAndDownloadAsync(channel, cancellationToken);
+
+            // The channel was changed while it downloaded: what came is from the channel that was left.
+            var stale = version is not null && channel != Channel;
+            if (stale)
+            {
+                Discard(source, version!);
+            }
+
             lock (_lock)
             {
-                _status = version is null
-                    ? new UpdateStatus(UpdatePhase.UpToDate, _time.GetUtcNow(), null)
+                _status = stale ? new UpdateStatus(UpdatePhase.NotChecked, null, null)
+                    : version is null ? new UpdateStatus(UpdatePhase.UpToDate, _time.GetUtcNow(), null)
                     : new UpdateStatus(UpdatePhase.Ready, _time.GetUtcNow(), version);
             }
 
-            if (version is not null)
+            if (stale)
+            {
+                // Nothing to say: it was discarded.
+            }
+            else if (version is not null)
             {
                 _logger.LogInformation("Riftcaster {Version} is ready to install.", version);
             }
@@ -227,11 +247,52 @@ public sealed class UpdateService
         }
     }
 
+    // The update that's downloaded is from the channel it was found on: a different channel is a different answer.
+    private void DiscardDownloaded()
+    {
+        IUpdateFetcher source;
+        string version;
+        lock (_lock)
+        {
+            if (_source is not { } attached || _status.ReadyVersion is not { } ready)
+            {
+                return;
+            }
+
+            source = attached;
+            version = ready;
+            _status = new UpdateStatus(UpdatePhase.NotChecked, null, null);
+        }
+
+        Discard(source, version);
+    }
+
+    private void Discard(IUpdateFetcher source, string version)
+    {
+        _logger.LogInformation("Deleting the downloaded Riftcaster {Version}: the update channel changed.", version);
+        try
+        {
+            source.DiscardDownload();
+        }
+        catch (Exception exception)
+        {
+            // It won't be installed by this run either way; if the files stay, they are found again at the next start.
+            _logger.LogWarning(exception, "Couldn't delete the downloaded Riftcaster {Version}.", version);
+        }
+    }
+
     private void OnSettingsChanged()
     {
         var mode = Mode;
         var turnedOn = _mode == UpdateMode.Off && mode != UpdateMode.Off;
         _mode = mode;
+
+        var channel = Channel;
+        if (channel != _channel)
+        {
+            _channel = channel;
+            DiscardDownloaded();
+        }
 
         Changed?.Invoke();
 
