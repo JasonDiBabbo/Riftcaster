@@ -1,0 +1,112 @@
+@using Microsoft.JSInterop
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+
+@* A question that has to be answered before anything else on the page can be used: a modal dialog, so the browser keeps
+   the rest of the page out of reach behind it (no clicks, no Tab) and treats Escape as the cancel button. Renders
+   nothing while it isn't open, and leaving the page removes it, which is its own answer: nothing was confirmed.
+
+   Rendered open, so that it still shows if the script that makes it modal couldn't run. *@
+@if (Open)
+{
+    <dialog @ref="_dialog" open class="confirm" role="alertdialog" aria-labelledby="confirm-title" aria-describedby="confirm-text">
+        <h2 id="confirm-title" class="title">@Title</h2>
+        <p id="confirm-text" class="text">@ChildContent</p>
+        <div class="actions">
+            <button type="button" class="button-secondary" @ref="_cancel" @onclick="OnCancel">@CancelText</button>
+            <button type="button" class="confirm-button" @onclick="OnConfirm">@ConfirmText</button>
+        </div>
+    </dialog>
+}
+
+@code {
+    private ElementReference _dialog;
+
+    private ElementReference _cancel;
+
+    private IJSObjectReference? _module;
+
+    private bool _shown;
+
+    /// <summary>
+    /// Gets or sets whether the question is being asked.
+    /// </summary>
+    [Parameter]
+    public bool Open { get; set; }
+
+    /// <summary>
+    /// Gets or sets the question.
+    /// </summary>
+    [Parameter]
+    public string Title { get; set; } = "";
+
+    /// <summary>
+    /// Gets or sets what the choice means.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Gets or sets the label of the button that goes ahead, which says what it does.
+    /// </summary>
+    [Parameter]
+    public string ConfirmText { get; set; } = "OK";
+
+    /// <summary>
+    /// Gets or sets the label of the button that leaves things as they are, which has the focus and is what Escape does.
+    /// </summary>
+    [Parameter]
+    public string CancelText { get; set; } = "Cancel";
+
+    /// <summary>
+    /// Gets or sets what happens when it's confirmed.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnConfirm { get; set; }
+
+    /// <summary>
+    /// Gets or sets what happens when it's cancelled, by the button or by Escape.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!Open)
+        {
+            _shown = false;
+            return;
+        }
+
+        if (_shown)
+        {
+            return;
+        }
+
+        _shown = true;
+        try
+        {
+            _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/Riftcaster.WebUI/Shared/ConfirmDialog.razor.js");
+            await _module.InvokeVoidAsync("show", _dialog, _cancel);
+        }
+        catch (Exception exception) when (exception is JSDisconnectedException or InvalidOperationException or TaskCanceledException)
+        {
+            // The connection is gone: the dialog goes with the page.
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Already gone with the connection.
+            }
+        }
+    }
+}

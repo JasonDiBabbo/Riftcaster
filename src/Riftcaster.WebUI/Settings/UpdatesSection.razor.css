@@ -1,3 +1,8 @@
+/* The download belongs to the version row above it, so there's no divider between them. */
+.version ::deep .row:has(+ .box) {
+  border-bottom: none;
+}
+
 .check {
   height: 34px;
   padding: 0 14px;

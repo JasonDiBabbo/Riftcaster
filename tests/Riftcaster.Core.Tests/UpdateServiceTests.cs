@@ -15,6 +15,20 @@ public class UpdateServiceTests
     {
         public string? DownloadedVersion { get; set; }
 
+        public int Discards { get; private set; }
+
+        public Exception? DiscardFails { get; set; }
+
+        public void DiscardDownload()
+        {
+            Discards++;
+            DownloadedVersion = null;
+            if (DiscardFails is not null)
+            {
+                throw DiscardFails;
+            }
+        }
+
         // What a check finds: a version, or null for none. Throws if set to.
         public string? Finds { get; set; }
 
@@ -307,6 +321,122 @@ public class UpdateServiceTests
         _settings.Update(settings => settings with { Updates = settings.Updates with { Channel = UpdateChannel.PreRelease } });
 
         Assert.Equal(UpdateChannel.PreRelease, service.Channel);
+    }
+
+    private void ChooseChannel(UpdateChannel channel) =>
+        _settings.Update(settings => settings with { Updates = settings.Updates with { Channel = channel } });
+
+    // What was downloaded was found on a channel: after leaving it, quitting or restarting must not install it.
+    [Fact]
+    public async Task ChangingTheChannel_DeletesTheDownloadedUpdate_AndForgetsItWasReady()
+    {
+        _fetcher.Finds = "0.3.0";
+        var service = Attached();
+        await service.CheckAsync();
+        Assert.Equal(UpdatePhase.Ready, service.Status.Phase);
+
+        ChooseChannel(UpdateChannel.PreRelease);
+
+        Assert.Equal(1, _fetcher.Discards);
+        Assert.Equal(new UpdateStatus(UpdatePhase.NotChecked, null, null), service.Status);
+        Assert.False(service.CanRestartToUpdate);
+        Assert.False(service.InstallsOnQuit);
+        Assert.True(service.CanCheck); // To look at the new channel
+        Assert.Contains(_logger.Collector.GetSnapshot(), record => record.Message.Contains("0.3.0") && record.Message.Contains("channel changed"));
+    }
+
+    [Fact]
+    public void ChangingTheChannel_DeletesAnUpdateDownloadedByAnEarlierRun()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        var service = Attached();
+
+        ChooseChannel(UpdateChannel.PreRelease);
+
+        Assert.Equal(1, _fetcher.Discards);
+        Assert.Null(service.Status.ReadyVersion);
+    }
+
+    [Fact]
+    public void ChangingTheChannel_DeletesTheUpdateEvenWithUpdatesOff()
+    {
+        _fetcher.DownloadedVersion = "0.3.0";
+        Choose(UpdateMode.Off);
+        var service = Attached();
+
+        ChooseChannel(UpdateChannel.PreRelease);
+
+        Assert.Equal(1, _fetcher.Discards);
+        Assert.Null(service.Status.ReadyVersion);
+    }
+
+    [Fact]
+    public void ChangingTheChannel_WithNothingDownloaded_DeletesNothing()
+    {
+        var service = Attached();
+
+        ChooseChannel(UpdateChannel.PreRelease);
+
+        Assert.Equal(0, _fetcher.Discards);
+        Assert.Equal(UpdatePhase.NotChecked, service.Status.Phase);
+    }
+
+    // A stable build with no channel chosen is on Stable already: choosing it changes nothing.
+    [Fact]
+    public async Task ChoosingTheChannelAlreadyInUse_KeepsTheDownload()
+    {
+        _fetcher.Finds = "0.3.0";
+        var service = Attached();
+        await service.CheckAsync();
+
+        ChooseChannel(UpdateChannel.Stable);
+
+        Assert.Equal(0, _fetcher.Discards);
+        Assert.Equal("0.3.0", service.Status.ReadyVersion);
+    }
+
+    [Fact]
+    public async Task ChangingOtherSettings_KeepsTheDownload()
+    {
+        _fetcher.Finds = "0.3.0";
+        var service = Attached();
+        await service.CheckAsync();
+
+        Choose(UpdateMode.AskFirst);
+
+        Assert.Equal(0, _fetcher.Discards);
+        Assert.Equal("0.3.0", service.Status.ReadyVersion);
+    }
+
+    [Fact]
+    public async Task IfTheChannelChangesWhileDownloading_WhatCameIsDeleted_NotReady()
+    {
+        _fetcher.Finds = "0.3.0";
+        _fetcher.Holds = new TaskCompletionSource();
+        var service = Attached();
+        var checking = service.CheckAsync();
+
+        ChooseChannel(UpdateChannel.PreRelease);
+        _fetcher.Holds.SetResult();
+        await checking;
+
+        Assert.Equal(1, _fetcher.Discards);
+        Assert.Equal(new UpdateStatus(UpdatePhase.NotChecked, null, null), service.Status);
+        Assert.DoesNotContain(_logger.Collector.GetSnapshot(), record => record.Message.Contains("is ready to install"));
+    }
+
+    [Fact]
+    public async Task IfTheFilesCannotBeDeleted_ItIsLoggedAndThePageStillMovesOn()
+    {
+        _fetcher.Finds = "0.3.0";
+        _fetcher.DiscardFails = new IOException("in use");
+        var service = Attached();
+        await service.CheckAsync();
+
+        ChooseChannel(UpdateChannel.PreRelease);
+
+        Assert.Null(service.Status.ReadyVersion);
+        Assert.Contains(_logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning && record.Message.Contains("Couldn't delete"));
     }
 
     // Until one is chosen, a build keeps to the kind of release it came from.

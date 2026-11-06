@@ -14,6 +14,11 @@ public interface IUpdateFetcher
     string? DownloadedVersion { get; }
 
     /// <summary>
+    /// Deletes the downloaded update, so that it's neither installed on quitting nor offered again. Does nothing if there is none.
+    /// </summary>
+    void DiscardDownload();
+
+    /// <summary>
     /// Looks for a newer version and downloads it.
     /// </summary>
     /// <param name="channel">Which releases to look at.</param>
