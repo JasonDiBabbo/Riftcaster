@@ -306,9 +306,9 @@ public class CardCatalogSwitchTests
         Assert.Equal(CardSwitchOutcome.UnknownSource, result.Outcome);
     }
 
-    // One fetch at a time: a switch while a refresh is running would fetch twice over.
+    // One fetch at a time: a switch while a refresh is running would fetch twice over, so it's refused, not queued.
     [Fact]
-    public async Task ASwitchWhileARefreshIsRunning_WaitsItsTurn()
+    public async Task ASwitchWhileARefreshIsRunning_IsRefusedAsBusy()
     {
         var catalog = Create();
         _codex.Gate = new TaskCompletionSource();

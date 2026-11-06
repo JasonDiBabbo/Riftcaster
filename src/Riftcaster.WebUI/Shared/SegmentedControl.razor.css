@@ -71,8 +71,13 @@
   transform: scale(0.97);
 }
 
+.segment:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 @media (hover: hover) {
-  .segment:not(.selected):hover {
+  .segment:not(.selected):not(:disabled):hover {
     background: var(--button-hover);
     color: var(--text);
   }
