@@ -4,7 +4,7 @@
         @if (Description is not null)
         {
             @* On a phone the note joins the description (the control has no room beside it); see the CSS. *@
-            <span class="description">@Description@if (Note is not null){<span class="note-inline">@(Note).</span>}</span>
+            <span class="description">@Description@if (Note is not null){<span class="note-inline">@EndedWithPeriod(Note)</span>}</span>
         }
     </div>
     <div class="control">
@@ -34,6 +34,10 @@
     /// </summary>
     [Parameter]
     public string? Note { get; set; }
+
+    // The note joins the description as a sentence, so it needs an end: its own, if it has one.
+    private static string EndedWithPeriod(string note) =>
+        note.TrimEnd() is { Length: > 0 } trimmed && trimmed[^1] is '.' or '!' or '?' ? note : $"{note}.";
 
     /// <summary>
     /// The control.
