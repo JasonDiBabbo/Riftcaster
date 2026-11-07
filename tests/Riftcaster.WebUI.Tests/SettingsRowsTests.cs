@@ -91,7 +91,7 @@ public class SettingsRowsTests : BunitContext
     {
         var rows = RowsOf<UpdatesSection>();
 
-        Assert.Equal(["Updates", "Update channel", "Riftcaster 0.2.0"], rows.Select(row => row.Title));
+        Assert.Equal(["Update behavior", "Update channel", "Riftcaster 0.2.0"], rows.Select(row => row.Title));
         Assert.All(rows, row => Assert.False(string.IsNullOrWhiteSpace(row.Description), $"{row.Title} has no description"));
     }
 

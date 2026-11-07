@@ -90,10 +90,10 @@ public class UpdatesSectionTests : BunitContext
     {
         var section = RenderSection();
 
-        Assert.Equal(["Updates", "Update channel", "Riftcaster 0.2.0"], section.FindAll(".row .title").Select(title => title.TextContent.Trim()));
-        Assert.Equal(["Automatic", "Ask first", "Off"], section.Find(".segmented[aria-label='Updates']").QuerySelectorAll("button").Select(b => b.TextContent.Trim()));
+        Assert.Equal(["Update behavior", "Update channel", "Riftcaster 0.2.0"], section.FindAll(".row .title").Select(title => title.TextContent.Trim()));
+        Assert.Equal(["Automatic", "Ask first", "Off"], section.Find(".segmented[aria-label='Update behavior']").QuerySelectorAll("button").Select(b => b.TextContent.Trim()));
         Assert.Equal(["Stable", "Pre-release"], section.Find(".segmented[aria-label='Update channel']").QuerySelectorAll("button").Select(b => b.TextContent.Trim()));
-        Assert.Equal("true", Segment(section, "Updates", "Automatic").GetAttribute("aria-pressed"));
+        Assert.Equal("true", Segment(section, "Update behavior", "Automatic").GetAttribute("aria-pressed"));
         Assert.Equal("true", Segment(section, "Update channel", "Stable").GetAttribute("aria-pressed"));
     }
 
@@ -102,11 +102,11 @@ public class UpdatesSectionTests : BunitContext
     {
         var section = RenderSection();
 
-        Segment(section, "Updates", "Ask first").Click();
+        Segment(section, "Update behavior", "Ask first").Click();
 
         Assert.Equal(UpdateMode.AskFirst, _settings.Settings.Updates.Mode);
-        Assert.Contains("only when you choose Restart to update", Row(section, "Updates"));
-        Assert.Equal("true", Segment(section, "Updates", "Ask first").GetAttribute("aria-pressed"));
+        Assert.Contains("only when you choose Restart to update", Row(section, "Update behavior"));
+        Assert.Equal("true", Segment(section, "Update behavior", "Ask first").GetAttribute("aria-pressed"));
     }
 
     [Fact]
