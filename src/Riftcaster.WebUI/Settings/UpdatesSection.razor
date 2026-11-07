@@ -14,10 +14,10 @@
     }
     else
     {
-        <SettingRow Title="Updates"
+        <SettingRow Title="Update behavior"
                     Description="@SettingsLabels.Describe(Updates.Mode)"
                     Note="Applies immediately">
-            <SegmentedControl Label="Updates"
+            <SegmentedControl Label="Update behavior"
                               Options="SettingsLabels.UpdateModeOptions"
                               @bind-Value:get="Updates.Mode"
                               @bind-Value:set="value => Service.Update(settings => settings with { Updates = settings.Updates with { Mode = value } })" />
