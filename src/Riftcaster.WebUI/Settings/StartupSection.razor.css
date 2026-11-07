@@ -1,3 +1,8 @@
+/* A problem belongs to the toggle above it, so there's no divider between them. */
+.startup ::deep .row:has(+ .problem) {
+  border-bottom: none;
+}
+
 .problem {
   margin: 4px 0 0;
   color: var(--live-soft);
