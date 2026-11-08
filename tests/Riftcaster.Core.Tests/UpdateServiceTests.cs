@@ -184,6 +184,29 @@ public class UpdateServiceTests
         Assert.Equal(UpdatePhase.UpToDate, service.Status.Phase);
     }
 
+    [Fact]
+    public async Task AMissingFolder_IsFailedWithWhatIsWrong_AndLoggedAsAWarningWithoutAStack()
+    {
+        _fetcher.Fails = new UpdateSourceMissingException(@"D:
+owhere");
+        var service = Attached();
+
+        await service.CheckAsync();
+
+        Assert.Equal(UpdatePhase.Failed, service.Status.Phase);
+        Assert.Equal(@"The update folder D:
+owhere doesn't exist.", service.Status.Problem);
+        var warning = Assert.Single(_logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning);
+        Assert.Contains(@"D:
+owhere", warning.Message);
+        Assert.Null(warning.Exception);
+
+        _fetcher.Fails = null;
+        await service.CheckAsync();
+        Assert.Equal(UpdatePhase.UpToDate, service.Status.Phase);
+        Assert.Null(service.Status.Problem);
+    }
+
     // Stopped, as when Riftcaster quits: not a failure, and not left looking busy.
     [Fact]
     public async Task AStoppedCheck_IsNotAFailure_AndLooksAsItDidBefore()

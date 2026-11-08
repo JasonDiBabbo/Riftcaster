@@ -154,6 +154,7 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
     /// <inheritdoc />
     public async Task<string?> CheckAndDownloadAsync(UpdateChannel channel, CancellationToken cancellationToken)
     {
+        CheckFolder();
         var manager = Manager(channel);
         var update = await manager.CheckForUpdatesAsync();
         if (update is null)
@@ -186,6 +187,25 @@ internal sealed class Updates : IUpdateFetcher, IDisposable
     }
 
     public void Dispose() => _timer.Dispose();
+
+    // Velopack answers "no update" for a folder that isn't there, which reads as being up to date: say so instead.
+    private void CheckFolder()
+    {
+        if (_source.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || _source.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (!Directory.Exists(_source))
+        {
+            throw new UpdateSourceMissingException(_source);
+        }
+
+        if (!Directory.EnumerateFiles(_source, "*.nupkg").Any() && !Directory.EnumerateFiles(_source, "releases.*.json").Any())
+        {
+            _logger.LogInformation("The update folder {Folder} has no releases in it.", _source);
+        }
+    }
 
     // One per channel: the channel is part of how the release list is read, and can change while running.
     private UpdateManager Manager(UpdateChannel channel)

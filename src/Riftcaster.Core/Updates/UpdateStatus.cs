@@ -27,4 +27,5 @@ public enum UpdatePhase
 /// <param name="Phase">How far it's got.</param>
 /// <param name="CheckedAt">When the last check finished, if one has.</param>
 /// <param name="ReadyVersion">The downloaded version, in the <see cref="UpdatePhase.Ready"/> phase.</param>
-public sealed record UpdateStatus(UpdatePhase Phase, DateTimeOffset? CheckedAt, string? ReadyVersion);
+/// <param name="Problem">In the <see cref="UpdatePhase.Failed"/> phase, what is known to be wrong, when more than "couldn't reach it" is.</param>
+public sealed record UpdateStatus(UpdatePhase Phase, DateTimeOffset? CheckedAt, string? ReadyVersion, string? Problem = null);
