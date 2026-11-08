@@ -187,18 +187,15 @@ public class UpdateServiceTests
     [Fact]
     public async Task AMissingFolder_IsFailedWithWhatIsWrong_AndLoggedAsAWarningWithoutAStack()
     {
-        _fetcher.Fails = new UpdateSourceMissingException(@"D:
-owhere");
+        _fetcher.Fails = new UpdateSourceMissingException(@"C:\no-such-folder");
         var service = Attached();
 
         await service.CheckAsync();
 
         Assert.Equal(UpdatePhase.Failed, service.Status.Phase);
-        Assert.Equal(@"The update folder D:
-owhere doesn't exist.", service.Status.Problem);
+        Assert.Equal(@"The update folder C:\no-such-folder doesn't exist.", service.Status.Problem);
         var warning = Assert.Single(_logger.Collector.GetSnapshot(), record => record.Level == LogLevel.Warning);
-        Assert.Contains(@"D:
-owhere", warning.Message);
+        Assert.Contains(@"C:\no-such-folder", warning.Message);
         Assert.Null(warning.Exception);
 
         _fetcher.Fails = null;

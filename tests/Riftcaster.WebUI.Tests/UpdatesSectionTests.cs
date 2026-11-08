@@ -174,15 +174,13 @@ public class UpdatesSectionTests : BunitContext
     [Fact]
     public void AMissingFolder_NamesIt_AndSaysHowToFixIt()
     {
-        _fetcher.Fails = new UpdateSourceMissingException(@"D:
-owhere");
+        _fetcher.Fails = new UpdateSourceMissingException(@"C:\no-such-folder");
         var section = RenderSection();
 
         section.Find("button.check").Click();
 
         var row = Row(section, "Riftcaster 0.2.0");
-        Assert.Contains(@"The update folder D:
-owhere doesn't exist.", row);
+        Assert.Contains(@"The update folder C:\no-such-folder doesn't exist.", row);
         Assert.Contains("Fix or remove Updates:Source.", row);
         Assert.DoesNotContain("no internet", row);
     }
