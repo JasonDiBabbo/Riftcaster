@@ -142,6 +142,7 @@
                 : status.Phase switch
                 {
                     UpdatePhase.Checking => "Checking for updates…",
+                    UpdatePhase.Failed when status.Problem is not null => $"Couldn't check for updates. {status.Problem} Fix or remove Updates:Source.",
                     UpdatePhase.Failed => "Couldn't check for updates. This is often just no internet, as at a venue. Check the log for details.",
                     UpdatePhase.Ready => $"Version {status.ReadyVersion} is downloaded and ready.",
                     UpdatePhase.UpToDate => $"You're up to date. Last checked {SettingsLabels.Ago(status.CheckedAt!.Value, Time.GetUtcNow())}.",

@@ -222,6 +222,15 @@ public sealed class UpdateService
             Changed?.Invoke();
             throw;
         }
+        catch (UpdateSourceMissingException exception)
+        {
+            // The setting's doing: said plainly, with no stack, and in Settings. The next check looks again.
+            _logger.LogWarning("Couldn't check for an update: {Problem} Fix or remove Updates:Source.", exception.Message);
+            lock (_lock)
+            {
+                _status = new UpdateStatus(UpdatePhase.Failed, _time.GetUtcNow(), null, exception.Message);
+            }
+        }
         catch (Exception exception)
         {
             // Often just no internet, as at a venue; the next check tries again.
