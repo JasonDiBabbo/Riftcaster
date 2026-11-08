@@ -185,6 +185,14 @@ public class UpdateServiceTests
     }
 
     [Fact]
+    public void AMissingFolder_KnowsWhichFolder()
+    {
+        var exception = new UpdateSourceMissingException(@"C:\no-such-folder");
+
+        Assert.Equal(@"C:\no-such-folder", exception.Folder);
+    }
+
+    [Fact]
     public async Task AMissingFolder_IsFailedWithWhatIsWrong_AndLoggedAsAWarningWithoutAStack()
     {
         _fetcher.Fails = new UpdateSourceMissingException(@"C:\no-such-folder");
