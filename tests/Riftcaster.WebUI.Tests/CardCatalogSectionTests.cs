@@ -29,6 +29,12 @@ public class CardCatalogSectionTests : BunitContext
 
     private CardCatalog _catalog = null!;
 
+    public CardCatalogSectionTests()
+    {
+        // The dialog that asks before RiftHunt is: its script only matters in a browser.
+        JSInterop.SetupModule("./_content/Riftcaster.WebUI/Shared/ConfirmDialog.razor.js").Mode = JSRuntimeMode.Loose;
+    }
+
     private static Card NewCard(string id, string name) =>
         new(id, $"tst-{id}", name, null, CardType.Unit, null, "Fury", Energy: null, "Test Set", $"https://cards.test/{id}.png", Landscape: false);
 
@@ -63,6 +69,18 @@ public class CardCatalogSectionTests : BunitContext
 
     private static AngleSharp.Dom.IElement Segment(IRenderedComponent<CardCatalogSection> section, string label) =>
         section.Find(".segmented[aria-label='Catalog source']").QuerySelectorAll("button").Single(button => button.TextContent.Trim() == label);
+
+    // The question before a request to RiftHunt, if it is being asked.
+    private static AngleSharp.Dom.IElement? Dialog(IRenderedComponent<CardCatalogSection> section) => section.FindAll("dialog.confirm").SingleOrDefault();
+
+    private static void Confirm(IRenderedComponent<CardCatalogSection> section) => section.Find("dialog.confirm .confirm-button").Click();
+
+    // Choosing RiftHunt, a catalog that isn't saved, and agreeing to the question that comes first.
+    private static async Task ChooseRiftHuntAndConfirm(IRenderedComponent<CardCatalogSection> section)
+    {
+        Segment(section, "RiftHunt").Click();
+        await section.InvokeAsync(() => Confirm(section));
+    }
 
     private static string Selected(IRenderedComponent<CardCatalogSection> section) =>
         section.Find(".segmented[aria-label='Catalog source'] button[aria-pressed='true']").TextContent.Trim();
@@ -105,20 +123,20 @@ public class CardCatalogSectionTests : BunitContext
     }
 
     [Fact]
-    public void RiftHuntInUse_ExplainsItsOnceADayLimit_AndHowLongARefreshTakes()
+    public void RiftHuntInUse_AsksUsersToBeConservative_AndHowLongARefreshTakes()
     {
         _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow().AddMinutes(-20)));
 
         var section = RenderSection(CardSourceKind.RiftHunt);
 
         Assert.Equal("RiftHunt", Selected(section));
-        Assert.Equal("RiftHunt serves their whole catalog as one download. At their request, users will only be allowed to download the card catalog once per day to avoid stress on their service.", section.Find(".hint:not(.sample)").TextContent.Trim());
+        Assert.Equal("RiftHunt serves their whole catalog as one download. They ask users to be conservative with requests, so Riftcaster asks you to confirm before fetching it.", section.Find(".hint:not(.sample)").TextContent.Trim());
         Assert.Equal(Facts(1, TimeSpan.FromMinutes(20), "20 minutes ago"), FactsOf(section));
         Assert.Equal(ContinuesWorking, section.Find(".control .note").TextContent.Trim()); // The same under either source
     }
 
     [Fact]
-    public void ASourceThatMayNotBeAskedYet_DisablesRefreshNow_AndSaysWhenItMay()
+    public void ASourceThatAskedToBeLeftAlone_DisablesRefreshNow_AndSaysWhenItMay()
     {
         _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow()));
         _hunt.NotBefore = _time.GetUtcNow().AddHours(21);
@@ -126,7 +144,7 @@ public class CardCatalogSectionTests : BunitContext
         var section = RenderSection(CardSourceKind.RiftHunt);
 
         Assert.True(section.Find("button.refresh").HasAttribute("disabled"));
-        List<string> expected = [.. Facts(1, TimeSpan.Zero, "just now"), $"Next fetch allowed: {SettingsLabels.When(_time.GetUtcNow().AddHours(21), _time.GetUtcNow())}"];
+        List<string> expected = [.. Facts(1, TimeSpan.Zero, "just now"), $"RiftHunt asked Riftcaster to wait until {SettingsLabels.When(_time.GetUtcNow().AddHours(21), _time.GetUtcNow())}"];
         Assert.Equal(expected, FactsOf(section));
         Assert.Equal(ContinuesWorking, section.Find(".control .note").TextContent.Trim());
         Assert.StartsWith("Available again", section.Find("button.refresh").GetAttribute("title"));
@@ -218,7 +236,8 @@ public class CardCatalogSectionTests : BunitContext
         var section = RenderSection();
         _hunt.Gate = new TaskCompletionSource();
 
-        var switching = Task.Run(() => section.InvokeAsync(() => Segment(section, "RiftHunt").Click()));
+        Segment(section, "RiftHunt").Click();
+        var switching = Task.Run(() => section.InvokeAsync(() => Confirm(section)));
 
         section.WaitForAssertion(() =>
         {
@@ -263,7 +282,8 @@ public class CardCatalogSectionTests : BunitContext
     {
         var section = RenderSection();
         _hunt.Gate = new TaskCompletionSource();
-        var switching = Task.Run(() => section.InvokeAsync(() => Segment(section, "RiftHunt").Click()));
+        Segment(section, "RiftHunt").Click();
+        var switching = Task.Run(() => section.InvokeAsync(() => Confirm(section)));
         section.WaitForAssertion(() => Assert.NotEmpty(section.FindAll(".box.working")));
 
         section.Find(".box.working button").Click();
@@ -280,7 +300,8 @@ public class CardCatalogSectionTests : BunitContext
     {
         var section = RenderSection();
         _hunt.Gate = new TaskCompletionSource();
-        var switching = Task.Run(() => section.InvokeAsync(() => Segment(section, "RiftHunt").Click()));
+        Segment(section, "RiftHunt").Click();
+        var switching = Task.Run(() => section.InvokeAsync(() => Confirm(section)));
         section.WaitForAssertion(() => Assert.NotEmpty(section.FindAll(".box.working")));
 
         Segment(section, "Riftcodex").Click();
@@ -296,7 +317,7 @@ public class CardCatalogSectionTests : BunitContext
         var section = RenderSection();
         _hunt.Failure = new HttpRequestException("No such host is known.");
 
-        await section.InvokeAsync(() => Segment(section, "RiftHunt").Click());
+        await ChooseRiftHuntAndConfirm(section);
 
         var box = section.Find(".box.problem");
         Assert.Equal("Couldn't reach RiftHunt", box.QuerySelector("b")!.TextContent);
@@ -313,10 +334,14 @@ public class CardCatalogSectionTests : BunitContext
     {
         var section = RenderSection();
         _hunt.Failure = new HttpRequestException("No internet.");
-        await section.InvokeAsync(() => Segment(section, "RiftHunt").Click());
+        await ChooseRiftHuntAndConfirm(section);
         _hunt.Failure = null;
 
-        await section.InvokeAsync(() => section.Find(".box.problem button").Click());
+        // Asking RiftHunt again is asked about again, however it came to be.
+        section.Find(".box.problem button").Click();
+        Assert.NotNull(Dialog(section));
+        Assert.Equal(1, _hunt.FetchCount);
+        await section.InvokeAsync(() => Confirm(section));
 
         Assert.Equal(2, _hunt.FetchCount);
         Assert.Equal(CardSourceKind.RiftHunt, _catalog.ActiveSource);
@@ -325,7 +350,7 @@ public class CardCatalogSectionTests : BunitContext
 
     // Not a failure: it wasn't tried. It says when it can be, and that the catalog stays as it is.
     [Fact]
-    public async Task ASourceThatMayNotBeAskedYet_IsSaidSo_NotCalledAFailure()
+    public async Task ASourceThatAskedToBeLeftAlone_IsSaidSo_WithoutAskingAnything_NotCalledAFailure()
     {
         var section = RenderSection();
         _hunt.NotBefore = _time.GetUtcNow().AddHours(8);
@@ -333,9 +358,9 @@ public class CardCatalogSectionTests : BunitContext
         await section.InvokeAsync(() => Segment(section, "RiftHunt").Click());
 
         var box = section.Find(".box");
-        Assert.Equal("RiftHunt can't be asked yet", box.QuerySelector("b")!.TextContent);
-        Assert.Contains("It asks to be fetched at most once a day, and Riftcaster keeps to that.", box.TextContent);
-        Assert.Contains("Available again", box.TextContent);
+        Assert.Equal("RiftHunt asked Riftcaster to wait", box.QuerySelector("b")!.TextContent);
+        Assert.Contains($"It can be asked again {SettingsLabels.When(_time.GetUtcNow().AddHours(8), _time.GetUtcNow())}.", box.TextContent);
+        Assert.Null(Dialog(section)); // Nothing would go out, so there is nothing to ask
         Assert.Contains("The catalog stays Riftcodex.", box.TextContent);
         Assert.Empty(section.FindAll(".box.problem"));
         Assert.Equal(0, _hunt.FetchCount);
@@ -351,9 +376,132 @@ public class CardCatalogSectionTests : BunitContext
         Assert.NotEmpty(section.FindAll(".box"));
         _hunt.NotBefore = null;
 
-        await section.InvokeAsync(() => Segment(section, "RiftHunt").Click());
+        await ChooseRiftHuntAndConfirm(section);
 
         section.WaitForAssertion(() => Assert.Empty(section.FindAll(".box")));
+    }
+
+    // RiftHunt asks users to be conservative with requests, which is said before one goes out, with how long ago the last was.
+    [Fact]
+    public void ChoosingRiftHuntToDownload_AsksFirst_AndFetchesNothingUntilAgreed()
+    {
+        var section = RenderSection();
+
+        Segment(section, "RiftHunt").Click();
+
+        var dialog = Dialog(section)!;
+        Assert.Equal("Ask RiftHunt for its catalog?", dialog.QuerySelector(".title")!.TextContent);
+        Assert.Contains("RiftHunt's catalog hasn't been fetched yet.", dialog.TextContent);
+        Assert.Contains("asks users to be conservative with requests", dialog.TextContent);
+        Assert.Contains("can't guarantee that RiftHunt will keep answering if too many are made in a short time", dialog.TextContent);
+        Assert.Equal("Fetch the catalog", dialog.QuerySelector(".confirm-button")!.TextContent);
+        Assert.Equal("Don't fetch", dialog.QuerySelector(".button-secondary")!.TextContent);
+        Assert.Equal(0, _hunt.FetchCount);
+        Assert.Equal(CardSourceKind.Riftcodex, _catalog.ActiveSource);
+    }
+
+    [Fact]
+    public async Task AgreeingToTheQuestion_FetchesTheCatalog()
+    {
+        var section = RenderSection();
+
+        await ChooseRiftHuntAndConfirm(section);
+
+        Assert.Equal(1, _hunt.FetchCount);
+        Assert.Equal(CardSourceKind.RiftHunt, _catalog.ActiveSource);
+        Assert.Null(Dialog(section));
+    }
+
+    [Fact]
+    public void DecliningTheQuestion_FetchesNothing_AndLeavesTheCatalogAsItWas()
+    {
+        var section = RenderSection();
+        Segment(section, "RiftHunt").Click();
+
+        section.Find("dialog.confirm .button-secondary").Click();
+
+        Assert.Null(Dialog(section));
+        Assert.Equal(0, _hunt.FetchCount);
+        Assert.Equal("Riftcodex", Selected(section));
+        Assert.Empty(section.FindAll(".box"));
+    }
+
+    [Fact]
+    public void RefreshingRiftHunt_AsksFirst_SayingHowLongAgoTheLastFetchWas()
+    {
+        _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow().AddHours(-3)));
+        var section = RenderSection(CardSourceKind.RiftHunt);
+
+        section.Find("button.refresh").Click();
+
+        Assert.Contains("The catalog was last fetched 3 hours ago.", Dialog(section)!.TextContent);
+        Assert.Equal(0, _hunt.FetchCount);
+    }
+
+    [Fact]
+    public async Task AgreeingToARefresh_FetchesAgain_AndDecliningDoesNot()
+    {
+        _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow().AddHours(-3)));
+        var section = RenderSection(CardSourceKind.RiftHunt);
+
+        section.Find("button.refresh").Click();
+        section.Find("dialog.confirm .button-secondary").Click();
+        Assert.Equal(0, _hunt.FetchCount);
+
+        section.Find("button.refresh").Click();
+        await section.InvokeAsync(() => Confirm(section));
+        Assert.Equal(1, _hunt.FetchCount);
+        Assert.Null(Dialog(section));
+    }
+
+    // Nothing goes to RiftHunt for these, so there is nothing to ask: a catalog already saved, the other source, the sample.
+    [Fact]
+    public async Task WhereNothingGoesToRiftHunt_NothingIsAsked()
+    {
+        _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow().AddHours(-2)));
+        var section = RenderSection();
+
+        await section.InvokeAsync(() => Segment(section, "RiftHunt").Click()); // Saved: at once
+        Assert.Null(Dialog(section));
+        Assert.Equal(CardSourceKind.RiftHunt, _catalog.ActiveSource);
+
+        await section.InvokeAsync(() => Segment(section, "Riftcodex").Click()); // The other source, which has no such ask
+        Assert.Null(Dialog(section));
+        Assert.Equal(CardSourceKind.Riftcodex, _catalog.ActiveSource);
+        Assert.Equal(0, _hunt.FetchCount);
+    }
+
+    [Fact]
+    public void RiftHuntsSample_SendsNothing_SoAsksNothing()
+    {
+        _hunt.IsSample = true;
+        var section = RenderSection();
+
+        Segment(section, "RiftHunt").Click();
+
+        Assert.Null(Dialog(section));
+    }
+
+    [Fact]
+    public async Task RefreshingTheOtherSource_AsksNothing()
+    {
+        var section = RenderSection();
+
+        await section.InvokeAsync(() => section.Find("button.refresh").Click());
+
+        Assert.Null(Dialog(section));
+        Assert.Equal(1, _codex.FetchCount);
+    }
+
+    [Fact]
+    public void WhileTheQuestionIsOpen_TheSourceCannotBeChosenAgain()
+    {
+        var section = RenderSection();
+
+        Segment(section, "RiftHunt").Click();
+
+        Assert.True(Segment(section, "Riftcodex").HasAttribute("disabled"));
+        Assert.True(Segment(section, "RiftHunt").HasAttribute("disabled"));
     }
 
     [Fact]
@@ -393,7 +541,7 @@ public class CardCatalogSectionTests : BunitContext
     }
 
     [Fact]
-    public void ARefreshOfASourceThatWouldRefuseIsDimmed_AndComesBackWhenItsWaitIsOver()
+    public void ARefreshOfASourceThatAskedToBeLeftAloneIsDimmed_AndComesBackWhenItsWaitIsOver()
     {
         _huntStore.Save(new CardCatalogSnapshot([HuntJinx], _time.GetUtcNow()));
         _hunt.NotBefore = _time.GetUtcNow().AddHours(21);
@@ -405,7 +553,7 @@ public class CardCatalogSectionTests : BunitContext
         _time.Advance(TimeSpan.FromHours(21) + TimeSpan.FromSeconds(2));
 
         section.WaitForAssertion(() => Assert.False(section.Find("button.refresh").HasAttribute("disabled")));
-        Assert.DoesNotContain(FactsOf(section), fact => fact.StartsWith("Next fetch allowed"));
+        Assert.DoesNotContain(FactsOf(section), fact => fact.StartsWith("RiftHunt asked"));
     }
 
     [Fact]
@@ -420,19 +568,19 @@ public class CardCatalogSectionTests : BunitContext
     }
 
     [Fact]
-    public void WithoutALimit_ThereIsNoNextFetchLine()
+    public void WithoutAnAskToWait_ThereIsNoWaitLine()
     {
         var section = RenderSection();
 
-        Assert.DoesNotContain(FactsOf(section), fact => fact.StartsWith("Next fetch allowed"));
+        Assert.DoesNotContain(FactsOf(section), fact => fact.StartsWith("RiftHunt asked"));
     }
 
     [Fact]
-    public async Task TryAgain_IsDimmedWhileTheSourceMayNotBeAskedYet()
+    public async Task TryAgain_IsDimmedWhileTheSourceAskedToBeLeftAlone()
     {
         var section = RenderSection();
         _hunt.Failure = new HttpRequestException("No internet.");
-        await section.InvokeAsync(() => Segment(section, "RiftHunt").Click());
+        await ChooseRiftHuntAndConfirm(section);
         Assert.False(section.Find(".box.problem button").HasAttribute("disabled"));
 
         _hunt.NotBefore = _time.GetUtcNow().AddHours(1); // What a failed fetch of RiftHunt leaves

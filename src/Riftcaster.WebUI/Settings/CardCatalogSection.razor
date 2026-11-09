@@ -5,15 +5,27 @@
 @inject TimeProvider Time
 
 <FormSection Title="Card catalog">
+    @* RiftHunt asks users to be conservative with requests, and a dialog is the one place that can say so: nothing on
+       the page can be used until it's answered. Only a request that would really go out asks (not a switch to a catalog
+       already saved, and not the Development sample). *@
+    <ConfirmDialog Open="_asking is not null"
+                   Title="@($"Ask {RiftHuntName} for its catalog?")"
+                   ConfirmText="Fetch the catalog"
+                   CancelText="Don't fetch"
+                   OnConfirm="ConfirmAsk"
+                   OnCancel="DeclineAsk">
+        @AskedAbout RiftHunt serves its whole catalog as one download and asks users to be conservative with requests. Riftcaster can't guarantee that RiftHunt will keep answering if too many are made in a short time.
+    </ConfirmDialog>
+
     @* Alone in its own container, so it has no rule under it: the note below belongs to it. *@
     <div>
         <SettingRow Title="Catalog source"
                     Description="Each source keeps its own saved catalog, so switching back is instant. The current catalog stays in use until the new one has downloaded.">
             <SegmentedControl Label="Catalog source"
                               Options="SettingsLabels.CardSourceOptions"
-                              Disabled="Refreshing"
+                              Disabled="Refreshing || _asking is not null"
                               @bind-Value:get="Shown"
-                              @bind-Value:set="ChooseAsync" />
+                              @bind-Value:set="AskToChoose" />
         </SettingRow>
     </div>
 
@@ -34,7 +46,7 @@
     @* The facts of the saved catalog go under the row as a list, so the row has no rule under it. *@
     <div>
         <SettingRow Title="Saved catalog" Description="What is saved for the source in use." Note="Previously downloaded cards continue working while new downloads process.">
-            <button type="button" class="button-secondary refresh" disabled="@(!CanRefresh)" title="@RefreshTitle" @onclick="RefreshAsync">Refresh now</button>
+            <button type="button" class="button-secondary refresh" disabled="@(!CanRefresh)" title="@RefreshTitle" @onclick="AskToRefresh">Refresh now</button>
         </SettingRow>
     </div>
     <ul class="facts" aria-label="The saved catalog">
@@ -78,13 +90,65 @@
                         class="try-again"
                         disabled="@(Catalog.NotBeforeFor(failed) is not null)"
                         title="@TryAgainTitle(failed)"
-                        @onclick="() => ChooseAsync(failed)">Try again</button>
+                        @onclick="() => AskToChoose(failed)">Try again</button>
             </div>
         </div>
     }
 </FormSection>
 
 @code {
+    private const string RiftHuntName = "RiftHunt";
+
+    // What the dialog is asking about, while it's open: a refresh (the source in use) or a switch to another source.
+    private sealed record Ask(bool Refresh, CardSourceKind Source);
+
+    private Ask? _asking;
+
+    // Whether asking for a source's catalog sends a real request to RiftHunt, which is what gets a question first.
+    private bool SendsRequest(CardSourceKind source) => source == CardSourceKind.RiftHunt && !Catalog.IsSample(source);
+
+    // What the dialog says about the last time, for the start of its text.
+    private string AskedAbout =>
+        _asking is { Refresh: true } && Catalog.FetchedAt is { } fetchedAt && Catalog.Cards.Count > 0
+            ? $"The catalog was last fetched {SettingsLabels.Ago(fetchedAt, Time.GetUtcNow())}."
+            : "RiftHunt's catalog hasn't been fetched yet.";
+
+    // A refresh asks first if it would go to RiftHunt.
+    private async Task AskToRefresh()
+    {
+        if (SendsRequest(Catalog.ActiveSource))
+        {
+            _asking = new Ask(Refresh: true, Catalog.ActiveSource);
+            return;
+        }
+
+        await RefreshAsync();
+    }
+
+    // A choice asks first if it would go to RiftHunt for a catalog that isn't saved. Taking back a switch in progress,
+    // choosing a catalog already saved, and choosing a source that asked to be left alone (which says so) send nothing.
+    private async Task AskToChoose(CardSourceKind source)
+    {
+        if (Catalog.Status.SwitchingTo is null && source != Catalog.ActiveSource && SendsRequest(source) && !Catalog.HasSavedCatalog(source) && Catalog.NotBeforeFor(source) is null)
+        {
+            _asking = new Ask(Refresh: false, source);
+            return;
+        }
+
+        await ChooseAsync(source);
+    }
+
+    private async Task ConfirmAsk()
+    {
+        if (_asking is { } ask)
+        {
+            _asking = null;
+            await (ask.Refresh ? RefreshAsync() : ChooseAsync(ask.Source));
+        }
+    }
+
+    private void DeclineAsk() => _asking = null;
+
     // Said under the section when a switch was refused, not failed: the catalog is as it was. Cleared by the next choice.
     private string? _messageTitle;
 
@@ -137,7 +201,7 @@
 
             if (Catalog.NotBefore is { } notBefore)
             {
-                facts.Add($"Next fetch allowed: {SettingsLabels.When(notBefore, Time.GetUtcNow())}");
+                facts.Add($"{Catalog.ActiveSource} asked Riftcaster to wait until {SettingsLabels.When(notBefore, Time.GetUtcNow())}");
             }
 
             return facts;
@@ -186,8 +250,8 @@
                 _message = "The card catalog is being fetched. Try again when it's done.";
                 break;
             case CardSwitchOutcome.TooSoon:
-                _messageTitle = $"{source} can't be asked yet";
-                _message = $"It asks to be fetched at most once a day, and Riftcaster keeps to that. {SettingsLabels.AvailableAgain(result.NotBefore!.Value, Time.GetUtcNow())}. The catalog stays {Catalog.ActiveSource}.";
+                _messageTitle = $"{source} asked Riftcaster to wait";
+                _message = $"It can be asked again {SettingsLabels.When(result.NotBefore!.Value, Time.GetUtcNow())}. The catalog stays {Catalog.ActiveSource}.";
                 break;
         }
 

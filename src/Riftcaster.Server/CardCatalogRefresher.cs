@@ -4,7 +4,8 @@ namespace Riftcaster.Server;
 
 /// <summary>
 /// Keeps the card catalog current while the server runs: fetches it when it's due, then once a
-/// day, so new sets appear by themselves. A failed fetch is retried sooner.
+/// day, so new sets appear by themselves. A failed fetch is tried again after a wait that depends on why it failed
+/// (<see cref="DelayAfterFailure"/>).
 /// </summary>
 /// <remarks>
 /// Runs in the background, so the server starts at once: the whole catalog can take minutes to
@@ -21,9 +22,19 @@ public sealed class CardCatalogRefresher(CardCatalog catalog, TimeProvider time,
     public static readonly TimeSpan RefreshInterval = TimeSpan.FromDays(1);
 
     /// <summary>
-    /// How long to wait after a failed fetch (e.g. no internet) before trying again.
+    /// How long to wait after a fetch that never got an answer (e.g. no internet) before trying again.
     /// </summary>
     public static readonly TimeSpan RetryInterval = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// The wait after a source first answers that it can't serve the request; each failure in a row doubles it.
+    /// </summary>
+    public static readonly TimeSpan FirstBackoff = TimeSpan.FromHours(1);
+
+    /// <summary>
+    /// The longest a failure makes the refresher wait, however many there have been.
+    /// </summary>
+    public static readonly TimeSpan LongestBackoff = TimeSpan.FromDays(1);
 
     /// <inheritdoc/>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -38,22 +49,36 @@ public sealed class CardCatalogRefresher(CardCatalog catalog, TimeProvider time,
             // A catalog fetched recently, e.g. before a restart, is good until it's due.
             var delay = DelayBeforeFirstFetch(catalog.FetchedAt, time.GetUtcNow(), catalog.NotBefore);
 
+            // How many fetches in a row the source answered that it couldn't serve. Kept in memory: a restart starts over.
+            var serverErrors = 0;
+
             while (true)
             {
                 if (await WaitAsync(delay, switched, stoppingToken))
                 {
                     delay = DelayBeforeFirstFetch(catalog.FetchedAt, time.GetUtcNow(), catalog.NotBefore);
+                    serverErrors = 0;
                     continue;
                 }
 
                 logger.LogInformation("Fetching the card catalog; this can take a few minutes.");
+                var failedBefore = catalog.Status.LastFailure;
                 var refreshed = await catalog.RefreshAsync(stoppingToken);
                 if (refreshed)
                 {
                     logger.LogInformation("Card catalog fetched: {Count} cards.", catalog.Cards.Count);
+                    serverErrors = 0;
                 }
 
-                delay = DelayAfterFetch(refreshed, catalog.NotBefore, time.GetUtcNow());
+                // A failure of this fetch, not one left from before: each is a new record.
+                var failure = catalog.Status.LastFailure is { } latest && !ReferenceEquals(latest, failedBefore) ? latest : null;
+                serverErrors = failure?.Kind == CardFailureKind.ServerError ? serverErrors + 1 : failure is null ? serverErrors : 0;
+                var after = failure is null ? DelayAfterFetch(refreshed) : DelayAfterFailure(failure.Kind, serverErrors);
+                delay = Longest(after, catalog.NotBefore, time.GetUtcNow());
+                if (failure is not null)
+                {
+                    logger.LogInformation("Trying the card catalog again in {Minutes:N0} minutes.", delay.TotalMinutes);
+                }
             }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -84,6 +109,20 @@ public sealed class CardCatalogRefresher(CardCatalog catalog, TimeProvider time,
     /// </summary>
     /// <param name="refreshed">Whether the fetch brought a new catalog.</param>
     public static TimeSpan DelayAfterFetch(bool refreshed) => refreshed ? RefreshInterval : RetryInterval;
+
+    /// <summary>
+    /// How long to wait before the next fetch after one failed: soon if it never got an answer, which costs the source
+    /// nothing, but an hour (doubling with each failure in a row, to a day) after the source said it couldn't serve the
+    /// request, and a day after an answer that would be the same again.
+    /// </summary>
+    /// <param name="kind">Why it failed.</param>
+    /// <param name="serverErrors">How many fetches in a row the source answered that it couldn't serve, this one included.</param>
+    public static TimeSpan DelayAfterFailure(CardFailureKind kind, int serverErrors) => kind switch
+    {
+        CardFailureKind.NotReached => RetryInterval,
+        CardFailureKind.ServerError => TimeSpan.FromTicks(Math.Min(FirstBackoff.Ticks << Math.Clamp(serverErrors - 1, 0, 5), LongestBackoff.Ticks)),
+        _ => RefreshInterval,
+    };
 
     /// <summary>
     /// How long to wait before the next fetch, as <see cref="DelayAfterFetch(bool)"/> but never before the source allows.

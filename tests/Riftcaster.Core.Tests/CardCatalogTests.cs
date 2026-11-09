@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using System.Net;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
@@ -209,8 +210,41 @@ public class CardCatalogTests
 
         await catalog.RefreshAsync(CancellationToken.None);
 
-        Assert.Equal(new CardFetchFailure(_time.GetUtcNow(), "Service unavailable"), catalog.Status.LastFailure);
+        Assert.Equal(new CardFetchFailure(_time.GetUtcNow(), "Service unavailable", CardFailureKind.NotReached), catalog.Status.LastFailure);
         Assert.False(catalog.Status.Fetching);
+    }
+
+    // What an automatic fetch does next depends on why it failed.
+    [Theory]
+    [InlineData(null, CardFailureKind.NotReached)]
+    [InlineData(HttpStatusCode.InternalServerError, CardFailureKind.ServerError)]
+    [InlineData(HttpStatusCode.ServiceUnavailable, CardFailureKind.ServerError)]
+    [InlineData(HttpStatusCode.TooManyRequests, CardFailureKind.ServerError)]
+    [InlineData(HttpStatusCode.RequestTimeout, CardFailureKind.ServerError)]
+    [InlineData(HttpStatusCode.NotFound, CardFailureKind.Unusable)]
+    [InlineData(HttpStatusCode.Forbidden, CardFailureKind.Unusable)]
+    public async Task AFailedFetch_SaysWhatKindOfFailureItWas(HttpStatusCode? status, CardFailureKind expected)
+    {
+        var catalog = CreateCatalog();
+        _source.Failure = new HttpRequestException("Failed", inner: null, status);
+
+        await catalog.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal(expected, catalog.Status.LastFailure!.Kind);
+    }
+
+    [Fact]
+    public async Task ATimeout_IsAServerError_AndAnAnswerThatIsNotCards_IsUnusable()
+    {
+        var catalog = CreateCatalog();
+
+        _source.Failure = new TaskCanceledException("The request timed out.");
+        await catalog.RefreshAsync(CancellationToken.None);
+        Assert.Equal(CardFailureKind.ServerError, catalog.Status.LastFailure!.Kind);
+
+        _source.Failure = new System.Text.Json.JsonException("Not cards.");
+        await catalog.RefreshAsync(CancellationToken.None);
+        Assert.Equal(CardFailureKind.Unusable, catalog.Status.LastFailure!.Kind);
     }
 
     [Fact]

@@ -123,14 +123,14 @@ public class CardCatalogApiTests
     }
 
     [Fact]
-    public async Task PutSource_OfASourceThatMayNotBeAskedYet_IsAConflict_AndNothingIsFetched()
+    public async Task PutSource_OfASourceThatAskedToBeLeftAlone_IsAConflict_AndNothingIsFetched()
     {
         await using var factory = await StartAsync(f => f.RiftHuntSource.NotBefore = DateTimeOffset.UtcNow.AddHours(5));
 
         var response = await Api(factory).SendRawAsync(HttpMethod.Put, "/api/cards/catalog/source", """{ "source": "RiftHunt" }""");
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Contains("may not be asked", await response.Content.ReadAsStringAsync());
+        Assert.Contains("asked Riftcaster to wait", await response.Content.ReadAsStringAsync());
         Assert.Equal(0, factory.RiftHuntSource.FetchCount);
     }
 
@@ -229,7 +229,7 @@ public class CardCatalogApiTests
     }
 
     [Fact]
-    public async Task Refresh_OfASourceThatMayNotBeAskedYet_IsAConflict()
+    public async Task Refresh_OfASourceThatAskedToBeLeftAlone_IsAConflict()
     {
         await using var factory = await StartAsync(f => f.RiftHuntStore.Save(new CardCatalogSnapshot([Jinx], DateTimeOffset.UtcNow)));
         var api = Api(factory);
@@ -239,7 +239,7 @@ public class CardCatalogApiTests
         var response = await api.SendRawAsync(HttpMethod.Post, "/api/cards/catalog/refresh");
 
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
-        Assert.Contains("RiftHunt may not be asked", await response.Content.ReadAsStringAsync());
+        Assert.Contains("RiftHunt asked Riftcaster to wait", await response.Content.ReadAsStringAsync());
         Assert.Equal(0, factory.RiftHuntSource.FetchCount);
     }
 

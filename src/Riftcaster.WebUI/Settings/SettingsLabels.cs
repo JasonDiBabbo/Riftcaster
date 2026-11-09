@@ -100,7 +100,7 @@ public static class SettingsLabels
     /// <param name="source">The card source.</param>
     public static string Describe(CardSourceKind source) => source switch
     {
-        CardSourceKind.RiftHunt => "RiftHunt serves their whole catalog as one download. At their request, users will only be allowed to download the card catalog once per day to avoid stress on their service.",
+        CardSourceKind.RiftHunt => "RiftHunt serves their whole catalog as one download. They ask users to be conservative with requests, so Riftcaster asks you to confirm before fetching it.",
         _ => "Riftcodex is fetched page by page, which can take a few minutes.",
     };
 
