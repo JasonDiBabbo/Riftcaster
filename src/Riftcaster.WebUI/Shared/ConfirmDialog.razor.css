@@ -39,6 +39,11 @@
   padding: 12px 20px 18px;
 }
 
+/* Both answers are the same height: the shared secondary button is shorter than the one that goes ahead. */
+.actions .button-secondary {
+  height: 34px;
+}
+
 .confirm-button {
   height: 34px;
   padding: 0 14px;

@@ -91,8 +91,6 @@ public class RiftcasterWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton<ICardStore>(riftcodexStore);
             services.RemoveAll<ICardSource>();
             services.AddSingleton<ICardSource>(riftcodexSource);
-            services.RemoveAll<ICardFetchHistory>();
-            services.AddSingleton<ICardFetchHistory, InMemoryCardFetchHistory>();
             services.RemoveAll<CardSourceSet>();
             services.AddSingleton(new CardSourceSet(
                 (CardSourceKind.Riftcodex, riftcodexSource, riftcodexStore),

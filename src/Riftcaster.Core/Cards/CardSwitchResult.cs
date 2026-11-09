@@ -20,7 +20,7 @@ public enum CardSwitchOutcome
     /// <summary>The new source couldn't be fetched, and the catalog is as it was.</summary>
     Failed,
 
-    /// <summary>The new source may not be asked yet (see <see cref="ICardSource.NotBefore"/>), and the catalog is as it was.</summary>
+    /// <summary>The new source asked to be left alone for now (see <see cref="ICardSource.NotBefore"/>), and the catalog is as it was.</summary>
     TooSoon,
 
     /// <summary>It was canceled, and the catalog is as it was.</summary>

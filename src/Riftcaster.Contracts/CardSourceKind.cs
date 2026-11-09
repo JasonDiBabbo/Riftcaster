@@ -11,6 +11,6 @@ public enum CardSourceKind
     /// <summary>Riftcodex, fetched page by page.</summary>
     Riftcodex,
 
-    /// <summary>RiftHunt, fetched as one download at most once a day.</summary>
+    /// <summary>RiftHunt, fetched as one download. It asks that this not be done more than about once a day.</summary>
     RiftHunt,
 }

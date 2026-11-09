@@ -228,11 +228,7 @@ public partial class Program
         builder.Services.AddSingleton<TimerService>();
 
         // The card databases the catalog can come from, each keeping its own saved catalog (cards.riftcodex.json and
-        // cards.rifthunt.json), and what each remembers about its fetches between runs (RiftHunt may only be asked once a day).
-        builder.Services.AddSingleton<ICardFetchHistory>(services => new JsonFileCardFetchHistory(
-            Path.Combine(dataDirectory, "cardSources.json"),
-            services.GetRequiredService<ILogger<JsonFileCardFetchHistory>>()));
-
+        // cards.rifthunt.json).
         // RiftHunt is only asked for its catalog by a copy that isn't being developed: in Development the sample built
         // into Riftcaster is read instead, unless CardSources:RiftHunt:Live is on, so that running the server while
         // working on it doesn't send RiftHunt requests.
@@ -282,7 +278,6 @@ public partial class Program
                                 },
                             },
                         },
-                        services.GetRequiredService<ICardFetchHistory>(),
                         services.GetRequiredService<TimeProvider>(),
                         services.GetRequiredService<ILogger<RiftHuntCardSource>>())
                     : new RiftHuntSampleCardSource(services.GetRequiredService<ILogger<RiftHuntSampleCardSource>>()),

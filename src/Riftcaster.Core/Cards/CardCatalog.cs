@@ -229,7 +229,7 @@ public sealed class CardCatalog
     /// <remarks>
     /// Never throws for a failed fetch (unreachable, an error, a timeout, or an empty or suspiciously
     /// small catalog: see <see cref="SmallestAcceptedShare"/>): it logs it and keeps the cards it
-    /// has. Does nothing if a fetch is already running, or the source may not be asked yet (see <see cref="NotBefore"/>).
+    /// has. Does nothing if a fetch is already running, or the source asked to be left alone for now (see <see cref="NotBefore"/>).
     /// </remarks>
     /// <param name="cancellationToken">Cancels the fetch, e.g. when the server shuts down.</param>
     /// <returns>Whether a new catalog was swapped in.</returns>
@@ -247,7 +247,7 @@ public sealed class CardCatalog
             var store = _sources.Store(_active);
             if (source.NotBefore is { } notBefore)
             {
-                _logger.LogInformation("Not fetching the card catalog: its source may not be asked again until {NotBefore:u}.", notBefore);
+                _logger.LogInformation("Not fetching the card catalog: its source asked to be left alone until {NotBefore:u}.", notBefore);
                 return false;
             }
 
@@ -260,20 +260,20 @@ public sealed class CardCatalog
             }
             catch (CardFetchNotAllowedYetException exception)
             {
-                _logger.LogInformation("Not fetching the card catalog: its source may not be asked again until {NotBefore:u}.", exception.NotBefore);
+                _logger.LogInformation("Not fetching the card catalog: its source asked to be left alone until {NotBefore:u}.", exception.NotBefore);
                 return false;
             }
             catch (Exception exception) when (IsFetchFailure(exception) && !cancellationToken.IsCancellationRequested)
             {
                 _logger.LogWarning(exception, "Couldn't fetch the card catalog; keeping the {Count} cards already loaded.", Cards.Count);
-                Fail(exception.Message);
+                Fail(exception.Message, KindOf(exception));
                 return false;
             }
 
             if (cards.Count == 0)
             {
                 _logger.LogWarning("The card source returned no cards; keeping the {Count} cards already loaded.", Cards.Count);
-                Fail("The card source returned no cards.");
+                Fail("The card source returned no cards.", CardFailureKind.Unusable);
                 return false;
             }
 
@@ -282,7 +282,7 @@ public sealed class CardCatalog
                 _logger.LogWarning(
                     "The card source returned only {Fetched} cards, well short of the {Count} already loaded; keeping those.",
                     cards.Count, Cards.Count);
-                Fail($"The card source returned only {cards.Count} cards, well short of the {Cards.Count} already loaded.");
+                Fail($"The card source returned only {cards.Count} cards, well short of the {Cards.Count} already loaded.", CardFailureKind.Unusable);
                 return false;
             }
 
@@ -316,7 +316,7 @@ public sealed class CardCatalog
     /// then, and after if the fetch fails.
     /// </summary>
     /// <remarks>
-    /// Doesn't ask for more than the source allows: one that may not be asked yet isn't (<see cref="CardSwitchOutcome.TooSoon"/>).
+    /// Doesn't ask a source that has asked to be left alone for now: it isn't (<see cref="CardSwitchOutcome.TooSoon"/>).
     /// A catalog from a new source isn't held to <see cref="SmallestAcceptedShare"/>, only to not being empty.
     /// </remarks>
     /// <param name="target">The source to move to.</param>
@@ -376,7 +376,7 @@ public sealed class CardCatalog
             catch (Exception exception) when (IsFetchFailure(exception) && !cancellation.IsCancellationRequested)
             {
                 _logger.LogWarning(exception, "Couldn't fetch the {Source} card catalog; keeping the {Count} cards already loaded.", target, Cards.Count);
-                return Failed(target, exception.Message);
+                return Failed(target, exception.Message, KindOf(exception));
             }
             catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
             {
@@ -388,7 +388,7 @@ public sealed class CardCatalog
             if (cards.Count == 0)
             {
                 _logger.LogWarning("The {Source} card source returned no cards; keeping the {Count} cards already loaded.", target, Cards.Count);
-                return Failed(target, "The card source returned no cards.");
+                return Failed(target, "The card source returned no cards.", CardFailureKind.Unusable);
             }
 
             var snapshot = new CardCatalogSnapshot(cards, _time.GetUtcNow());
@@ -434,15 +434,15 @@ public sealed class CardCatalog
         Changed?.Invoke();
     }
 
-    private CardSwitchResult Failed(CardSourceKind target, string reason)
+    private CardSwitchResult Failed(CardSourceKind target, string reason, CardFailureKind kind)
     {
-        SetStatus(new CardCatalogStatus(Fetching: false, Progress: null, new CardFetchFailure(_time.GetUtcNow(), reason, target)));
+        SetStatus(new CardCatalogStatus(Fetching: false, Progress: null, new CardFetchFailure(_time.GetUtcNow(), reason, kind, target)));
         return new CardSwitchResult(CardSwitchOutcome.Failed, reason);
     }
 
     private CardSwitchResult TooSoon(CardSourceKind target, DateTimeOffset notBefore)
     {
-        var reason = $"The {target} source may not be asked again until {notBefore:u}.";
+        var reason = $"The {target} source asked Riftcaster to wait until {notBefore:u}.";
         _logger.LogInformation("Not switching to the {Source} card catalog: {Reason}", target, reason);
         SetStatus(CardCatalogStatus.Idle);
         return new CardSwitchResult(CardSwitchOutcome.TooSoon, reason, notBefore);
@@ -454,13 +454,22 @@ public sealed class CardCatalog
         StatusChanged?.Invoke();
     }
 
-    private void Fail(string reason)
+    private void Fail(string reason, CardFailureKind kind)
     {
-        SetStatus(new CardCatalogStatus(Fetching: false, Progress: null, new CardFetchFailure(_time.GetUtcNow(), reason)));
+        SetStatus(new CardCatalogStatus(Fetching: false, Progress: null, new CardFetchFailure(_time.GetUtcNow(), reason, kind)));
     }
 
     // HttpClient's own timeout surfaces as a TaskCanceledException (an OperationCanceledException)
     // even though nobody canceled; RefreshAsync tells the two apart with the token.
+    // What sort of failure it was, for deciding how soon to try again.
+    private static CardFailureKind KindOf(Exception exception) => exception switch
+    {
+        HttpRequestException { StatusCode: null } => CardFailureKind.NotReached,
+        HttpRequestException { StatusCode: { } status } when (int)status >= 500 || status is System.Net.HttpStatusCode.TooManyRequests or System.Net.HttpStatusCode.RequestTimeout => CardFailureKind.ServerError,
+        OperationCanceledException => CardFailureKind.ServerError, // A timeout: the request may have gone out
+        _ => CardFailureKind.Unusable,
+    };
+
     private static bool IsFetchFailure(Exception exception) =>
         exception is HttpRequestException or JsonException or OperationCanceledException;
 

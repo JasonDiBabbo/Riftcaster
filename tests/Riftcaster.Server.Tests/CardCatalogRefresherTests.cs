@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using System.Net;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Time.Testing;
 using Riftcaster.Contracts;
 using Riftcaster.Core.Cards;
@@ -84,6 +85,67 @@ public sealed class CardCatalogRefresherTests : IAsyncDisposable
         Assert.Equal(TimeSpan.FromMinutes(15), CardCatalogRefresher.DelayAfterFetch(refreshed: false, notBefore: null, Now));
     }
 
+    // How soon to try again depends on why it failed: soon if nothing answered, which costs the source nothing, later
+    // (doubling) if it said it couldn't serve the request, and a day if its answer would be the same again.
+    [Theory]
+    [InlineData(CardFailureKind.NotReached, 1, 15)]
+    [InlineData(CardFailureKind.NotReached, 7, 15)]
+    [InlineData(CardFailureKind.ServerError, 1, 60)]
+    [InlineData(CardFailureKind.ServerError, 2, 120)]
+    [InlineData(CardFailureKind.ServerError, 3, 240)]
+    [InlineData(CardFailureKind.ServerError, 5, 960)]
+    [InlineData(CardFailureKind.ServerError, 6, 1440)]
+    [InlineData(CardFailureKind.ServerError, 12, 1440)]
+    [InlineData(CardFailureKind.Unusable, 1, 1440)]
+    public void DelayAfterFailure_DependsOnWhyItFailed(CardFailureKind kind, int serverErrors, int expectedMinutes)
+    {
+        Assert.Equal(TimeSpan.FromMinutes(expectedMinutes), CardCatalogRefresher.DelayAfterFailure(kind, serverErrors));
+    }
+
+    [Fact]
+    public async Task AFetchThatGotNoAnswer_IsTriedAgainAfterFifteenMinutes()
+    {
+        var time = new FakeTimeProvider(Now);
+        var failing = new FailingSource(new HttpRequestException("No such host is known."));
+        var catalog = new CardCatalog(new InMemoryCardStore(), failing, time, NullLogger<CardCatalog>.Instance);
+        _refresher = new CardCatalogRefresher(catalog, time, NullLogger<CardCatalogRefresher>.Instance);
+        await _refresher.StartAsync(CancellationToken.None);
+        await WaitUntilAsync(() => failing.FetchCount == 1);
+        await Task.Delay(150); // Until it has gone to sleep: the clock must not move before then
+
+        time.Advance(TimeSpan.FromMinutes(16));
+
+        await WaitUntilAsync(() => failing.FetchCount == 2);
+    }
+
+    // The source said it couldn't serve the request: an hour, not fifteen minutes, then twice that.
+    [Fact]
+    public async Task AFetchTheSourceAnsweredWithAnError_IsTriedAgainAfterAnHour_ThenTwo()
+    {
+        var time = new FakeTimeProvider(Now);
+        var failing = new FailingSource(new HttpRequestException("Server error", inner: null, HttpStatusCode.InternalServerError));
+        var catalog = new CardCatalog(new InMemoryCardStore(), failing, time, NullLogger<CardCatalog>.Instance);
+        _refresher = new CardCatalogRefresher(catalog, time, NullLogger<CardCatalogRefresher>.Instance);
+        await _refresher.StartAsync(CancellationToken.None);
+        await WaitUntilAsync(() => failing.FetchCount == 1);
+        await Task.Delay(150); // Until it has gone to sleep: the clock must not move before then
+
+        time.Advance(TimeSpan.FromMinutes(16));
+        await Task.Delay(150);
+        Assert.Equal(1, failing.FetchCount); // Not yet
+
+        time.Advance(TimeSpan.FromMinutes(45));
+        await WaitUntilAsync(() => failing.FetchCount == 2);
+        await Task.Delay(150);
+
+        time.Advance(TimeSpan.FromMinutes(90));
+        await Task.Delay(150);
+        Assert.Equal(2, failing.FetchCount); // Two hours this time
+
+        time.Advance(TimeSpan.FromMinutes(31));
+        await WaitUntilAsync(() => failing.FetchCount == 3);
+    }
+
     // The service itself, for what doesn't depend on timing.
     [Fact]
     public async Task NothingSaved_FetchesAtOnce()
@@ -150,6 +212,19 @@ public sealed class CardCatalogRefresherTests : IAsyncDisposable
         limited.NotBefore = null;
         time.Advance(TimeSpan.FromHours(2));
         await WaitUntilAsync(() => limited.FetchCount == 1);
+    }
+
+    private sealed class FailingSource(Exception failure) : ICardSource
+    {
+        private int _fetchCount;
+
+        public int FetchCount => _fetchCount;
+
+        public Task<IReadOnlyList<Card>> FetchAllAsync(IProgress<CardFetchProgress>? progress, CancellationToken cancellationToken)
+        {
+            Interlocked.Increment(ref _fetchCount);
+            return Task.FromException<IReadOnlyList<Card>>(failure);
+        }
     }
 
     private sealed class LimitedSource : ICardSource

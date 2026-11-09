@@ -43,7 +43,7 @@ public static class CardCatalogEndpoints
 
                 if (cards.NotBeforeFor(source) is { } notBefore)
                 {
-                    return ApiProblems.Conflict($"{source} may not be asked for its catalog until {notBefore:u}.");
+                    return ApiProblems.Conflict($"{source} asked Riftcaster to wait until {notBefore:u} before asking for its catalog again.");
                 }
 
                 // Fetched in the background: it can take minutes, and the answer to this request says it has begun.
@@ -61,7 +61,7 @@ public static class CardCatalogEndpoints
                 return TypedResults.Accepted((string?)null, CardCatalogInfo.Of(cards));
             })
             .WithSummary("Switch the card catalog to another source")
-            .WithDescription("A source whose catalog is already saved is in use at once (200). Otherwise its catalog is fetched in the background (202; follow it with GET /api/cards/catalog) while the catalog in use stays as it is, and the source is switched to once the fetch has worked. 409 if a fetch is running, or the source may not be asked yet: RiftHunt asks to be fetched at most once a day.");
+            .WithDescription("A source whose catalog is already saved is in use at once (200). Otherwise its catalog is fetched in the background (202; follow it with GET /api/cards/catalog) while the catalog in use stays as it is, and the source is switched to once the fetch has worked. 409 if a fetch is running, or the source has asked Riftcaster to wait (RiftHunt, with Retry-After). RiftHunt asks clients not to fetch its whole catalog more than about once a day, so be conservative.");
 
         catalog.MapDelete("/source", (CardCatalog cards) =>
             {
@@ -85,7 +85,7 @@ public static class CardCatalogEndpoints
 
                 if (cards.NotBefore is { } notBefore)
                 {
-                    return ApiProblems.Conflict($"{cards.ActiveSource} may not be asked for its catalog again until {notBefore:u}.");
+                    return ApiProblems.Conflict($"{cards.ActiveSource} asked Riftcaster to wait until {notBefore:u} before asking for its catalog again.");
                 }
 
                 _ = Task.Run(async () =>
@@ -102,7 +102,7 @@ public static class CardCatalogEndpoints
                 return TypedResults.Accepted((string?)null, CardCatalogInfo.Of(cards));
             })
             .WithSummary("Fetch the card catalog again")
-            .WithDescription("Fetches a new catalog from the source in use, in the background (202; follow it with GET /api/cards/catalog). 409 if a fetch is running, the source may not be asked yet, or the catalog is the built-in sample that stands in for RiftHunt in Development.");
+            .WithDescription("Fetches a new catalog from the source in use, in the background (202; follow it with GET /api/cards/catalog). 409 if a fetch is running, the source has asked Riftcaster to wait, or the catalog is the built-in sample that stands in for RiftHunt in Development.");
 
         return app;
     }

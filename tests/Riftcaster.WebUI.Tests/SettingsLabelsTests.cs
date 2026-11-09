@@ -115,6 +115,6 @@ public class SettingsLabelsTests
     public void TheCardSourceDescriptions_AreTheOnesChosen()
     {
         Assert.Equal("Riftcodex is fetched page by page, which can take a few minutes.", SettingsLabels.Describe(CardSourceKind.Riftcodex));
-        Assert.Equal("RiftHunt serves their whole catalog as one download. At their request, users will only be allowed to download the card catalog once per day to avoid stress on their service.", SettingsLabels.Describe(CardSourceKind.RiftHunt));
+        Assert.Equal("RiftHunt serves their whole catalog as one download. They ask users to be conservative with requests, so Riftcaster asks you to confirm before fetching it.", SettingsLabels.Describe(CardSourceKind.RiftHunt));
     }
 }

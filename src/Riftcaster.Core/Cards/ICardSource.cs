@@ -24,8 +24,9 @@ public interface ICardSource
     /// The earliest time the source may be asked for its cards, or <see langword="null"/> for any time.
     /// </summary>
     /// <remarks>
-    /// For a source that asks to be fetched no more than once a day: it enforces that itself (asking early throws
-    /// <see cref="CardFetchNotAllowedYetException"/>), and says here when it may be asked, so nothing asks early.
+    /// For a source that has said when to ask again (RiftHunt's Retry-After): it enforces that itself (asking early
+    /// throws <see cref="CardFetchNotAllowedYetException"/>), and says here when it may be asked, so nothing asks early.
+    /// A source has no limit of its own beyond that: how often to ask is up to whoever asks.
     /// </remarks>
     DateTimeOffset? NotBefore => null;
 
